@@ -71,16 +71,16 @@ export default function SavingsPage() {
 
     // Load data in parallel
     try {
-      const [savings, history, goals, momChange] = await Promise.all([
+      const [savings, history, goalsResult, momChange] = await Promise.all([
         getCurrentSavings(currentUser.id).catch(() => 0),
         getSavingsHistory(currentUser.id, 12).catch(() => []),
-        getSavingsGoalsWithProgress(currentUser.id).catch(() => ({ data: [] })),
+        getSavingsGoalsWithProgress(currentUser.id).catch(() => ({ data: [], error: null })),
         getMonthOverMonthChange(currentUser.id).catch(() => ({ change: 0, percentage: 0 })),
       ]);
-      
+
       setCurrentSavings(savings);
       setSavingsHistory(history);
-      setGoalsWithProgress(goals.data || goals || []);
+      setGoalsWithProgress(goalsResult.data || []);
       setMonthOverMonth(momChange);
     } catch (error) {
       console.error('Error loading savings data:', error);
@@ -95,7 +95,7 @@ export default function SavingsPage() {
     if (!error) {
       setShowAddModal(false);
       const { data: goals } = await getSavingsGoalsWithProgress(user.id);
-      setGoalsWithProgress(goals.data || goals || []);
+      setGoalsWithProgress(goals || []);
     }
   };
 
@@ -118,7 +118,7 @@ export default function SavingsPage() {
       setSelectedGoal(null);
       // Reload goals data
       const { data: goals } = await getSavingsGoalsWithProgress(user.id);
-      setGoalsWithProgress(goals.data || goals || []);
+      setGoalsWithProgress(goals || []);
     } catch (err) {
       console.error('Unexpected error updating goal:', err);
       alert('An unexpected error occurred while updating the goal');
