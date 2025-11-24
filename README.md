@@ -334,7 +334,7 @@ For issues or questions:
 1. Check documentation files
 2. Review Supabase dashboard for data
 3. Check browser console for errors
-4. Verify environment variables
+4. Verify environment variables!
 
 ---
 
