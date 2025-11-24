@@ -102,6 +102,7 @@ export default function SettingsPage() {
     router.push('/login');
   };
 
+  // Early return for loading state
   if (loading) {
     return (
       <DashboardLayout user={user}>
@@ -117,6 +118,7 @@ export default function SettingsPage() {
     );
   }
 
+  // Main return
   return (
     <DashboardLayout user={user}>
       {/* Toast Notification */}
@@ -473,10 +475,6 @@ export default function SettingsPage() {
                       Refresh Location
                     </button>
                   </div>
-                </div>
-                    label="Hijri Calendar"
-                    description="Show Islamic dates alongside Gregorian dates"
-                  />
                 </div>
               </div>
             </div>
