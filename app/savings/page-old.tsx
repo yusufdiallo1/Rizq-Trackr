@@ -350,6 +350,8 @@ export default function SavingsPage() {
                           user_id: user?.id || '',
                           goal_name: goal.goalName,
                           target_amount: goal.targetAmount,
+                          icon: null,
+                          target_date: null,
                           created_at: '',
                         });
                         setShowEditModal(true);
@@ -373,6 +375,8 @@ export default function SavingsPage() {
                           user_id: user?.id || '',
                           goal_name: goal.goalName,
                           target_amount: goal.targetAmount,
+                          icon: null,
+                          target_date: null,
                           created_at: '',
                         });
                         setShowDeleteModal(true);
