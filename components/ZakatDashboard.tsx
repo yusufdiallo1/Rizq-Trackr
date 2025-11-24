@@ -165,7 +165,7 @@ export function ZakatDashboard({ userId, currency = 'USD' }: ZakatDashboardProps
             <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-blue-900/30' : 'bg-blue-50'}`}>
               <p className={`text-xs font-medium ${mutedColor} mb-1`}>Days Until Zakat Date</p>
               <p className={`text-xl sm:text-2xl font-bold text-blue-500`}>
-                {eligibility?.daysUntilZakatDate !== null ? eligibility.daysUntilZakatDate : '--'}
+                {eligibility?.daysUntilZakatDate !== null && eligibility?.daysUntilZakatDate !== undefined ? eligibility.daysUntilZakatDate : '--'}
               </p>
             </div>
           </div>
@@ -175,7 +175,7 @@ export function ZakatDashboard({ userId, currency = 'USD' }: ZakatDashboardProps
             <div className="flex items-center justify-between">
               <div>
                 <p className={`text-sm font-medium ${mutedColor} mb-1`}>Next Zakat Date</p>
-                {eligibility?.nextZakatDateHijri ? (
+                {eligibility && eligibility.nextZakatDateHijri ? (
                   <div>
                     <p className={`text-lg font-bold text-amber-600`}>
                       {formatHijriDate(eligibility.nextZakatDateHijri)}
