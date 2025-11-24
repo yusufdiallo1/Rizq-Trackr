@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { signOut, getCurrentUser } from '@/lib/auth';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { useLanguage, Language } from '@/lib/contexts/LanguageContext';
+import { Logo } from '@/components/Logo';
 
 // Help Dropdown Component
 function HelpDropdown({ onClose }: { onClose: () => void }) {
@@ -270,14 +271,9 @@ export function MobileHamburgerNav({ user, isOpen, onClose }: MobileHamburgerNav
           >
             {/* Top row: logo and controls */}
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
-                  <span className="text-lg">🕌</span>
-                </div>
-                <span className="font-heading font-bold text-lg text-white">
-                  Rizq Trackr
-                </span>
-              </div>
+              <Link href="/dashboard" className="flex items-center">
+                <Logo size={36} showText={true} />
+              </Link>
               <div className="flex items-center gap-2">
                 {/* Close button (X) in header - 44x44px tap target - Icon only */}
                 <button

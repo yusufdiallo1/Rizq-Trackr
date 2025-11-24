@@ -24,6 +24,7 @@ import {
   ZakatYearlyComparison,
 } from '@/lib/zakat';
 import { formatHijriDate, gregorianToHijri } from '@/lib/hijri-calendar';
+import { ZakatDashboard } from '@/components/ZakatDashboard';
 
 export default function ZakatPage() {
   const router = useRouter();
@@ -295,6 +296,13 @@ export default function ZakatPage() {
                   </div>
                 </div>
               </motion.div>
+
+              {/* Zakat Dashboard - Status, Nisab, Date Picker */}
+              {user && (
+                <div className="my-6">
+                  <ZakatDashboard userId={user.id} currency="USD" />
+                </div>
+              )}
 
               {/* Vertical Stepper Line */}
               <div 
@@ -633,7 +641,7 @@ export default function ZakatPage() {
                       {/* Breakdown table - Glass rows */}
                       <div className="rounded-2xl backdrop-blur-md bg-white/60 border border-white/50 overflow-hidden shadow-lg">
                         <div className="p-6">
-                          <h3 className={`font-bold ${getTextColor(theme)} text-lg mb-4 flex items-center gap-2`}>
+                          <h3 className="font-bold text-black text-lg mb-4 flex items-center gap-2">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                             </svg>
@@ -641,16 +649,16 @@ export default function ZakatPage() {
                           </h3>
                           <div className="space-y-3">
                             <div className="flex justify-between items-center py-3 px-4 rounded-xl bg-white/40 backdrop-blur-sm border-b border-white/50">
-                              <span className={`${getTextColor(theme)} font-medium`}>Total Zakatable Wealth</span>
-                              <span className={`font-mono font-bold ${getTextColor(theme)} text-lg`}>{formatCurrency(calculation.totalZakatableWealth)}</span>
+                              <span className="text-black font-medium">Total Zakatable Wealth</span>
+                              <span className="font-mono font-bold text-black text-lg">{formatCurrency(calculation.totalZakatableWealth)}</span>
                             </div>
                             <div className="flex justify-between items-center py-3 px-4 rounded-xl bg-white/40 backdrop-blur-sm border-b border-white/50">
-                              <span className={`${getTextColor(theme)} font-medium`}>Zakat Rate</span>
-                              <span className="font-bold text-secondary text-lg">2.5%</span>
+                              <span className="text-black font-medium">Zakat Rate</span>
+                              <span className="font-bold text-black text-lg">2.5%</span>
                             </div>
                             <div className="flex justify-between items-center py-4 px-5 rounded-xl bg-gradient-to-r from-emerald-100/80 to-teal-100/80 backdrop-blur-md border-2 border-emerald-500 shadow-md">
-                              <span className={`font-bold ${theme === 'dark' ? 'text-emerald-300' : 'text-emerald-900'} text-lg`}>Zakat Due</span>
-                              <span className="font-mono font-bold text-emerald-600 text-2xl">{formatCurrency(calculation.zakatDue)}</span>
+                              <span className="font-bold text-black text-lg">Zakat Due</span>
+                              <span className="font-mono font-bold text-black text-2xl">{formatCurrency(calculation.zakatDue)}</span>
                             </div>
                           </div>
                         </div>

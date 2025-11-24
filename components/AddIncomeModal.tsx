@@ -5,6 +5,9 @@ import { motion } from 'framer-motion';
 import { scaleInVariants, fadeVariants } from '@/lib/animations';
 import { IncomeImageUpload } from './IncomeImageUpload';
 import { IncomeDocumentData, toHijriDate } from '@/lib/income-scanner';
+import { DualCalendarPicker } from './DualCalendarPicker';
+import { useLocation } from '@/lib/contexts/LocationContext';
+import { gregorianToHijri, getCurrentTimeWithTimezone } from '@/lib/hijri-calendar';
 
 interface AddIncomeModalProps {
   isOpen: boolean;
@@ -18,13 +21,24 @@ interface AddIncomeModalProps {
     payer_name?: string;
     payment_method?: string;
     document_number?: string;
+    location_latitude?: number | null;
+    location_longitude?: number | null;
+    location_address?: string | null;
+    location_city?: string | null;
+    location_country?: string | null;
+    date_hijri?: string | null;
+    time?: string | null;
+    timezone?: string | null;
   }) => void;
 }
 
 export function AddIncomeModal({ isOpen, onClose, onSave }: AddIncomeModalProps) {
+  const { location } = useLocation();
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(new Date());
+  const [hijriDate, setHijriDate] = useState(gregorianToHijri(new Date()));
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [notes, setNotes] = useState('');
   const [isZakatable, setIsZakatable] = useState(true);
   const [payerName, setPayerName] = useState('');
@@ -41,7 +55,11 @@ export function AddIncomeModal({ isOpen, onClose, onSave }: AddIncomeModalProps)
   // Handle scanned data
   const handleScannedData = (data: IncomeDocumentData) => {
     if (data.amount) setAmount(data.amount.toString());
-    if (data.date) setDate(data.date);
+    if (data.date) {
+      const scannedDate = new Date(data.date);
+      setDate(scannedDate);
+      setHijriDate(gregorianToHijri(scannedDate));
+    }
     if (data.suggestedCategory) setCategory(data.suggestedCategory);
     if (data.payerName) setPayerName(data.payerName);
     if (data.paymentMethod) setPaymentMethod(data.paymentMethod);
@@ -49,6 +67,12 @@ export function AddIncomeModal({ isOpen, onClose, onSave }: AddIncomeModalProps)
     if (data.suggestedNotes) setNotes(data.suggestedNotes);
     setScanConfidence(data.confidence);
     setShowScanner(false);
+  };
+
+  const handleDateChange = (newDate: Date, hijri: { year: number; month: number; day: number }) => {
+    setDate(newDate);
+    setHijriDate(hijri);
+    setShowDatePicker(false);
   };
 
   const categories = ['Salary', 'Business', 'Freelance', 'Gifts', 'Investments', 'Other'];
@@ -119,7 +143,7 @@ export function AddIncomeModal({ isOpen, onClose, onSave }: AddIncomeModalProps)
 
     if (!date) {
       newErrors.date = 'Date is required';
-    } else if (new Date(date) > new Date()) {
+    } else if (date > new Date()) {
       newErrors.date = 'Date cannot be in the future';
     }
 
@@ -139,21 +163,35 @@ export function AddIncomeModal({ isOpen, onClose, onSave }: AddIncomeModalProps)
     }
 
     setSaving(true);
+    // Get time and timezone
+    const { time, timezone } = getCurrentTimeWithTimezone();
+    const dateHijriString = `${hijriDate.year}-${String(hijriDate.month).padStart(2, '0')}-${String(hijriDate.day).padStart(2, '0')}`;
+
     onSave({
       amount: parseFloat(amount),
       category,
-      date,
+      date: date.toISOString().split('T')[0],
       notes,
       is_zakatable: isZakatable,
       payer_name: payerName || undefined,
       payment_method: paymentMethod || undefined,
       document_number: documentNumber || undefined,
+      location_latitude: location?.latitude || null,
+      location_longitude: location?.longitude || null,
+      location_address: location?.formattedAddress || null,
+      location_city: location?.city || null,
+      location_country: location?.country || null,
+      date_hijri: dateHijriString,
+      time,
+      timezone,
     });
 
     // Reset form
     setAmount('');
     setCategory('');
-    setDate(new Date().toISOString().split('T')[0]);
+    const now = new Date();
+    setDate(now);
+    setHijriDate(gregorianToHijri(now));
     setNotes('');
     setIsZakatable(true);
     setPayerName('');
@@ -167,7 +205,9 @@ export function AddIncomeModal({ isOpen, onClose, onSave }: AddIncomeModalProps)
   const handleCancel = () => {
     setAmount('');
     setCategory('');
-    setDate(new Date().toISOString().split('T')[0]);
+    const now = new Date();
+    setDate(now);
+    setHijriDate(gregorianToHijri(now));
     setNotes('');
     setIsZakatable(true);
     setPayerName('');
@@ -422,17 +462,10 @@ export function AddIncomeModal({ isOpen, onClose, onSave }: AddIncomeModalProps)
               {/* Date Picker */}
           <div>
                 <label className="block text-white/70 text-sm mb-2">Date</label>
-            <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                    className="input-animated w-full pl-12 pr-4 py-4 text-white rounded-2xl transition-all mobile-input tablet-input"
+                <button
+                  type="button"
+                  onClick={() => setShowDatePicker(true)}
+                  className="input-animated w-full pl-12 pr-4 py-4 text-white rounded-2xl transition-all mobile-input tablet-input text-left flex items-center justify-between"
                     style={{
                       backdropFilter: 'blur(15px)',
                       background: 'rgba(255, 255, 255, 0.1)',
@@ -444,14 +477,26 @@ export function AddIncomeModal({ isOpen, onClose, onSave }: AddIncomeModalProps)
                     aria-required="true"
                     aria-invalid={!!errors.date}
                     aria-describedby={errors.date ? 'date-error' : undefined}
-                    onFocus={(e) => {
-                      e.target.style.border = '2px solid #06b6d4';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-                    }}
-              />
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-white/40 pointer-events-none">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-white font-medium">
+                        {date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      </span>
+                      <span className="text-white/60 text-xs">
+                        {hijriDate.day} {['Muharram', 'Safar', 'Rabi\' al-awwal', 'Rabi\' al-thani', 'Jumada al-awwal', 'Jumada al-thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'][hijriDate.month - 1]} {hijriDate.year} AH
+                      </span>
+                    </div>
             </div>
+                  <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
             {errors.date && (
                   <p id="date-error" className="text-red-400 text-xs mt-2 flex items-center gap-1" role="alert" aria-live="polite">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -725,6 +770,19 @@ export function AddIncomeModal({ isOpen, onClose, onSave }: AddIncomeModalProps)
           onDataExtracted={handleScannedData}
           onClose={() => setShowScanner(false)}
         />
+      )}
+
+      {/* Dual Calendar Picker Modal */}
+      {showDatePicker && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <DualCalendarPicker
+            value={date}
+            onChange={handleDateChange}
+            onClose={() => setShowDatePicker(false)}
+            label="Select Date"
+            showTime={false}
+          />
+        </div>
       )}
     </>
   );

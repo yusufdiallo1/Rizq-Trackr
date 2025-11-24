@@ -242,6 +242,32 @@ export async function getNisabThreshold(currency: string = 'USD'): Promise<numbe
 }
 
 /**
+ * Get both Nisab thresholds for display
+ */
+export async function getDualNisabThresholds(currency: string = 'USD'): Promise<{
+  goldBased: number;
+  silverBased: number;
+  goldPricePerGram: number;
+  silverPricePerGram: number;
+  currency: string;
+  date: string;
+  lastUpdated: string;
+}> {
+  const prices = await fetchMetalPrices(currency);
+  const nisab = await calculateNisab(currency);
+
+  return {
+    goldBased: nisab.goldBased,
+    silverBased: nisab.silverBased,
+    goldPricePerGram: prices.goldPerGram,
+    silverPricePerGram: prices.silverPerGram,
+    currency: prices.currency,
+    date: prices.date,
+    lastUpdated: new Date().toISOString(),
+  };
+}
+
+/**
  * Convert Nisab value to different currency
  * Note: This is a simplified conversion - in production, use a proper currency conversion API
  */

@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser, User, signOut } from '@/lib/auth';
-import { Navbar } from '@/components/layout/Navbar';
-import { PageContainer } from '@/components/layout/PageContainer';
-import { IslamicPattern } from '@/components/layout/IslamicPattern';
+import { DashboardLayout, PageContainer } from '@/components/layout';
 import { useTheme } from '@/lib/contexts/ThemeContext';
+import { useLocation } from '@/lib/contexts/LocationContext';
 import { getTextColor, getMutedTextColor } from '@/lib/utils';
 import { EditProfileModal } from '@/components/EditProfileModal';
 import { ChangePasswordModal } from '@/components/ChangePasswordModal';
@@ -28,8 +27,11 @@ export default function SettingsPage() {
   const [email, setEmail] = useState('');
 
   // Settings state
+  const { location, refreshLocation, requestPermission, permissionGranted } = useLocation();
   const [currency, setCurrency] = useState('USD');
-  const [hijriCalendar, setHijriCalendar] = useState(false);
+  const [hijriCalendar, setHijriCalendar] = useState(true);
+  const [showHijriFirst, setShowHijriFirst] = useState(false);
+  const [autoDetectLocation, setAutoDetectLocation] = useState(true);
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
     zakatReminders: true,
@@ -80,7 +82,6 @@ export default function SettingsPage() {
     showToast('Password updated successfully!', 'success');
   };
 
-
   const handleCurrencySelect = (selectedCurrency: string) => {
     setCurrency(selectedCurrency);
     showToast('Currency updated!', 'success');
@@ -103,33 +104,21 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <>
-        <IslamicPattern />
-        <Navbar user={user} />
-        <div 
-          className="min-h-screen pt-20"
-          style={{
-            background: 'linear-gradient(135deg, #1a1d2e 0%, #1e2139 50%, #252942 100%)',
-          }}
-        >
+      <DashboardLayout user={user}>
         <PageContainer>
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
-                <div className="w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-white font-body">Loading settings...</p>
-              </div>
+              <div className="w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-white font-body">Loading settings...</p>
             </div>
-          </PageContainer>
           </div>
-      </>
+        </PageContainer>
+      </DashboardLayout>
     );
   }
 
   return (
-    <>
-      <IslamicPattern />
-      <Navbar user={user} />
-
+    <DashboardLayout user={user}>
       {/* Toast Notification */}
       {toast && (
         <div className="fixed top-24 right-6 z-50 animate-slide-in-right">
@@ -407,9 +396,84 @@ export default function SettingsPage() {
                     border: '1px solid rgba(255, 255, 255, 0.2)',
                   }}
                 >
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className={`font-semibold ${getTextColor(theme)}`}>Show Hijri Calendar</p>
+                      <p className={`text-sm ${getMutedTextColor(theme)}`}>Display Islamic calendar dates</p>
+                    </div>
                   <ToggleSwitch
                     enabled={hijriCalendar}
                     onToggle={setHijriCalendar}
+                    />
+                  </div>
+                  
+                  {hijriCalendar && (
+                    <div className="mt-4 pt-4 border-t border-white/10">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className={`font-semibold ${getTextColor(theme)}`}>Show Hijri First</p>
+                          <p className={`text-sm ${getMutedTextColor(theme)}`}>Display Hijri date before Gregorian</p>
+                        </div>
+                        <ToggleSwitch
+                          enabled={showHijriFirst}
+                          onToggle={setShowHijriFirst}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Location Settings */}
+                <div 
+                  className="p-4 rounded-xl"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(15px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className={`font-semibold ${getTextColor(theme)}`}>Auto-detect Location</p>
+                      <p className={`text-sm ${getMutedTextColor(theme)}`}>
+                        {location ? `${location.city || 'Location'} ${location.country ? `, ${location.country}` : ''}` : 'Location not detected'}
+                      </p>
+                    </div>
+                    <ToggleSwitch
+                      enabled={autoDetectLocation}
+                      onToggle={setAutoDetectLocation}
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2 mt-4">
+                    {!permissionGranted && (
+                      <button
+                        onClick={async () => {
+                          await requestPermission();
+                        }}
+                        className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                        style={{
+                          background: 'rgba(6, 182, 212, 0.2)',
+                          color: '#06b6d4',
+                          border: '1px solid rgba(6, 182, 212, 0.4)',
+                        }}
+                      >
+                        Request Permission
+                      </button>
+                    )}
+                    <button
+                      onClick={refreshLocation}
+                      className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        color: getTextColor(theme),
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                      }}
+                    >
+                      Refresh Location
+                    </button>
+                  </div>
+                </div>
                     label="Hijri Calendar"
                     description="Show Islamic dates alongside Gregorian dates"
                   />
@@ -636,6 +700,6 @@ export default function SettingsPage() {
           userId={user.id}
         />
       )}
-    </>
+    </DashboardLayout>
   );
 }

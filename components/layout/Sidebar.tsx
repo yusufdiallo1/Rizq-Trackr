@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Logo } from '@/components/Logo';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -42,13 +43,8 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         <div className="h-full overflow-y-auto">
           {/* Logo at top */}
           <div className="p-6 border-b border-gray-200">
-            <Link href="/dashboard" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
-                <span className="text-white text-xl">🕌</span>
-              </div>
-              <span className="font-heading font-bold text-lg text-charcoal-dark">
-                Rizq Trackr
-              </span>
+            <Link href="/dashboard" className="flex items-center">
+              <Logo size={40} showText={true} />
             </Link>
           </div>
 

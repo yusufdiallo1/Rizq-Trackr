@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from '@/lib/contexts/ThemeContext';
+import { Logo } from '@/components/Logo';
 
 export function Footer() {
   const { theme } = useTheme();
@@ -38,13 +39,8 @@ export function Footer() {
             <div className={`grid grid-cols-1 ${isHomepage ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-8 mb-8`}>
               {/* Brand Section */}
               <div>
-                <Link href="/dashboard" className="flex items-center space-x-2 mb-4 group">
-                  <div className={`w-10 h-10 ${theme === 'dark' ? 'bg-slate-700 bg-opacity-50' : 'bg-white bg-opacity-30'} rounded-full flex items-center justify-center group-hover:scale-110 transition-transform backdrop-blur-sm`}>
-                    <span className="text-xl">🕌</span>
-                  </div>
-                  <span className="font-heading font-bold text-lg text-white group-hover:text-primary transition-colors">
-                    Rizq Trackr
-                  </span>
+                <Link href="/dashboard" className="flex items-center mb-4 group">
+                  <Logo size={40} showText={true} className="group-hover:scale-105 transition-transform" />
                 </Link>
                 <p className="text-sm text-white/80 mb-4">
                   Track your finances with Islamic principles. Built with ❤️ for the Ummah.

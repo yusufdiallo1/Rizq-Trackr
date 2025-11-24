@@ -4,6 +4,7 @@ import "./globals.css";
 import "./globals-mobile.css";
 import { ThemeProvider } from "@/lib/contexts/ThemeContext";
 import { LanguageProvider } from "@/lib/contexts/LanguageContext";
+import { LocationProvider } from "@/lib/contexts/LocationContext";
 import { PageTransition } from "@/components/PageTransition";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 
@@ -12,6 +13,10 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Rizq Trackr",
   description: "Track your income, expenses, and zakat payments",
+  icons: {
+    icon: '/logo.svg',
+    apple: '/logo.svg',
+  },
 };
 
 export const viewport = {
@@ -44,7 +49,9 @@ export default function RootLayout({
         <ClientErrorBoundary>
         <ThemeProvider>
           <LanguageProvider>
-            <PageTransition>{children}</PageTransition>
+            <LocationProvider>
+              <PageTransition>{children}</PageTransition>
+            </LocationProvider>
           </LanguageProvider>
         </ThemeProvider>
         </ClientErrorBoundary>

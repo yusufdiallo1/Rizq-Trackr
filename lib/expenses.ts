@@ -2,6 +2,8 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 import { checkSpendingLimits } from './spending-limits';
 import { createSpendingLimitNotification, hasNotifiedToday, markLimitNotified } from './in-app-notifications';
+import { gregorianToHijri } from './hijri-calendar';
+import { getCurrentTimeWithTimezone } from './hijri-calendar';
 
 const supabase = createClientComponentClient<Database>();
 
@@ -21,14 +23,32 @@ export async function createExpense(
   data: Omit<ExpenseInsert, 'user_id' | 'id' | 'created_at'>
 ): Promise<{ data: ExpenseEntry | null; error: string | null }> {
   try {
+    // Convert date to Date object if it's a string
+    const dateObj = typeof data.date === 'string' ? new Date(data.date) : data.date;
+    
+    // Get Hijri date
+    const hijriDate = gregorianToHijri(dateObj);
+    const dateHijriString = `${hijriDate.year}-${String(hijriDate.month).padStart(2, '0')}-${String(hijriDate.day).padStart(2, '0')}`;
+    
+    // Get current time and timezone
+    const { time, timezone } = getCurrentTimeWithTimezone();
+
     const { data: expense, error } = await supabase
       .from('expense_entries')
       .insert({
         user_id: userId,
         amount: data.amount,
         category: data.category,
-        date: data.date,
+        date: typeof data.date === 'string' ? data.date : data.date.toISOString().split('T')[0],
         notes: data.notes || null,
+        location_latitude: data.location_latitude || null,
+        location_longitude: data.location_longitude || null,
+        location_address: data.location_address || null,
+        location_city: data.location_city || null,
+        location_country: data.location_country || null,
+        date_hijri: data.date_hijri || dateHijriString,
+        time: data.time || time,
+        timezone: data.timezone || timezone,
       })
       .select()
       .single();
@@ -77,6 +97,7 @@ export async function getExpenseEntries(
       .from('expense_entries')
       .select('*')
       .eq('user_id', userId)
+      .is('deleted_at', null) // Soft delete: only get non-deleted entries
       .order('date', { ascending: false });
 
     // Apply filters if provided
@@ -153,7 +174,7 @@ export async function updateExpense(
   }
 }
 
-// Delete an expense entry
+// Soft delete an expense entry (set deleted_at)
 export async function deleteExpense(
   id: string,
   userId: string
@@ -161,18 +182,42 @@ export async function deleteExpense(
   try {
     const { error } = await supabase
       .from('expense_entries')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
       .eq('user_id', userId);
 
     if (error) {
-      console.error('Error deleting expense:', error);
+      console.error('Error soft deleting expense:', error);
       return { success: false, error: error.message };
     }
 
     return { success: true, error: null };
   } catch (err) {
-    console.error('Unexpected error deleting expense:', err);
+    console.error('Unexpected error soft deleting expense:', err);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+// Restore a soft-deleted expense entry
+export async function restoreExpense(
+  id: string,
+  userId: string
+): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const { error } = await supabase
+      .from('expense_entries')
+      .update({ deleted_at: null })
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error restoring expense:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, error: null };
+  } catch (err) {
+    console.error('Unexpected error restoring expense:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

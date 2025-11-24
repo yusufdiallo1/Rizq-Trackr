@@ -1,7 +1,7 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 import { fetchMetalPrices, calculateNisab, getNisabThreshold as getNisabFromAPI, convertNisabToCurrency } from './nisab-api';
-import { hijriToGregorian, gregorianToHijri } from './hijri-calendar';
+import { hijriToGregorian, gregorianToHijri, getCurrentTimeWithTimezone } from './hijri-calendar';
 
 const supabase = createClientComponentClient<Database>();
 
@@ -248,16 +248,41 @@ export async function recordZakatPayment(
   userId: string,
   amount: number,
   paidDate: string,
-  notes: string = ''
+  notes: string = '',
+  location?: {
+    latitude?: number | null;
+    longitude?: number | null;
+    address?: string | null;
+    city?: string | null;
+    country?: string | null;
+  }
 ): Promise<{ success: boolean; error: string | null }> {
   try {
+    // Convert date to Date object if it's a string
+    const dateObj = typeof paidDate === 'string' ? new Date(paidDate) : paidDate;
+    
+    // Get Hijri date
+    const hijriDate = gregorianToHijri(dateObj);
+    const dateHijriString = `${hijriDate.year}-${String(hijriDate.month).padStart(2, '0')}-${String(hijriDate.day).padStart(2, '0')}`;
+    
+    // Get current time and timezone
+    const { time, timezone } = getCurrentTimeWithTimezone();
+
     const { error } = await supabase
       .from('zakat_payments')
       .insert({
         user_id: userId,
         amount,
-        paid_date: paidDate,
+        paid_date: typeof paidDate === 'string' ? paidDate : paidDate.toISOString().split('T')[0],
         notes: notes || null,
+        date_hijri: dateHijriString,
+        time,
+        timezone,
+        location_latitude: location?.latitude || null,
+        location_longitude: location?.longitude || null,
+        location_address: location?.address || null,
+        location_city: location?.city || null,
+        location_country: location?.country || null,
       });
 
     if (error) throw error;
@@ -275,6 +300,7 @@ export async function getZakatHistory(userId: string): Promise<ZakatPaymentRecor
     const { data, error } = await supabase
       .from('zakat_payments')
       .select('*')
+      .is('deleted_at', null) // Soft delete: only get non-deleted entries
       .eq('user_id', userId)
       .order('paid_date', { ascending: false });
 
@@ -467,6 +493,27 @@ export async function getUserZakatDate(userId: string): Promise<{ year: number; 
   } catch (error) {
     console.error('Error fetching user Zakat date:', error);
     return null;
+  }
+}
+
+// Set user's Zakat date in database
+export async function setUserZakatDate(
+  userId: string,
+  hijriDate: { year: number; month: number; day: number }
+): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const dateString = `${hijriDate.year}-${String(hijriDate.month).padStart(2, '0')}-${String(hijriDate.day).padStart(2, '0')}`;
+
+    const { error } = await supabase
+      .from('users')
+      .update({ zakat_date_hijri: dateString })
+      .eq('id', userId);
+
+    if (error) throw error;
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Error setting Zakat date:', error);
+    return { success: false, error: 'Failed to save Zakat date' };
   }
 }
 

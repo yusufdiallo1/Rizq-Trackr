@@ -30,8 +30,7 @@ interface Activity {
   timestamp: string;
 }
 
-type ModalType = 'edit' | 'passcode' | 'delete' | null;
-type PasscodeStep = 'current' | 'new' | 'confirm';
+type ModalType = 'edit' | 'delete' | null;
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -39,11 +38,6 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
-  const [passcodeStep, setPasscodeStep] = useState<PasscodeStep>('current');
-  const [passcode, setPasscode] = useState('');
-  const [newPasscode, setNewPasscode] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
 
   const [profile, setProfile] = useState<UserProfile>({
     full_name: 'Fatoumata Balde',
@@ -67,8 +61,7 @@ export default function ProfilePage() {
     notifications: true,
     hijriCalendar: false,
     currency: 'USD',
-    language: 'English',
-    biometric: false
+    language: 'English'
   });
 
   const [activities] = useState<Activity[]>([
@@ -118,59 +111,6 @@ export default function ProfilePage() {
     return `${diffInDays}d ago`;
   };
 
-  const handlePasscodeInput = (digit: string) => {
-    if (passcodeStep === 'current') {
-      const newPin = passcode + digit;
-      if (newPin.length <= 6) {
-        setPasscode(newPin);
-        if (newPin.length === 6) {
-          // Verify current PIN (mock verification)
-          setTimeout(() => {
-            setPasscode('');
-            setPasscodeStep('new');
-          }, 300);
-        }
-      }
-    } else if (passcodeStep === 'new') {
-      const newPin = passcode + digit;
-      if (newPin.length <= 6) {
-        setPasscode(newPin);
-        if (newPin.length === 6) {
-          setNewPasscode(newPin);
-          setPasscode('');
-          setPasscodeStep('confirm');
-        }
-      }
-    } else {
-      const confirmPin = passcode + digit;
-      if (confirmPin.length <= 6) {
-        setPasscode(confirmPin);
-        if (confirmPin.length === 6) {
-          if (confirmPin === newPasscode) {
-            setSuccess(true);
-            setTimeout(() => {
-              setActiveModal(null);
-              setPasscodeStep('current');
-              setPasscode('');
-              setNewPasscode('');
-              setSuccess(false);
-            }, 2000);
-          } else {
-            setError("PINs don't match");
-            setTimeout(() => {
-              setPasscode('');
-              setError('');
-            }, 1000);
-          }
-        }
-      }
-    }
-  };
-
-  const handlePasscodeDelete = () => {
-    setPasscode(passcode.slice(0, -1));
-  };
-
   const handleSaveProfile = () => {
     setProfile(editForm);
     setActiveModal(null);
@@ -187,10 +127,10 @@ export default function ProfilePage() {
   return (
     <DashboardLayout user={user}>
       <div className="min-h-screen pb-8">
-        <div className="max-w-7xl mx-auto px-4 pt-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pt-4">
           {/* Profile Header Card */}
           <div
-            className="rounded-[28px] p-8 mb-6"
+            className="rounded-[20px] sm:rounded-[28px] p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6"
             style={{
               background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(16, 185, 129, 0.2))',
               backdropFilter: 'blur(40px)',
@@ -202,9 +142,9 @@ export default function ProfilePage() {
           >
             <div className="flex flex-col items-center">
               {/* Avatar with Camera Overlay */}
-              <div className="relative mb-4 group cursor-pointer">
+              <div className="relative mb-3 sm:mb-4 group cursor-pointer">
                 <div
-                  className="w-[120px] h-[120px] rounded-full flex items-center justify-center text-white font-bold text-5xl relative overflow-hidden"
+                  className="w-20 h-20 sm:w-24 sm:h-24 lg:w-[120px] lg:h-[120px] rounded-full flex items-center justify-center text-white font-bold text-3xl sm:text-4xl lg:text-5xl relative overflow-hidden"
                   style={{
                     background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
                     border: '4px solid rgba(255, 255, 255, 0.3)',
@@ -220,7 +160,7 @@ export default function ProfilePage() {
 
                 {/* Camera Icon Overlay */}
                 <div
-                  className="absolute bottom-0 right-0 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110"
+                  className="absolute bottom-0 right-0 w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110"
                   style={{
                     background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.9), rgba(16, 185, 129, 0.9))',
                     backdropFilter: 'blur(10px)',
@@ -228,7 +168,7 @@ export default function ProfilePage() {
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
                   }}
                 >
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
@@ -236,14 +176,14 @@ export default function ProfilePage() {
                 </div>
 
               {/* Name & Email */}
-              <h1 className={`${textColor} font-bold text-2xl lg:text-3xl mb-2 text-center`}>{profile.full_name}</h1>
-              <p className={`${textColorLight} text-base lg:text-lg mb-1 text-center`}>{profile.email}</p>
-              <p className={`${textColorMuted} text-sm text-center`}>Member since {formatDate(profile.created_at)}</p>
+              <h1 className={`${textColor} font-bold text-xl sm:text-2xl lg:text-3xl mb-1 sm:mb-2 text-center`}>{profile.full_name}</h1>
+              <p className={`${textColorLight} text-sm sm:text-base lg:text-lg mb-0.5 sm:mb-1 text-center`}>{profile.email}</p>
+              <p className={`${textColorMuted} text-xs sm:text-sm text-center`}>Member since {formatDate(profile.created_at)}</p>
 
               {/* Edit Button */}
                   <button
                 onClick={() => { setEditForm(profile); setActiveModal('edit'); }}
-                className="mt-4 px-6 py-2.5 rounded-full transition-all active:scale-95"
+                className="mt-3 sm:mt-4 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full transition-all active:scale-95"
                 style={{
                   background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3), rgba(16, 185, 129, 0.3))',
                   backdropFilter: 'blur(10px)',
@@ -256,10 +196,10 @@ export default function ProfilePage() {
         </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-3 lg:gap-4 mb-6">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6">
             {/* Total Transactions */}
             <div
-              className="rounded-[20px] p-4 lg:p-6"
+              className="rounded-[16px] sm:rounded-[20px] p-3 sm:p-4 lg:p-6"
               style={{
                 background: theme === 'dark'
                   ? 'linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(30, 64, 175, 0.6))'
@@ -272,24 +212,24 @@ export default function ProfilePage() {
               }}
             >
               <div
-                className="w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center mb-3 mx-auto"
+                className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center mb-2 sm:mb-3 mx-auto"
                 style={{
                   background: 'rgba(168, 85, 247, 0.2)',
                   backdropFilter: 'blur(10px)',
                   boxShadow: '0 0 15px rgba(168, 85, 247, 0.3)'
                 }}
               >
-                <svg className="w-5 h-5 lg:w-6 lg:h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <p className={`${textColor} font-bold text-2xl lg:text-3xl text-center mb-1`}>{stats.totalTransactions}</p>
-              <p className={`${textColorLight} text-xs lg:text-sm text-center`}>Transactions</p>
+              <p className={`${textColor} font-bold text-lg sm:text-xl lg:text-2xl text-center mb-0.5 sm:mb-1`}>{stats.totalTransactions}</p>
+              <p className={`${textColorLight} text-[10px] sm:text-xs lg:text-sm text-center leading-tight`}>Transactions</p>
           </div>
 
             {/* Current Balance */}
             <div
-              className="rounded-[20px] p-4 lg:p-6"
+              className="rounded-[16px] sm:rounded-[20px] p-3 sm:p-4 lg:p-6"
               style={{
                 background: theme === 'dark'
                   ? 'linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(30, 64, 175, 0.6))'
@@ -302,24 +242,24 @@ export default function ProfilePage() {
               }}
             >
               <div
-                className="w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center mb-3 mx-auto"
+                className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center mb-2 sm:mb-3 mx-auto"
                 style={{
                   background: 'rgba(245, 158, 11, 0.2)',
                   backdropFilter: 'blur(10px)',
                   boxShadow: '0 0 15px rgba(245, 158, 11, 0.3)'
                 }}
               >
-                <svg className="w-5 h-5 lg:w-6 lg:h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
               </div>
-              <p className={`${textColor} font-bold text-lg lg:text-2xl text-center mb-1`}>${(stats.currentBalance / 1000).toFixed(1)}k</p>
-              <p className={`${textColorLight} text-xs lg:text-sm text-center`}>Balance</p>
+              <p className={`${textColor} font-bold text-lg sm:text-xl lg:text-2xl text-center mb-0.5 sm:mb-1`}>${(stats.currentBalance / 1000).toFixed(1)}k</p>
+              <p className={`${textColorLight} text-[10px] sm:text-xs lg:text-sm text-center leading-tight`}>Balance</p>
           </div>
 
             {/* Zakat Paid */}
             <div
-              className="rounded-[20px] p-4 lg:p-6"
+              className="rounded-[16px] sm:rounded-[20px] p-3 sm:p-4 lg:p-6"
               style={{
                 background: theme === 'dark'
                   ? 'linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(30, 64, 175, 0.6))'
@@ -332,23 +272,23 @@ export default function ProfilePage() {
               }}
             >
               <div
-                className="w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center mb-3 mx-auto"
+                className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center mb-2 sm:mb-3 mx-auto"
                 style={{
                   background: 'rgba(16, 185, 129, 0.2)',
                   backdropFilter: 'blur(10px)',
                   boxShadow: '0 0 15px rgba(16, 185, 129, 0.3)'
                 }}
               >
-                <span className="text-xl lg:text-2xl">🕌</span>
+                <span className="text-base sm:text-xl lg:text-2xl">🕌</span>
               </div>
-              <p className={`${textColor} font-bold text-lg lg:text-2xl text-center mb-1`}>${(stats.totalZakatPaid / 1000).toFixed(1)}k</p>
-              <p className={`${textColorLight} text-xs lg:text-sm text-center`}>Zakat Paid</p>
+              <p className={`${textColor} font-bold text-lg sm:text-xl lg:text-2xl text-center mb-0.5 sm:mb-1`}>${(stats.totalZakatPaid / 1000).toFixed(1)}k</p>
+              <p className={`${textColorLight} text-[10px] sm:text-xs lg:text-sm text-center leading-tight`}>Zakat Paid</p>
           </div>
         </div>
 
           {/* Personal Information Card */}
-          <div 
-            className="rounded-[24px] p-6 mb-6"
+          <div
+            className="rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 mb-4 sm:mb-6"
             style={{
               background: theme === 'dark'
                 ? 'linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(30, 64, 175, 0.6))'
@@ -360,11 +300,11 @@ export default function ProfilePage() {
                 : '0 8px 32px rgba(0, 0, 0, 0.1)'
             }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className={`${textColor} font-bold text-xl`}>Personal Information</h2>
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className={`${textColor} font-bold text-lg sm:text-xl`}>Personal Information</h2>
                 <button
                 onClick={() => { setEditForm(profile); setActiveModal('edit'); }}
-                className="px-4 py-2 rounded-xl transition-all active:scale-95 text-sm"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all active:scale-95 text-xs sm:text-sm"
                 style={{
                   background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(16, 185, 129, 0.2))',
                   backdropFilter: 'blur(10px)',
@@ -376,7 +316,7 @@ export default function ProfilePage() {
                 </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {[
                 { icon: '👤', label: 'Full Name', value: profile.full_name },
                 { icon: '📧', label: 'Email', value: profile.email, locked: true },
@@ -386,7 +326,7 @@ export default function ProfilePage() {
               ].map((item, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-3 p-3 rounded-2xl"
+                  className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl"
                   style={{
                     background: theme === 'dark'
                       ? 'rgba(255, 255, 255, 0.05)'
@@ -396,7 +336,7 @@ export default function ProfilePage() {
                   }}
                 >
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0"
                     style={{
                       background: theme === 'dark'
                         ? 'rgba(255, 255, 255, 0.1)'
@@ -404,11 +344,11 @@ export default function ProfilePage() {
                       backdropFilter: 'blur(5px)'
                     }}
                   >
-                    <span className="text-lg">{item.icon}</span>
+                    <span className="text-base sm:text-lg">{item.icon}</span>
               </div>
-                  <div className="flex-1">
-                    <p className={`${textColorMuted} text-xs mb-0.5`}>{item.label}</p>
-                    <p className={`${textColor} text-sm font-medium`}>{item.value}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className={`${textColorMuted} text-[10px] sm:text-xs mb-0.5`}>{item.label}</p>
+                    <p className={`${textColor} text-xs sm:text-sm font-medium truncate`}>{item.value}</p>
                   </div>
                   {item.locked && (
                     <svg className={`w-4 h-4 ${textColorMuted}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -427,7 +367,7 @@ export default function ProfilePage() {
 
           {/* Security Card */}
           <div
-            className="rounded-[24px] p-6 mb-6"
+            className="rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 mb-4 sm:mb-6"
             style={{
               background: theme === 'dark'
                 ? 'linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(30, 64, 175, 0.6))'
@@ -439,97 +379,9 @@ export default function ProfilePage() {
                 : '0 8px 32px rgba(0, 0, 0, 0.1)'
             }}
           >
-            <h2 className={`${textColor} font-bold text-xl mb-4`}>Security & Privacy</h2>
+            <h2 className={`${textColor} font-bold text-lg sm:text-xl mb-3 sm:mb-4`}>Security & Privacy</h2>
 
             <div className="space-y-3">
-              {/* Passcode */}
-              <div
-                className="flex items-center justify-between p-3 rounded-2xl"
-                style={{
-                  background: theme === 'dark'
-                    ? 'rgba(255, 255, 255, 0.05)'
-                    : 'rgba(255, 255, 255, 0.5)',
-                  backdropFilter: 'blur(10px)',
-                  border: `1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'}`
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{
-                      background: theme === 'dark'
-                        ? 'rgba(255, 255, 255, 0.1)'
-                        : 'rgba(0, 0, 0, 0.05)',
-                      backdropFilter: 'blur(5px)'
-                    }}
-                  >
-                    <span className="text-lg">🔢</span>
-                  </div>
-              <div>
-                    <p className={`${textColor} text-sm font-medium`}>Passcode</p>
-                    <p className={`${textColorMuted} text-xs`}>6-digit PIN</p>
-              </div>
-                </div>
-                  <button
-                  onClick={() => setActiveModal('passcode')}
-                  className="px-4 py-2 rounded-xl text-sm transition-all active:scale-95"
-                  style={{
-                    background: theme === 'dark'
-                      ? 'rgba(255, 255, 255, 0.1)'
-                      : 'rgba(0, 0, 0, 0.05)',
-                    backdropFilter: 'blur(10px)',
-                    border: `1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
-                    color: theme === 'dark' ? 'white' : '#1f2937'
-                  }}
-                >
-                  Change
-                  </button>
-              </div>
-
-              {/* Face ID */}
-              <div
-                className="flex items-center justify-between p-3 rounded-2xl"
-                style={{
-                  background: theme === 'dark'
-                    ? 'rgba(255, 255, 255, 0.05)'
-                    : 'rgba(255, 255, 255, 0.5)',
-                  backdropFilter: 'blur(10px)',
-                  border: `1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'}`
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{
-                      background: theme === 'dark'
-                        ? 'rgba(255, 255, 255, 0.1)'
-                        : 'rgba(0, 0, 0, 0.05)',
-                      backdropFilter: 'blur(5px)'
-                    }}
-                  >
-                    <span className="text-lg">👤</span>
-                </div>
-                  <div>
-                    <p className={`${textColor} text-sm font-medium`}>Biometric</p>
-                    <p className={`${textColorMuted} text-xs`}>Face ID</p>
-            </div>
-          </div>
-          <button
-                  type="button"
-                  className="relative inline-flex h-8 w-14 items-center rounded-full cursor-pointer transition-all"
-            style={{
-                    background: preferences.biometric 
-                      ? 'linear-gradient(135deg, #06b6d4, #0891b2)'
-                      : 'rgba(156, 163, 175, 0.5)'
-                  }}
-                  onClick={() => setPreferences(prev => ({ ...prev, biometric: !prev.biometric }))}
-                >
-                  <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow-lg ${
-                    preferences.biometric ? 'translate-x-7' : 'translate-x-1'
-                  }`} />
-                </button>
-              </div>
-
               {/* Password */}
               <div
                 className="flex items-center justify-between p-3 rounded-2xl"
@@ -616,8 +468,8 @@ export default function ProfilePage() {
           </div>
 
           {/* Preferences Card */}
-          <div 
-            className="rounded-[24px] p-6 mb-6"
+          <div
+            className="rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 mb-4 sm:mb-6"
             style={{
               background: theme === 'dark'
                 ? 'linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(30, 64, 175, 0.6))'
@@ -629,7 +481,7 @@ export default function ProfilePage() {
                 : '0 8px 32px rgba(0, 0, 0, 0.1)'
             }}
           >
-            <h2 className={`${textColor} font-bold text-xl mb-4`}>Preferences</h2>
+            <h2 className={`${textColor} font-bold text-lg sm:text-xl mb-3 sm:mb-4`}>Preferences</h2>
 
             <div className="space-y-3">
               {/* Currency */}
@@ -735,8 +587,8 @@ export default function ProfilePage() {
           </div>
 
           {/* Data Management Card */}
-          <div 
-            className="rounded-[24px] p-6 mb-6"
+          <div
+            className="rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 mb-4 sm:mb-6"
             style={{
               background: theme === 'dark'
                 ? 'linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(30, 64, 175, 0.6))'
@@ -748,7 +600,7 @@ export default function ProfilePage() {
                 : '0 8px 32px rgba(0, 0, 0, 0.1)'
             }}
           >
-            <h2 className={`${textColor} font-bold text-xl mb-4`}>Data Management</h2>
+            <h2 className={`${textColor} font-bold text-lg sm:text-xl mb-3 sm:mb-4`}>Data Management</h2>
 
             <div className="space-y-3">
               {/* Export Data */}
@@ -786,7 +638,7 @@ export default function ProfilePage() {
 
           {/* Activity Log */}
           <div
-            className="rounded-[24px] p-6"
+            className="rounded-[20px] sm:rounded-[24px] p-4 sm:p-6"
             style={{
               background: theme === 'dark'
                 ? 'linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(30, 64, 175, 0.6))'
@@ -798,9 +650,9 @@ export default function ProfilePage() {
                 : '0 8px 32px rgba(0, 0, 0, 0.1)'
             }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className={`${textColor} font-bold text-xl`}>Recent Activity</h2>
-              <button className="text-cyan-400 text-sm font-medium">View All →</button>
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className={`${textColor} font-bold text-lg sm:text-xl`}>Recent Activity</h2>
+              <button className="text-cyan-400 text-xs sm:text-sm font-medium">View All →</button>
           </div>
 
             <div className="space-y-2">
@@ -986,127 +838,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Change Passcode Modal */}
-      {activeModal === 'passcode' && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div
-            className="w-full max-w-sm rounded-[28px] p-8"
-            style={{
-              background: theme === 'dark'
-                ? 'linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(30, 64, 175, 0.95))'
-                : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95))',
-              backdropFilter: 'blur(40px)',
-              border: `1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
-            }}
-          >
-            {success ? (
-              <div className="flex flex-col items-center py-8">
-                <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center mb-4 animate-scale-in"
-                  style={{
-                    background: 'linear-gradient(135deg, #10b981, #059669)',
-                    boxShadow: '0 0 30px rgba(16, 185, 129, 0.5)'
-                  }}
-                >
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <p className={`${textColor} font-bold text-xl`}>PIN Updated Successfully</p>
-              </div>
-            ) : (
-              <>
-                <button
-                  onClick={() => {
-                    setActiveModal(null);
-                    setPasscodeStep('current');
-                    setPasscode('');
-                    setNewPasscode('');
-                  }}
-                  className="w-10 h-10 rounded-full flex items-center justify-center mb-6 transition-all active:scale-95"
-                  style={{
-                    background: theme === 'dark'
-                      ? 'rgba(255, 255, 255, 0.1)'
-                      : 'rgba(0, 0, 0, 0.05)',
-                    backdropFilter: 'blur(10px)'
-                  }}
-                >
-                  <svg className={`w-5 h-5 ${textColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-
-                <h2 className={`${textColor} font-bold text-2xl text-center mb-2`}>
-                  {passcodeStep === 'current' ? 'Enter Current PIN' : passcodeStep === 'new' ? 'Enter New PIN' : 'Confirm New PIN'}
-                </h2>
-                <p className={`${textColorMuted} text-sm text-center mb-8`}>
-                  {passcodeStep === 'current' ? 'Enter your current 6-digit PIN' : passcodeStep === 'new' ? 'Choose 6 digits' : 'Re-enter to confirm'}
-                </p>
-
-                {/* PIN Dots */}
-                <div className="flex justify-center gap-3 mb-8">
-                  {[0, 1, 2, 3, 4, 5].map((i) => (
-                    <div
-                      key={i}
-                      className={`w-4 h-4 rounded-full transition-all ${error ? 'animate-shake' : ''}`}
-                      style={{
-                        background: i < passcode.length
-                          ? error
-                            ? 'linear-gradient(135deg, #ef4444, #dc2626)'
-                            : 'linear-gradient(135deg, #06b6d4, #0891b2)'
-                          : theme === 'dark'
-                            ? 'rgba(255, 255, 255, 0.2)'
-                            : 'rgba(0, 0, 0, 0.2)',
-                        boxShadow: i < passcode.length
-                          ? error
-                            ? '0 0 10px rgba(239, 68, 68, 0.5)'
-                            : '0 0 10px rgba(6, 182, 212, 0.5)'
-                          : 'none'
-                      }}
-                    />
-                  ))}
-              </div>
-
-                {error && (
-                  <p className="text-red-400 text-sm text-center mb-4 font-medium">{error}</p>
-                )}
-
-                {/* Keypad */}
-                <div className="grid grid-cols-3 gap-4">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0, '⌫'].map((key, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        if (key === '⌫') handlePasscodeDelete();
-                        else if (key !== '') handlePasscodeInput(key.toString());
-                      }}
-                      disabled={key === ''}
-                      className="aspect-square rounded-2xl font-bold text-2xl transition-all active:scale-95 disabled:opacity-0"
-                      style={{
-                        background: key !== ''
-                          ? theme === 'dark'
-                            ? 'rgba(255, 255, 255, 0.1)'
-                            : 'rgba(255, 255, 255, 0.8)'
-                          : 'transparent',
-                        backdropFilter: key !== '' ? 'blur(10px)' : 'none',
-                        border: key !== ''
-                          ? `1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`
-                          : 'none',
-                        color: theme === 'dark' ? 'white' : '#1f2937',
-                        cursor: key === '' ? 'default' : 'pointer'
-                      }}
-                    >
-                      {key}
-                    </button>
-                  ))}
-            </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Delete Account Modal */}
       {activeModal === 'delete' && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -1142,30 +873,11 @@ export default function ProfilePage() {
             <p className={`${textColorLight} text-sm text-center mb-6 leading-relaxed`}>
               This will permanently delete all your data including transactions, goals, and Zakat records. This action cannot be undone.
             </p>
-            <p className={`${textColorMuted} text-sm text-center mb-6`}>Enter your PIN to confirm</p>
-
-            {/* PIN Dots */}
-            <div className="flex justify-center gap-3 mb-6">
-              {[0, 1, 2, 3, 4, 5].map((i) => (
-                <div
-                  key={i}
-                  className="w-3 h-3 rounded-full transition-all"
-                  style={{
-                    background: i < passcode.length
-                      ? 'linear-gradient(135deg, #ef4444, #dc2626)'
-                      : theme === 'dark'
-                        ? 'rgba(255, 255, 255, 0.2)'
-                        : 'rgba(0, 0, 0, 0.2)',
-                    boxShadow: i < passcode.length ? '0 0 10px rgba(239, 68, 68, 0.5)' : 'none'
-                  }}
-                />
-              ))}
-            </div>
 
             {/* Buttons */}
             <div className="flex gap-3">
               <button
-                onClick={() => { setActiveModal(null); setPasscode(''); }}
+                onClick={() => setActiveModal(null)}
                 className="flex-1 py-3 rounded-xl font-medium transition-all active:scale-98"
                 style={{
                   background: theme === 'dark'

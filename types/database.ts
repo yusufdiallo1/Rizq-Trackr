@@ -21,6 +21,15 @@ export interface Database {
           created_at: string
           account_id: string | null
           customer_id: string | null
+          location_latitude: number | null
+          location_longitude: number | null
+          location_address: string | null
+          location_city: string | null
+          location_country: string | null
+          date_hijri: string | null
+          time: string | null
+          timezone: string | null
+          deleted_at: string | null
         }
         Insert: {
           id?: string
@@ -33,6 +42,15 @@ export interface Database {
           created_at?: string
           account_id?: string | null
           customer_id?: string | null
+          location_latitude?: number | null
+          location_longitude?: number | null
+          location_address?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          date_hijri?: string | null
+          time?: string | null
+          timezone?: string | null
+          deleted_at?: string | null
         }
         Update: {
           id?: string
@@ -45,6 +63,15 @@ export interface Database {
           created_at?: string
           account_id?: string | null
           customer_id?: string | null
+          location_latitude?: number | null
+          location_longitude?: number | null
+          location_address?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          date_hijri?: string | null
+          time?: string | null
+          timezone?: string | null
+          deleted_at?: string | null
         }
       }
       expense_entries: {
@@ -58,6 +85,15 @@ export interface Database {
           created_at: string
           account_id: string | null
           customer_id: string | null
+          location_latitude: number | null
+          location_longitude: number | null
+          location_address: string | null
+          location_city: string | null
+          location_country: string | null
+          date_hijri: string | null
+          time: string | null
+          timezone: string | null
+          deleted_at: string | null
         }
         Insert: {
           id?: string
@@ -69,6 +105,15 @@ export interface Database {
           created_at?: string
           account_id?: string | null
           customer_id?: string | null
+          location_latitude?: number | null
+          location_longitude?: number | null
+          location_address?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          date_hijri?: string | null
+          time?: string | null
+          timezone?: string | null
+          deleted_at?: string | null
         }
         Update: {
           id?: string
@@ -80,6 +125,15 @@ export interface Database {
           created_at?: string
           account_id?: string | null
           customer_id?: string | null
+          location_latitude?: number | null
+          location_longitude?: number | null
+          location_address?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          date_hijri?: string | null
+          time?: string | null
+          timezone?: string | null
+          deleted_at?: string | null
         }
       }
       zakat_payments: {
@@ -90,6 +144,15 @@ export interface Database {
           paid_date: string
           notes: string | null
           created_at: string
+          date_hijri: string | null
+          time: string | null
+          timezone: string | null
+          location_latitude: number | null
+          location_longitude: number | null
+          location_address: string | null
+          location_city: string | null
+          location_country: string | null
+          deleted_at: string | null
         }
         Insert: {
           id?: string
@@ -98,6 +161,15 @@ export interface Database {
           paid_date: string
           notes?: string | null
           created_at?: string
+          date_hijri?: string | null
+          time?: string | null
+          timezone?: string | null
+          location_latitude?: number | null
+          location_longitude?: number | null
+          location_address?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          deleted_at?: string | null
         }
         Update: {
           id?: string
@@ -106,6 +178,15 @@ export interface Database {
           paid_date?: string
           notes?: string | null
           created_at?: string
+          date_hijri?: string | null
+          time?: string | null
+          timezone?: string | null
+          location_latitude?: number | null
+          location_longitude?: number | null
+          location_address?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          deleted_at?: string | null
         }
       }
       savings_goals: {
@@ -439,6 +520,41 @@ export interface Database {
           fees?: number
           notes?: string | null
           created_at?: string
+        }
+      }
+      nisab_prices: {
+        Row: {
+          id: string
+          date: string
+          gold_price_per_gram: number
+          silver_price_per_gram: number
+          nisab_gold_value: number
+          nisab_silver_value: number
+          currency: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          date: string
+          gold_price_per_gram: number
+          silver_price_per_gram: number
+          nisab_gold_value: number
+          nisab_silver_value: number
+          currency?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          date?: string
+          gold_price_per_gram?: number
+          silver_price_per_gram?: number
+          nisab_gold_value?: number
+          nisab_silver_value?: number
+          currency?: string
+          created_at?: string
+          updated_at?: string
         }
       }
     }

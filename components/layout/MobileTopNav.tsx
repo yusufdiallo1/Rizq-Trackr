@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { useMemo, useState, useEffect } from 'react';
 import { getCurrentUser } from '@/lib/auth';
+import { Logo } from '@/components/Logo';
 
 interface MobileTopNavProps {
   onMenuClick: () => void;
@@ -120,16 +121,17 @@ export function MobileTopNav({ onMenuClick, notificationCount = 3, isAuthenticat
             </Link>
 
             {/* Center: App Logo & Name */}
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                </svg>
-              </div>
-              <span className={`iphone-navbar-title ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Rizq Trackr
-              </span>
-            </div>
+            <Link
+              href="/dashboard"
+              className="flex items-center"
+              onClick={(e) => {
+                if (pathname === '/dashboard') {
+                  e.preventDefault();
+                }
+              }}
+            >
+              <Logo size={32} showText={false} />
+            </Link>
 
             {/* Right: Sign Up */}
               <Link
@@ -175,48 +177,48 @@ export function MobileTopNav({ onMenuClick, notificationCount = 3, isAuthenticat
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                 </svg>
               </Link>
-            ) : (
-              <button
-                onClick={handleMenuClick}
+        ) : (
+            <button
+              onClick={handleMenuClick}
                 className="iphone-navbar-icon"
                 aria-label="Open menu"
-                style={{
-                  minWidth: '44px',
-                  minHeight: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+              style={{
+                minWidth: '44px',
+                minHeight: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                   backgroundColor: 'transparent',
                   border: 'none',
                   padding: 0,
                   margin: 0,
-                  cursor: 'pointer',
+                cursor: 'pointer',
                   color: isDark ? '#ffffff' : '#1f2937',
+                opacity: 1,
+                visibility: 'visible',
+              }}
+            >
+              <svg 
+                  width="26"
+                  height="26"
+                viewBox="0 0 24 24" 
+                fill="none" 
+                  stroke={isDark ? '#ffffff' : '#1f2937'}
+                strokeWidth="3" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                style={{ 
+                  display: 'block',
+                    pointerEvents: 'none',
                   opacity: 1,
                   visibility: 'visible',
                 }}
               >
-                <svg
-                  width="26"
-                  height="26"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke={isDark ? '#ffffff' : '#1f2937'}
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{
-                    display: 'block',
-                    pointerEvents: 'none',
-                    opacity: 1,
-                    visibility: 'visible',
-                  }}
-                >
                   <line x1="3" y1="6" x2="21" y2="6" stroke={isDark ? '#ffffff' : '#1f2937'} strokeWidth="3" />
                   <line x1="3" y1="12" x2="21" y2="12" stroke={isDark ? '#ffffff' : '#1f2937'} strokeWidth="3" />
                   <line x1="3" y1="18" x2="21" y2="18" stroke={isDark ? '#ffffff' : '#1f2937'} strokeWidth="3" />
-                </svg>
-              </button>
+              </svg>
+            </button>
             )}
 
             {/* Center: Page Title with App Icon */}

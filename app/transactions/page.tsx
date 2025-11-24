@@ -18,9 +18,8 @@ import { ViewTransactionModal } from '@/components/ViewTransactionModal';
 import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { TransactionCard } from '@/components/TransactionCard';
 import { FilterBottomSheet } from '@/components/FilterBottomSheet';
-import { Navbar } from '@/components/layout/Navbar';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { IslamicPattern } from '@/components/layout/IslamicPattern';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { getTextColor, getMutedTextColor } from '@/lib/utils';
 
@@ -307,9 +306,7 @@ export default function TransactionsPage() {
 
   if (loading) {
     return (
-      <>
-        <IslamicPattern />
-        <Navbar user={user} />
+      <DashboardLayout user={user}>
         <PageContainer>
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
@@ -318,15 +315,12 @@ export default function TransactionsPage() {
             </div>
           </div>
         </PageContainer>
-      </>
+      </DashboardLayout>
     );
   }
 
   return (
-    <>
-      <IslamicPattern />
-      <Navbar user={user} />
-
+    <DashboardLayout user={user}>
       {/* Toast Notification */}
       {toast && (
         <div className="fixed top-24 right-6 z-50 animate-slide-in-right">
@@ -359,12 +353,7 @@ export default function TransactionsPage() {
         </div>
       )}
 
-      <div className="pt-20 min-h-screen" style={{
-        background: theme === 'dark'
-          ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
-          : 'linear-gradient(to bottom, #e5e7eb, #d1d5db)',
-      }}>
-        <PageContainer maxWidth="2xl">
+      <PageContainer maxWidth="2xl">
           {/* Header */}
           <div className="mb-6">
             <h1 className={`text-4xl font-heading font-bold ${getTextColor(theme)} mb-2`}>
@@ -747,7 +736,6 @@ export default function TransactionsPage() {
                     </div>
           )}
         </PageContainer>
-      </div>
 
       {/* Filter Bottom Sheet */}
       <FilterBottomSheet
@@ -770,31 +758,31 @@ export default function TransactionsPage() {
         onClear={handleClearFilters}
       />
 
-          {/* Modals */}
-          <ViewTransactionModal
-            isOpen={showViewModal}
-            transaction={selectedTransaction}
-            onClose={() => {
-              setShowViewModal(false);
-              setSelectedTransaction(null);
-            }}
-            onEdit={handleEditTransaction}
-            onDelete={(transaction) => {
-              setShowViewModal(false);
+      {/* Modals */}
+      <ViewTransactionModal
+        isOpen={showViewModal}
+        transaction={selectedTransaction}
+        onClose={() => {
+          setShowViewModal(false);
+          setSelectedTransaction(null);
+        }}
+        onEdit={handleEditTransaction}
+        onDelete={(transaction) => {
+          setShowViewModal(false);
           setSelectedTransaction(transaction);
-              setShowDeleteModal(true);
-            }}
-          />
+          setShowDeleteModal(true);
+        }}
+      />
 
-          <DeleteConfirmation
-            isOpen={showDeleteModal}
-            itemName="Transaction"
-            onConfirm={handleDeleteTransaction}
-            onCancel={() => {
-              setShowDeleteModal(false);
-              setSelectedTransaction(null);
-            }}
-          />
-    </>
+      <DeleteConfirmation
+        isOpen={showDeleteModal}
+        itemName="Transaction"
+        onConfirm={handleDeleteTransaction}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setSelectedTransaction(null);
+        }}
+      />
+    </DashboardLayout>
   );
 }

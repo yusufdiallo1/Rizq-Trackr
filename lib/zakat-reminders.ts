@@ -105,36 +105,69 @@ export async function checkZakatReminders(): Promise<ZakatReminder[]> {
  */
 export async function sendZakatReminder(reminder: ZakatReminder): Promise<{ success: boolean; error?: string }> {
   try {
-    // Get user's notification preferences
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('email, zakat_reminders_enabled')
-      .eq('id', reminder.userId)
+    // Check if we already sent a reminder today
+    const today = new Date().toISOString().split('T')[0];
+    const { data: existingReminder } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', reminder.userId)
+      .eq('type', 'zakat_reminder')
+      .gte('created_at', today)
       .single();
 
-    if (userError) throw userError;
-
-    // Check if user has reminders enabled (you'll need to add this column to users table)
-    // For now, assume enabled if not set
-    const remindersEnabled = user?.zakat_reminders_enabled !== false;
-
-    if (!remindersEnabled) {
-      return { success: false, error: 'User has reminders disabled' };
+    if (existingReminder) {
+      return { success: false, error: 'Reminder already sent today' };
     }
 
-    // Create notification record (you'll need a notifications table)
-    // For now, we'll just log it
-    console.log('Zakat Reminder:', {
+    // Format the notification message
+    const formatCurrency = (amount: number) => {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0,
+      }).format(amount);
+    };
+
+    const title = reminder.daysUntil === 30
+      ? 'Zakat Reminder: 30 Days Until Due'
+      : reminder.daysUntil <= 7
+        ? `Urgent: Zakat Due in ${reminder.daysUntil} Days!`
+        : `Zakat Reminder: ${reminder.daysUntil} Days Until Due`;
+
+    const message = reminder.eligibility.isObligatory
+      ? `Your Zakat of ${formatCurrency(reminder.eligibility.zakatAmountDue)} is due soon. Your savings of ${formatCurrency(reminder.eligibility.annualSavings)} exceed the Nisab threshold of ${formatCurrency(reminder.eligibility.nisabThreshold)}.`
+      : `Your Zakat date is approaching. Your current savings of ${formatCurrency(reminder.eligibility.annualSavings)} are below the Nisab threshold of ${formatCurrency(reminder.eligibility.nisabThreshold)}, so Zakat is not obligatory.`;
+
+    // Store notification in database
+    const { error: insertError } = await supabase
+      .from('notifications')
+      .insert({
+        user_id: reminder.userId,
+        type: 'zakat_reminder',
+        title,
+        message,
+        category: 'zakat',
+        is_read: false,
+        metadata: {
+          daysUntil: reminder.daysUntil,
+          zakatAmountDue: reminder.eligibility.zakatAmountDue,
+          isObligatory: reminder.eligibility.isObligatory,
+          zakatDateHijri: reminder.zakatDateHijri,
+        },
+      });
+
+    if (insertError) {
+      console.error('Error inserting notification:', insertError);
+      // Don't throw - the table might not exist yet
+    }
+
+    console.log('Zakat Reminder Sent:', {
       userId: reminder.userId,
+      title,
       daysUntil: reminder.daysUntil,
       zakatAmountDue: reminder.eligibility.zakatAmountDue,
       isObligatory: reminder.eligibility.isObligatory,
     });
-
-    // TODO: Integrate with your notification system
-    // - Send email notification
-    // - Send push notification (if mobile app)
-    // - Store notification in database
 
     return { success: true };
   } catch (error: any) {

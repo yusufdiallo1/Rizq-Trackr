@@ -11,6 +11,7 @@ import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { slideDownVariants } from '@/lib/animations';
 import { NotificationBell } from '@/components/NotificationBell';
 import { DesktopPillNav } from './DesktopPillNav';
+import { Logo } from '@/components/Logo';
 
 interface NavbarProps {
   user?: {
@@ -198,12 +199,10 @@ export function Navbar({ user }: NavbarProps) {
         {/* Logo */}
         <Link 
           href={isAuthenticated ? "/dashboard" : "/"} 
-          className="flex items-center space-x-2 group animate-fade-in-instant relative z-10"
+          className="flex items-center group animate-fade-in-instant relative z-10"
         >
-          <div className={`w-9 h-9 ${theme === 'dark' ? 'bg-slate-700 bg-opacity-50' : 'bg-white bg-opacity-30'} rounded-full flex items-center justify-center group-hover:bg-opacity-70 group-hover:translate-y-[-2px] transition-all duration-300 animate-float backdrop-blur-sm`}>
-            <span className="text-lg">🕌</span>
-          </div>
-          <span className={`font-heading font-bold text-lg ${textColor} group-hover:translate-y-[-2px] transition-transform duration-300 hidden sm:block`}>
+          <Logo size={40} showText={false} className="group-hover:scale-105 transition-transform duration-300" />
+          <span className={`font-heading font-bold text-lg ${textColor} group-hover:translate-y-[-2px] transition-transform duration-300 hidden sm:block ml-2`}>
             Rizq Trackr
           </span>
         </Link>

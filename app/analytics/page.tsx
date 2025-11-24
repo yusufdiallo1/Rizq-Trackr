@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Navbar } from '@/components/layout/Navbar';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { getCurrentUser, User } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import LoadingScreen from '@/components/LoadingScreen';
@@ -312,17 +312,8 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div 
-      className="min-h-screen"
-      style={{
-        background: theme === 'dark'
-          ? 'linear-gradient(135deg, #1a1d2e 0%, #1e2139 50%, #252942 100%)'
-          : 'linear-gradient(to bottom, #f8fafc, #e2e8f0, #f1f5f9)',
-      }}
-    >
-      <Navbar />
-
-      <div className="max-w-7xl mx-auto px-6 py-8 pt-24">
+    <DashboardLayout user={user}>
+      <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Page Header */}
         <div className="mb-8 rounded-[32px] overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-teal-500 to-secondary opacity-90"></div>
@@ -510,10 +501,10 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Income vs Expenses Over Time */}
-        <div className="rounded-3xl backdrop-blur-xl bg-white/75 border border-white/30 shadow-xl p-8 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className={`text-2xl font-bold ${getTextColor(theme)}`}>Income vs Expenses Over Time</h2>
-            <div className="flex items-center gap-2">
+        <div className="rounded-3xl backdrop-blur-xl bg-white/75 border border-white/30 shadow-xl p-4 tablet:p-6 lg:p-8 mb-6 tablet:mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 tablet:mb-6 gap-4">
+            <h2 className={`text-xl tablet:text-2xl font-bold ${getTextColor(theme)}`}>Income vs Expenses Over Time</h2>
+            <div className="flex items-center gap-2 flex-wrap">
               {['6M', '1Y', '2Y', 'All'].map((period) => (
                 <button
                   key={period}
@@ -521,11 +512,17 @@ export default function AnalyticsPage() {
                     setDateRange(period);
                     if (user) loadAnalyticsData(user);
                   }}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                  className={`px-3 tablet:px-4 py-2 rounded-xl text-sm tablet:text-base font-medium transition-all mobile-tap-target ${
                     dateRange === period
                       ? 'bg-emerald-500 text-white shadow-lg'
                       : `bg-white/50 backdrop-blur-md border border-white/30 ${getCardTextColor(theme, true)} hover:bg-white/70`
                   }`}
+                  style={{
+                    minHeight: '44px',
+                    minWidth: '44px',
+                    WebkitTapHighlightColor: 'transparent',
+                    touchAction: 'manipulation',
+                  }}
                 >
                   {period}
                 </button>
@@ -533,64 +530,86 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          <ResponsiveContainer width="100%" height={400}>
-            <ComposedChart data={monthlyData}>
-              <defs>
-                <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity={0.3} />
-                </linearGradient>
-                <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8} />
-                  <stop offset="100%" stopColor="#ef4444" stopOpacity={0.3} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-              <XAxis dataKey="month" stroke="#64748b" />
-              <YAxis stroke="#64748b" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '16px',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-                  padding: '12px'
-                }}
-                formatter={(value: number) => formatCurrency(value)}
-              />
-              <Legend />
-              <Bar
-                dataKey="income"
-                fill="url(#incomeGradient)"
-                name="Income"
-                radius={[8, 8, 0, 0]}
-                isAnimationActive
-                animationDuration={800}
-                animationBegin={100}
-              />
-              <Bar
-                dataKey="expenses"
-                fill="url(#expenseGradient)"
-                name="Expenses"
-                radius={[8, 8, 0, 0]}
-                isAnimationActive
-                animationDuration={800}
-                animationBegin={150}
-              />
-              <Line
-                type="monotone"
-                dataKey="savings"
-                stroke="#f59e0b"
-                strokeWidth={3}
-                name="Net Savings"
-                dot={{ fill: '#f59e0b', r: 5 }}
-                isAnimationActive
-                animationDuration={1000}
-                animationBegin={200}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
+          <div className="w-full overflow-x-auto -mx-4 tablet:mx-0 px-4 tablet:px-0">
+            <div style={{ minWidth: '100%', width: '100%' }}>
+              <ResponsiveContainer width="100%" height={250} className="tablet:h-[350px] lg:h-[400px]">
+                <ComposedChart data={monthlyData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.3} />
+                    </linearGradient>
+                    <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8} />
+                      <stop offset="100%" stopColor="#ef4444" stopOpacity={0.3} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke={theme === 'dark' ? 'rgba(255,255,255,0.5)' : '#64748b'} 
+                    tick={{ fontSize: 10 }}
+                    className="tablet:text-sm"
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis 
+                    stroke={theme === 'dark' ? 'rgba(255,255,255,0.5)' : '#64748b'} 
+                    tick={{ fontSize: 10 }}
+                    className="tablet:text-sm"
+                    width={50}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: theme === 'dark' ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(10px)',
+                      border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '16px',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+                      padding: '12px',
+                      color: theme === 'dark' ? '#ffffff' : '#000000',
+                    }}
+                    formatter={(value: number) => formatCurrency(value)}
+                    labelStyle={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}
+                  />
+                  <Legend 
+                    wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
+                    iconSize={12}
+                  />
+                  <Bar
+                    dataKey="income"
+                    fill="url(#incomeGradient)"
+                    name="Income"
+                    radius={[4, 4, 0, 0]}
+                    isAnimationActive
+                    animationDuration={800}
+                    animationBegin={100}
+                  />
+                  <Bar
+                    dataKey="expenses"
+                    fill="url(#expenseGradient)"
+                    name="Expenses"
+                    radius={[4, 4, 0, 0]}
+                    isAnimationActive
+                    animationDuration={800}
+                    animationBegin={150}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="savings"
+                    stroke="#f59e0b"
+                    strokeWidth={2}
+                    name="Net Savings"
+                    dot={{ fill: '#f59e0b', r: 4 }}
+                    isAnimationActive
+                    animationDuration={1000}
+                    animationBegin={200}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
 
         {/* Category Breakdown */}
@@ -918,6 +937,6 @@ export default function AnalyticsPage() {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/lib/contexts/ThemeContext';
+import { Logo } from '@/components/Logo';
 
 export function HomepageNavbar() {
   const pathname = usePathname();
@@ -216,15 +217,10 @@ export function HomepageNavbar() {
         <a
           href="/"
           onClick={scrollToTop}
-          className="flex items-center space-x-1.5 group animate-fade-in-instant relative z-10 cursor-pointer"
+          className="flex items-center group animate-fade-in-instant relative z-10 cursor-pointer"
           style={{ textDecoration: 'none' }}
         >
-          <div className={`w-7 h-7 ${theme === 'dark' ? 'bg-slate-700 bg-opacity-50' : 'bg-white bg-opacity-30'} rounded-full flex items-center justify-center group-hover:bg-opacity-70 group-hover:translate-y-[-1px] transition-all duration-300 animate-float backdrop-blur-sm`}>
-            <span className="text-sm">🕌</span>
-          </div>
-          <span className={`font-heading font-bold text-sm ${textColor} group-hover:translate-y-[-1px] transition-transform duration-300 hidden sm:block`}>
-            Rizq Trackr
-          </span>
+          <Logo size={36} showText={true} className="group-hover:scale-105 transition-transform duration-300" />
         </a>
 
         {/* Desktop Navigation - 4 buttons */}

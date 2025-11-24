@@ -6,12 +6,20 @@ const supabase = createClientComponentClient<Database>();
 export interface Transaction {
   id: string;
   date: string;
+  date_hijri?: string | null;
+  time?: string | null;
+  timezone?: string | null;
   type: 'income' | 'expense';
   category: string;
   amount: number;
   notes: string | null;
   is_zakatable?: boolean;
   created_at: string;
+  location_latitude?: number | null;
+  location_longitude?: number | null;
+  location_address?: string | null;
+  location_city?: string | null;
+  location_country?: string | null;
 }
 
 export interface TransactionFilters {
@@ -19,7 +27,12 @@ export interface TransactionFilters {
   category?: string;
   startDate?: string;
   endDate?: string;
+  startDateHijri?: string;
+  endDateHijri?: string;
   searchTerm?: string;
+  location?: string;
+  minAmount?: number;
+  maxAmount?: number;
 }
 
 export interface TransactionSummary {
@@ -39,18 +52,20 @@ export async function getAllTransactions(
     // Fetch income entries - only select needed fields
     let incomeQuery = supabase
       .from('income_entries')
-      .select('id, date, category, amount, notes, is_zakatable, created_at')
+      .select('id, date, date_hijri, time, timezone, category, amount, notes, is_zakatable, created_at, location_latitude, location_longitude, location_address, location_city, location_country')
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .order('date', { ascending: false });
 
     // Fetch expense entries - only select needed fields
     let expenseQuery = supabase
       .from('expense_entries')
-      .select('id, date, category, amount, notes, created_at')
+      .select('id, date, date_hijri, time, timezone, category, amount, notes, created_at, location_latitude, location_longitude, location_address, location_city, location_country')
       .eq('user_id', userId)
+      .is('deleted_at', null)
       .order('date', { ascending: false });
 
-    // Apply date filters
+    // Apply date filters (Gregorian)
     if (filters?.startDate) {
       incomeQuery = incomeQuery.gte('date', filters.startDate);
       expenseQuery = expenseQuery.gte('date', filters.startDate);
@@ -61,10 +76,38 @@ export async function getAllTransactions(
       expenseQuery = expenseQuery.lte('date', filters.endDate);
     }
 
+    // Apply Hijri date filters
+    if (filters?.startDateHijri) {
+      incomeQuery = incomeQuery.gte('date_hijri', filters.startDateHijri);
+      expenseQuery = expenseQuery.gte('date_hijri', filters.startDateHijri);
+    }
+
+    if (filters?.endDateHijri) {
+      incomeQuery = incomeQuery.lte('date_hijri', filters.endDateHijri);
+      expenseQuery = expenseQuery.lte('date_hijri', filters.endDateHijri);
+    }
+
     // Apply category filter
     if (filters?.category && filters.category !== 'all') {
       incomeQuery = incomeQuery.eq('category', filters.category);
       expenseQuery = expenseQuery.eq('category', filters.category);
+    }
+
+    // Apply location filter
+    if (filters?.location) {
+      incomeQuery = incomeQuery.or(`location_city.ilike.%${filters.location}%,location_country.ilike.%${filters.location}%`);
+      expenseQuery = expenseQuery.or(`location_city.ilike.%${filters.location}%,location_country.ilike.%${filters.location}%`);
+    }
+
+    // Apply amount filters
+    if (filters?.minAmount !== undefined) {
+      incomeQuery = incomeQuery.gte('amount', filters.minAmount);
+      expenseQuery = expenseQuery.gte('amount', filters.minAmount);
+    }
+
+    if (filters?.maxAmount !== undefined) {
+      incomeQuery = incomeQuery.lte('amount', filters.maxAmount);
+      expenseQuery = expenseQuery.lte('amount', filters.maxAmount);
     }
 
     // Apply limit if specified (for initial load performance)
@@ -93,21 +136,37 @@ export async function getAllTransactions(
     const incomeTransactions: Transaction[] = (incomeResult.data || []).map((entry) => ({
       id: entry.id,
       date: entry.date,
+      date_hijri: entry.date_hijri || null,
+      time: entry.time || null,
+      timezone: entry.timezone || null,
       type: 'income' as const,
       category: entry.category,
       amount: entry.amount,
       notes: entry.notes,
       is_zakatable: entry.is_zakatable,
+      location_latitude: entry.location_latitude || null,
+      location_longitude: entry.location_longitude || null,
+      location_address: entry.location_address || null,
+      location_city: entry.location_city || null,
+      location_country: entry.location_country || null,
       created_at: entry.created_at,
     }));
 
     const expenseTransactions: Transaction[] = (expenseResult.data || []).map((entry) => ({
       id: entry.id,
       date: entry.date,
+      date_hijri: entry.date_hijri || null,
+      time: entry.time || null,
+      timezone: entry.timezone || null,
       type: 'expense' as const,
       category: entry.category,
       amount: entry.amount,
       notes: entry.notes,
+      location_latitude: entry.location_latitude || null,
+      location_longitude: entry.location_longitude || null,
+      location_address: entry.location_address || null,
+      location_city: entry.location_city || null,
+      location_country: entry.location_country || null,
       created_at: entry.created_at,
     }));
 
@@ -122,14 +181,19 @@ export async function getAllTransactions(
       allTransactions = expenseTransactions;
     }
 
-    // Apply search filter
+    // Apply search filter (searches in notes, category, location, amount, and dates)
     if (filters?.searchTerm && filters.searchTerm.trim()) {
       const searchLower = filters.searchTerm.toLowerCase();
       allTransactions = allTransactions.filter((t) => {
         return (
           t.category.toLowerCase().includes(searchLower) ||
           t.notes?.toLowerCase().includes(searchLower) ||
-          t.amount.toString().includes(searchLower)
+          t.amount.toString().includes(searchLower) ||
+          t.location_city?.toLowerCase().includes(searchLower) ||
+          t.location_country?.toLowerCase().includes(searchLower) ||
+          t.location_address?.toLowerCase().includes(searchLower) ||
+          t.date.includes(filters.searchTerm || '') ||
+          t.date_hijri?.includes(filters.searchTerm || '')
         );
       });
     }

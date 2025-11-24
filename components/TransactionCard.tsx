@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Transaction } from '@/lib/transactions';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { getTextColor, getMutedTextColor } from '@/lib/utils';
+import { formatHijriDate, getHijriMonthName } from '@/lib/hijri-calendar';
 
 interface TransactionCardProps {
   transaction: Transaction;
@@ -189,9 +190,33 @@ export function TransactionCard({
                 {transaction.type === 'income' ? 'Income' : 'Expense'}
               </span>
             </div>
-            <p className={`text-sm ${getMutedTextColor(theme)} opacity-60 mb-1`}>
+            <div className="mb-1">
+              <p className={`text-sm ${getMutedTextColor(theme)} opacity-60`}>
               {formatDate(transaction.date)}
             </p>
+              {transaction.date_hijri && (
+                <p className={`text-xs ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'} opacity-80`}>
+                  {(() => {
+                    const [year, month, day] = transaction.date_hijri.split('-').map(Number);
+                    return `${day} ${getHijriMonthName(month)} ${year} AH`;
+                  })()}
+                </p>
+              )}
+              {transaction.time && (
+                <p className={`text-xs ${getMutedTextColor(theme)} opacity-50`}>
+                  {transaction.time} {transaction.timezone && `(${transaction.timezone})`}
+                </p>
+              )}
+            </div>
+            {transaction.location_city && (
+              <p className={`text-xs ${getMutedTextColor(theme)} opacity-50 mb-1 flex items-center gap-1`}>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                {transaction.location_city}{transaction.location_country && `, ${transaction.location_country}`}
+              </p>
+            )}
             {transaction.notes && (
               <p className={`text-xs ${getMutedTextColor(theme)} opacity-50 truncate`}>
                 {transaction.notes}

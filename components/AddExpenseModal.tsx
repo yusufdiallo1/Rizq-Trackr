@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { uploadFile } from '@/lib/storage';
 import { extractReceiptData, autoCategorizeExpense, ReceiptData } from '@/lib/receipt-scanner';
 import { getCurrentUser } from '@/lib/auth';
 import { scaleInVariants, fadeVariants, slideUpVariants } from '@/lib/animations';
+import { DualCalendarPicker } from './DualCalendarPicker';
+import { useLocation } from '@/lib/contexts/LocationContext';
+import { gregorianToHijri, getCurrentTimeWithTimezone } from '@/lib/hijri-calendar';
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -16,13 +19,24 @@ interface AddExpenseModalProps {
     date: string;
     notes: string;
     receiptImageUrl?: string;
+    location_latitude?: number | null;
+    location_longitude?: number | null;
+    location_address?: string | null;
+    location_city?: string | null;
+    location_country?: string | null;
+    date_hijri?: string | null;
+    time?: string | null;
+    timezone?: string | null;
   }) => void;
 }
 
 export function AddExpenseModal({ isOpen, onClose, onSave }: AddExpenseModalProps) {
+  const { location } = useLocation();
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(new Date());
+  const [hijriDate, setHijriDate] = useState(gregorianToHijri(new Date()));
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showCategorySheet, setShowCategorySheet] = useState(false);
@@ -61,7 +75,7 @@ export function AddExpenseModal({ isOpen, onClose, onSave }: AddExpenseModalProp
     }
     if (!date) {
       newErrors.date = 'Date is required';
-    } else if (new Date(date) > new Date()) {
+    } else if (date > new Date()) {
       newErrors.date = 'Date cannot be in the future';
     }
     if (notes.length > 500) {
@@ -113,7 +127,9 @@ export function AddExpenseModal({ isOpen, onClose, onSave }: AddExpenseModalProp
 
         // 2. Date (exact date from receipt)
         if (extractedData.date) {
-          setDate(extractedData.date);
+          const receiptDate = new Date(extractedData.date);
+          setDate(receiptDate);
+          setHijriDate(gregorianToHijri(receiptDate));
         }
 
         // 3. Merchant name
@@ -206,19 +222,33 @@ export function AddExpenseModal({ isOpen, onClose, onSave }: AddExpenseModalProp
         }
       }
 
+      // Get time and timezone
+      const { time, timezone } = getCurrentTimeWithTimezone();
+      const dateHijriString = `${hijriDate.year}-${String(hijriDate.month).padStart(2, '0')}-${String(hijriDate.day).padStart(2, '0')}`;
+
       // Always save the expense, even if receipt upload failed
       onSave({
         amount: parseFloat(amount),
         category,
-        date,
+        date: date.toISOString().split('T')[0],
         notes,
         receiptImageUrl: uploadedReceiptUrl || undefined,
+        location_latitude: location?.latitude || null,
+        location_longitude: location?.longitude || null,
+        location_address: location?.formattedAddress || null,
+        location_city: location?.city || null,
+        location_country: location?.country || null,
+        date_hijri: dateHijriString,
+        time,
+        timezone,
       });
 
       // Reset
       setAmount('');
       setCategory('');
-      setDate(new Date().toISOString().split('T')[0]);
+      const now = new Date();
+      setDate(now);
+      setHijriDate(gregorianToHijri(now));
       setNotes('');
       setErrors({});
       setReceiptImage(null);
@@ -239,7 +269,9 @@ export function AddExpenseModal({ isOpen, onClose, onSave }: AddExpenseModalProp
   const handleCancel = () => {
     setAmount('');
     setCategory('');
-    setDate(new Date().toISOString().split('T')[0]);
+    const now = new Date();
+    setDate(now);
+    setHijriDate(gregorianToHijri(now));
     setNotes('');
     setErrors({});
     setReceiptImage(null);
@@ -253,6 +285,12 @@ export function AddExpenseModal({ isOpen, onClose, onSave }: AddExpenseModalProp
   };
 
   const isFormValid = amount && parseFloat(amount) > 0 && category && date;
+
+  const handleDateChange = (newDate: Date, hijri: { year: number; month: number; day: number }) => {
+    setDate(newDate);
+    setHijriDate(hijri);
+    setShowDatePicker(false);
+  };
 
   const getCategoryIcon = (cat: string) => {
     const icons: { [key: string]: string } = {
@@ -639,30 +677,41 @@ export function AddExpenseModal({ isOpen, onClose, onSave }: AddExpenseModalProp
               {/* Date */}
               <div>
                 <label className="block text-white/70 text-sm mb-2">Date</label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
+                <button
+                  type="button"
+                  onClick={() => setShowDatePicker(true)}
+                  className="input-animated w-full pl-12 pr-4 py-4 text-white rounded-2xl transition-all mobile-input tablet-input text-left flex items-center justify-between"
+                  style={{
+                    backdropFilter: 'blur(15px)',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    minHeight: '48px',
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-white/40 pointer-events-none">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-white font-medium">
+                        {date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      </span>
+                      <span className="text-white/60 text-xs">
+                        {hijriDate.day} {['Muharram', 'Safar', 'Rabi\' al-awwal', 'Rabi\' al-thani', 'Jumada al-awwal', 'Jumada al-thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'][hijriDate.month - 1]} {hijriDate.year} AH
+                      </span>
+                    </div>
                   </div>
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={e => setDate(e.target.value)}
-                    className="input-animated w-full pl-12 pr-4 py-4 text-white rounded-2xl transition-all mobile-input tablet-input"
-                    style={{
-                      backdropFilter: 'blur(15px)',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      minHeight: '48px',
-                    }}
-                  />
-                </div>
+                  <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
                 {errors.date && (
                   <p className="text-red-400 text-xs mt-2 flex items-center gap-1">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -806,6 +855,19 @@ export function AddExpenseModal({ isOpen, onClose, onSave }: AddExpenseModalProp
             </div>
           </motion.div>
         </motion.div>
+      )}
+
+      {/* Dual Calendar Picker Modal */}
+      {showDatePicker && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <DualCalendarPicker
+            value={date}
+            onChange={handleDateChange}
+            onClose={() => setShowDatePicker(false)}
+            label="Select Date"
+            showTime={false}
+          />
+        </div>
       )}
     </>
   );

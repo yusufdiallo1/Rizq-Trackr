@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Navbar } from '@/components/layout/Navbar';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { getCurrentUser, User } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import LoadingScreen from '@/components/LoadingScreen';
@@ -240,65 +240,44 @@ export default function NotificationsPage() {
   const filteredNotifications = getFilteredNotifications();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-white to-cream-light">
-      <Navbar />
-
-      <div className="max-w-4xl mx-auto px-6 py-8 pt-24">
-        {/* Page Header */}
-        <div className="mb-8 rounded-[32px] overflow-hidden relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-teal-500 to-secondary opacity-90"></div>
-          <div className="relative backdrop-blur-[30px] bg-white/10 border border-white/30 shadow-2xl">
-            <div className="p-12">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-4xl font-bold text-white mb-2">Notifications</h1>
-                  <p className="text-white/80">Stay updated with your financial activity</p>
-                </div>
-                <button
-                  onClick={() => setShowSettings(true)}
-                  className="px-6 py-3 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium hover:bg-white/30 transition-all flex items-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Settings
-                </button>
-              </div>
-            </div>
-          </div>
+    <DashboardLayout user={user}>
+      <div className="w-full px-4 sm:px-6 py-4 sm:py-8">
+        {/* Page Header - Mobile Optimized */}
+        <div className="mb-4 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">Notifications</h1>
+          <p className="text-white/80 text-sm sm:text-base">Stay updated with your financial activity</p>
         </div>
 
-        {/* Actions Bar */}
-        <div className="mb-6 rounded-2xl backdrop-blur-xl bg-white/75 border border-white/30 shadow-lg p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        {/* Actions Bar - Mobile Optimized */}
+        <div className="mb-4 sm:mb-6 rounded-2xl backdrop-blur-xl bg-white/75 border border-white/30 shadow-lg p-3 sm:p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={markAllAsRead}
                 disabled={notifications.every(n => n.read)}
-                className="px-4 py-2 rounded-xl bg-white/60 backdrop-blur-md border border-white/40 text-charcoal-dark font-medium hover:bg-white/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 sm:px-4 py-2 rounded-xl bg-white/60 backdrop-blur-md border border-white/40 text-charcoal-dark font-medium text-sm sm:text-base hover:bg-white/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Mark All Read
               </button>
               <button
                 onClick={clearAll}
                 disabled={notifications.length === 0}
-                className="px-4 py-2 rounded-xl bg-white/40 backdrop-blur-md border border-white/40 text-charcoal font-medium hover:bg-white/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 sm:px-4 py-2 rounded-xl bg-white/40 backdrop-blur-md border border-white/40 text-charcoal font-medium text-sm sm:text-base hover:bg-white/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Clear All
               </button>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-charcoal/60">
+              <span className="text-xs sm:text-sm text-charcoal/60">
                 {notifications.filter(n => !n.read).length} unread
               </span>
             </div>
           </div>
         </div>
 
-        {/* Category Tabs */}
-        <div className="mb-6 rounded-2xl backdrop-blur-xl bg-white/75 border border-white/30 shadow-lg p-2">
-          <div className="flex items-center gap-2">
+        {/* Category Tabs - Mobile Scroll */}
+        <div className="mb-4 sm:mb-6 rounded-2xl backdrop-blur-xl bg-white/75 border border-white/30 shadow-lg p-2 overflow-x-auto">
+          <div className="flex items-center gap-2 min-w-max sm:min-w-0">
             {[
               { key: 'all', label: 'All' },
               { key: 'transactions', label: 'Transactions' },
@@ -313,7 +292,7 @@ export default function NotificationsPage() {
                 <button
                   key={category.key}
                   onClick={() => setActiveCategory(category.key as NotificationCategory)}
-                  className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all ${
+                  className={`px-3 sm:px-4 py-2 sm:py-3 rounded-xl font-medium text-sm sm:text-base transition-all whitespace-nowrap ${
                     isActive
                       ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg'
                       : 'bg-white/40 backdrop-blur-md text-charcoal hover:bg-white/60'
@@ -344,24 +323,24 @@ export default function NotificationsPage() {
               return (
                 <div
                   key={notification.id}
-                  className={`rounded-2xl backdrop-blur-xl bg-white/75 border shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 ${
+                  className={`rounded-2xl backdrop-blur-xl bg-white/75 border shadow-lg hover:shadow-xl transition-all ${
                     !notification.read
                       ? 'border-l-4 border-l-blue-500 border-white/30'
                       : 'border-white/30 opacity-75'
                   }`}
                 >
-                  <div className="p-6">
-                    <div className="flex items-start gap-4">
+                  <div className="p-4 sm:p-6">
+                    <div className="flex items-start gap-3 sm:gap-4">
                       {/* Icon */}
-                      <div className={`w-12 h-12 ${iconData.bgClass} backdrop-blur-md rounded-2xl flex items-center justify-center border ${iconData.borderClass} flex-shrink-0`}>
-                        <div className={iconData.textClass}>{iconData.icon}</div>
+                      <div className={`w-10 h-10 sm:w-12 sm:h-12 ${iconData.bgClass} backdrop-blur-md rounded-xl sm:rounded-2xl flex items-center justify-center border ${iconData.borderClass} flex-shrink-0`}>
+                        <div className={`text-lg sm:text-xl ${iconData.textClass}`}>{iconData.icon}</div>
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-charcoal-dark mb-1">{notification.title}</h3>
-                        <p className="text-sm text-charcoal mb-2">{notification.message}</p>
-                        <div className="flex items-center gap-3">
+                        <h3 className="text-base sm:text-lg font-bold text-charcoal-dark mb-1">{notification.title}</h3>
+                        <p className="text-xs sm:text-sm text-charcoal mb-2">{notification.message}</p>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                           <span className="text-xs text-charcoal/60">{getRelativeTime(notification.timestamp)}</span>
                           {notification.actionLabel && (
                             <button
@@ -375,7 +354,7 @@ export default function NotificationsPage() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-start gap-2 flex-shrink-0">
+                      <div className="flex items-start gap-1 sm:gap-2 flex-shrink-0">
                         {!notification.read && (
                           <button
                             onClick={() => markAsRead(notification.id)}
@@ -465,6 +444,6 @@ export default function NotificationsPage() {
           </div>
         </div>
       )}
-    </div>
+    </DashboardLayout>
   );
 }
