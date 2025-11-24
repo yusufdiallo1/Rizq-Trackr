@@ -1,0 +1,963 @@
+/* ============================================
+   MOBILE-FIRST OPTIMIZATIONS (0px - 640px)
+   ============================================ */
+
+/* ============================================
+   SAFE AREA & STATUS BAR
+   ============================================ */
+@supports (padding: env(safe-area-inset-top)) {
+  :root {
+    --safe-area-top: env(safe-area-inset-top);
+    --safe-area-bottom: env(safe-area-inset-bottom);
+    --safe-area-left: env(safe-area-inset-left);
+    --safe-area-right: env(safe-area-inset-right);
+  }
+}
+
+/* Full-width elements extend to edge */
+body {
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+/* Content respects safe areas */
+.mobile-container {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* ============================================
+   DISABLE HOVER EFFECTS ON TOUCH DEVICES
+   ============================================ */
+@media (hover: none) and (pointer: coarse) {
+  .hover\:scale-110:hover,
+  .hover\:-translate-y-4:hover,
+  .hover\:shadow-2xl:hover,
+  .hover\:shadow-emerald-500\/50:hover,
+  .hover\:shadow-red-500\/50:hover,
+  .hover\:shadow-amber-500\/50:hover,
+  .hover\:shadow-purple-500\/50:hover {
+    transform: none !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  [class*="hover:"]:hover {
+    transform: none !important;
+  }
+}
+
+  /* ============================================
+     LANDSCAPE MODE OPTIMIZATION
+     ============================================ */
+  @media (orientation: landscape) and (max-height: 500px) {
+    /* Optimize for landscape mobile devices */
+    .mobile-top-nav {
+      height: calc(48px + env(safe-area-inset-top, 0)) !important;
+      min-height: 48px !important;
+    }
+    
+    nav[role="navigation"][aria-label="Main navigation"],
+    .mobile-bottom-tab-bar,
+    .mobile-tab-bar {
+      height: calc(56px + env(safe-area-inset-bottom, 0)) !important;
+      min-height: 56px !important;
+    }
+
+    /* Reduce padding in landscape */
+    .mobile-container {
+      padding-top: max(0.5rem, env(safe-area-inset-top));
+      padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    }
+
+    /* Optimize modal heights for landscape */
+    .mobile-modal,
+    .mobile-bottom-sheet {
+      max-height: calc(100vh - env(safe-area-inset-top, 0) - env(safe-area-inset-bottom, 0) - 60px) !important;
+    }
+
+    /* Reduce chart heights in landscape */
+    .mobile-chart-height {
+      height: 180px !important;
+    }
+  }
+
+  /* ============================================
+     KEYBOARD NAVIGATION SUPPORT
+     ============================================ */
+  /* Focus visible styles for keyboard navigation */
+  *:focus-visible {
+    outline: 2px solid #10b981;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Skip focus for mouse users but keep for keyboard */
+  @media (pointer: fine) {
+    *:focus:not(:focus-visible) {
+      outline: none;
+    }
+  }
+
+/* ============================================
+   MOBILE NAVBAR STABILITY - FORCE VISIBILITY
+   ============================================ */
+@media (max-width: 1023px) {
+  /* Ensure mobile navbar stays fixed and visible - LOCKED STYLES */
+  .mobile-top-nav {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 50 !important;
+    transform: none !important;
+    transition: none !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    height: calc(56px + env(safe-area-inset-top, 0)) !important;
+    padding-top: env(safe-area-inset-top, 0) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .dark .mobile-top-nav {
+    background: rgba(15, 23, 42, 0.98) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* Force hamburger button to ALWAYS be visible - highest priority */
+  .mobile-top-nav button[aria-label="Open menu"],
+  .mobile-top-nav button[type="button"]:first-child {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 100 !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    background: rgba(0, 0, 0, 0.1) !important;
+    border: 2px solid rgba(0, 0, 0, 0.2) !important;
+    border-radius: 50% !important;
+  }
+
+  .dark .mobile-top-nav button[aria-label="Open menu"],
+  .dark .mobile-top-nav button[type="button"]:first-child {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  }
+
+  /* Force SVG icon to be visible */
+  .mobile-top-nav button[aria-label="Open menu"] svg,
+  .mobile-top-nav button[type="button"]:first-child svg {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 24px !important;
+    height: 24px !important;
+    stroke: currentColor !important;
+    stroke-width: 3 !important;
+  }
+
+  .dark .mobile-top-nav button[aria-label="Open menu"] svg,
+  .dark .mobile-top-nav button[type="button"]:first-child svg {
+    stroke: #ffffff !important;
+  }
+
+  .mobile-top-nav button[aria-label="Open menu"] svg,
+  .mobile-top-nav button[type="button"]:first-child svg {
+    stroke: #1f2937 !important;
+  }
+}
+
+/* ============================================
+   MOBILE BREAKPOINT (0px - 640px)
+   ============================================ */
+@media (max-width: 640px) {
+  /* ============================================
+     LAYOUT SYSTEM
+     ============================================ */
+  body {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  * {
+    max-width: 100vw;
+  }
+
+  /* Full-width: No max-width constraint */
+  .mobile-full-width {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Padding: 1rem horizontal */
+  .mobile-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Vertical spacing: 1rem between sections */
+  .mobile-section-spacing {
+    margin-bottom: 1rem;
+  }
+
+  /* ============================================
+     TYPOGRAPHY (MOBILE)
+     ============================================ */
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+
+  /* Large headings: 1.75rem (hero) */
+  h1 {
+    font-size: 1.75rem !important;
+    line-height: 1.3;
+    font-weight: 700;
+  }
+
+  /* Section headings: 1.25rem */
+  h2 {
+    font-size: 1.25rem !important;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+
+  /* Card titles: 1rem */
+  h3 {
+    font-size: 1rem !important;
+    line-height: 1.5;
+    font-weight: 600;
+  }
+
+  /* Body: 14px */
+  body,
+  p {
+    font-size: 14px !important;
+    line-height: 1.5;
+  }
+
+  /* Small text: 12px */
+  .text-sm,
+  small {
+    font-size: 12px !important;
+    line-height: 1.5;
+  }
+
+  /* Override Tailwind text sizes for mobile */
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+
+  .text-3xl {
+    font-size: 1.5rem !important;
+  }
+
+  .text-4xl {
+    font-size: 1.75rem !important;
+  }
+
+  /* ============================================
+     CARDS
+     ============================================ */
+  /* Full width with 1rem margin */
+  .mobile-card {
+    width: calc(100% - 2rem);
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+
+  /* Min height for tap targets: 44px */
+  .mobile-card,
+  .mobile-card > * {
+    min-height: 44px;
+  }
+
+  /* Padding: 1rem */
+  .mobile-card,
+  .rounded-3xl.p-6,
+  .rounded-3xl.p-8 {
+    padding: 1rem !important;
+  }
+
+  /* Border radius: 16-20px */
+  .mobile-card,
+  .rounded-3xl {
+    border-radius: 1rem !important;
+  }
+
+  /* ============================================
+     FORMS
+     ============================================ */
+  /* Full width */
+  form,
+  .mobile-form {
+    width: 100%;
+  }
+
+  /* Single column always */
+  .mobile-form-row {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* Input height: 48px minimum */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="time"],
+  select,
+  textarea {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+    min-height: 48px;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+  }
+
+  /* Field spacing: 1rem */
+  .mobile-form-field {
+    margin-bottom: 1rem;
+  }
+
+  /* Label above input */
+  .mobile-form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* Error below field */
+  .mobile-form-error {
+    margin-top: 0.5rem;
+    font-size: 12px;
+    color: #ef4444;
+  }
+
+  /* Helper text: Small, gray */
+  .mobile-form-helper {
+    margin-top: 0.25rem;
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  /* ============================================
+     BUTTONS
+     ============================================ */
+  /* Full width (most of the time) */
+  .mobile-btn-full {
+    width: 100%;
+  }
+
+  /* Height: 48-56px */
+  button,
+  .mobile-btn {
+    min-height: 48px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Icon + text centered */
+  .mobile-btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  /* Adequate tap target */
+  button,
+  a,
+  .mobile-tap-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* ============================================
+     MODALS/SHEETS
+     ============================================ */
+  /* Full screen or near full screen */
+  [role="dialog"],
+  .mobile-modal {
+    max-width: 100vw !important;
+    max-height: 90vh !important;
+    margin: 0 !important;
+    border-radius: 1.25rem 1.25rem 0 0 !important;
+  }
+
+  /* Bottom sheet: Slide up from bottom */
+  .mobile-bottom-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 90vh;
+    border-radius: 1.25rem 1.25rem 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: slideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  /* Top sheet: Slide down from top */
+  .mobile-top-sheet {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    max-height: 90vh;
+    border-radius: 0 0 1.25rem 1.25rem;
+    padding-top: max(env(safe-area-inset-top), 1rem);
+    animation: slideDown 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  /* Scrollable content area */
+  .mobile-modal-content {
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ============================================
+     IMAGES & ICONS
+     ============================================ */
+  /* Icons: 20px standard */
+  .mobile-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Avatars: 40px small, 60px large */
+  .mobile-avatar-small {
+    width: 40px;
+    height: 40px;
+  }
+
+  .mobile-avatar-large {
+    width: 60px;
+    height: 60px;
+  }
+
+  /* Hero illustrations: 300x300px */
+  .mobile-hero-image {
+    width: 300px;
+    height: 300px;
+    max-width: 100%;
+  }
+
+  /* Full-width images: Container width */
+  .mobile-image-full {
+    width: 100%;
+    height: auto;
+  }
+
+  /* ============================================
+     SPACING SCALE (MOBILE)
+     ============================================ */
+  .mobile-spacing-xs { margin: 4px; padding: 4px; }
+  .mobile-spacing-sm { margin: 8px; padding: 8px; }
+  .mobile-spacing-md { margin: 12px; padding: 12px; }
+  .mobile-spacing-lg { margin: 16px; padding: 16px; }
+  .mobile-spacing-xl { margin: 20px; padding: 20px; }
+  .mobile-spacing-2xl { margin: 24px; padding: 24px; }
+
+  /* ============================================
+     TOUCH INTERACTIONS
+     ============================================ */
+  /* All tap targets: 44x44px minimum */
+  button,
+  a,
+  [role="button"],
+  .mobile-tap-target {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Spacing: 8-12px between targets */
+  .mobile-tap-target + .mobile-tap-target {
+    margin-left: 8px;
+  }
+
+  /* Feedback: Visual + haptic (if available) */
+  button:active,
+  a:active,
+  .mobile-tap-target:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+
+  /* Tap area: Visual highlight */
+  .mobile-tap-highlight {
+    -webkit-tap-highlight-color: rgba(6, 182, 212, 0.2);
+  }
+
+  /* ============================================
+     INPUT KEYBOARD HANDLING
+     ============================================ */
+  /* Auto-focus on modal open: 300ms delay (prevent keyboard flash) */
+  .mobile-modal[data-auto-focus] input:first-of-type {
+    animation: focusDelay 0.3s ease-out forwards;
+  }
+
+  /* Keyboard dismissal: Tap outside */
+  .mobile-keyboard-dismiss {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+  }
+
+  /* Input type: Appropriate keyboard */
+  input[type="email"] {
+    inputmode: email;
+  }
+
+  input[type="tel"],
+  input[type="phone"] {
+    inputmode: tel;
+  }
+
+  input[type="number"] {
+    inputmode: numeric;
+  }
+
+  /* ============================================
+     LISTS & SCROLLING
+     ============================================ */
+  /* Vertical scroll primary */
+  .mobile-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* No horizontal scroll (except carousel) */
+  body,
+  main,
+  .mobile-container {
+    overflow-x: hidden;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Pull-to-refresh: Gesture at top */
+  .mobile-pull-refresh {
+    overscroll-behavior-y: contain;
+  }
+
+  /* Infinite scroll: Load more at bottom */
+  .mobile-infinite-scroll {
+    padding-bottom: 2rem;
+  }
+
+  /* ============================================
+     CARD GRIDS
+     ============================================ */
+  .grid.gap-4,
+  .grid.gap-6 {
+    gap: 1rem !important;
+  }
+
+  /* ============================================
+     TABLES
+     ============================================ */
+  /* Make tables scrollable on mobile */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ============================================
+     CHARTS
+     ============================================ */
+  .recharts-wrapper {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  /* Chart heights: 200px on mobile */
+  .mobile-chart-height {
+    height: 200px !important;
+  }
+
+  .recharts-wrapper .mobile-chart-height,
+  .recharts-surface .mobile-chart-height {
+    height: 200px !important;
+  }
+
+  /* ============================================
+     PADDING ADJUSTMENTS
+     ============================================ */
+  .pt-8 {
+    padding-top: 1rem !important;
+  }
+
+  .pb-8 {
+    padding-bottom: 1rem !important;
+  }
+
+  .px-4 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+/* ============================================
+   TABLET & LARGER MOBILE (641px - 1024px)
+   ============================================ */
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* ============================================
+     LAYOUT SYSTEM (TABLET)
+     ============================================ */
+  /* Slightly larger padding on tablets */
+  .mobile-padding,
+  .tablet-padding {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  /* Tablet container with comfortable padding */
+  .tablet-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: max(1.5rem, env(safe-area-inset-top));
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+
+  /* Larger cards on tablet */
+  .mobile-card,
+  .tablet-card {
+    padding: 1.5rem !important;
+    border-radius: 1.25rem !important;
+  }
+
+  /* Larger spacing on tablet */
+  .mobile-section-spacing,
+  .tablet-section-spacing {
+    margin-bottom: 1.5rem;
+  }
+
+  /* ============================================
+     TYPOGRAPHY (TABLET)
+     ============================================ */
+  /* Tablet heading sizes */
+  h1 {
+    font-size: 2rem !important;
+    line-height: 1.3;
+    font-weight: 700;
+  }
+
+  h2 {
+    font-size: 1.5rem !important;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+
+  h3 {
+    font-size: 1.125rem !important;
+    line-height: 1.5;
+    font-weight: 600;
+  }
+
+  body,
+  p {
+    font-size: 15px !important;
+    line-height: 1.6;
+  }
+
+  .text-sm,
+  small {
+    font-size: 13px !important;
+    line-height: 1.5;
+  }
+
+  /* ============================================
+     LAYOUT UTILITIES (TABLET)
+     ============================================ */
+  /* Tablet grid: 2 columns */
+  .tablet-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  /* Tablet grid: 3 columns (landscape) */
+  @media (orientation: landscape) {
+    .tablet-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
+  }
+
+  /* Tablet side-by-side layout */
+  .tablet-side-by-side {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: flex-start;
+  }
+
+  /* ============================================
+     BUTTONS (TABLET)
+     ============================================ */
+  /* Tablet buttons: comfortable size */
+  button,
+  .tablet-btn {
+    min-height: 48px;
+    padding: 0.875rem 1.75rem;
+    font-size: 1rem;
+    border-radius: 0.875rem;
+  }
+
+  /* Tablet tap targets: 48px minimum */
+  button,
+  a,
+  [role="button"],
+  .tablet-tap-target {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  /* ============================================
+     FORMS (TABLET)
+     ============================================ */
+  /* Input height: 48-56px on tablet */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="time"],
+  select,
+  textarea {
+    font-size: 16px !important;
+    min-height: 48px;
+    padding: 0.875rem 1.25rem;
+  }
+
+  /* Field spacing: 1.5rem on tablet */
+  .tablet-form-field {
+    margin-bottom: 1.5rem;
+  }
+
+  /* ============================================
+     MODALS (TABLET)
+     ============================================ */
+  /* Centered modal pattern for tablet */
+  .tablet-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 600px;
+    width: calc(100% - 2rem);
+    max-height: 90vh;
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    z-index: 100;
+    animation: tabletModalEnter 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  /* ============================================
+     CHARTS (TABLET)
+     ============================================ */
+  /* Chart heights: 250-300px on tablet */
+  .tablet-chart-height {
+    height: 280px !important;
+  }
+
+  .recharts-wrapper .tablet-chart-height,
+  .recharts-surface .tablet-chart-height {
+    height: 280px !important;
+  }
+
+  /* ============================================
+     PIN KEYPAD (TABLET)
+     ============================================ */
+  /* PIN keypad buttons: 80-85px, text: 2.5rem */
+  .pin-keypad-button {
+    font-size: 2.5rem !important;
+  }
+
+  /* ============================================
+     SPACING SCALE (TABLET)
+     ============================================ */
+  .tablet-spacing-xs { margin: 6px; padding: 6px; }
+  .tablet-spacing-sm { margin: 12px; padding: 12px; }
+  .tablet-spacing-md { margin: 16px; padding: 16px; }
+  .tablet-spacing-lg { margin: 20px; padding: 20px; }
+  .tablet-spacing-xl { margin: 24px; padding: 24px; }
+  .tablet-spacing-2xl { margin: 32px; padding: 32px; }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes focusDelay {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Tablet modal enter animation */
+@keyframes tabletModalEnter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY (MOBILE)
+   ============================================ */
+@media (max-width: 640px) {
+  /* Tap target sizing: 44x44px minimum */
+  button,
+  a,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"],
+  .mobile-tap-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Color contrast: WCAG AA - ensure sufficient contrast */
+  .mobile-text {
+    color: #1e293b; /* Dark text on light background */
+  }
+
+  .dark .mobile-text {
+    color: #f1f5f9; /* Light text on dark background */
+  }
+
+  /* Screen reader support: Labels, ARIA */
+  .mobile-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Focus management: Keyboard navigation */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid #06b6d4;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Skip to content link */
+  .mobile-skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #06b6d4;
+    color: white;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 100;
+  }
+
+  .mobile-skip-link:focus {
+    top: 0;
+  }
+}
+
+/* ============================================
+   LANDSCAPE MODE ADJUSTMENTS
+   ============================================ */
+@media (max-width: 640px) and (orientation: landscape) {
+  /* Adapt to narrow height */
+  .mobile-modal {
+    max-height: 95vh !important;
+  }
+
+  /* Adjust padding/spacing */
+  .mobile-section-spacing {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Charts can scroll horizontally if needed */
+  .mobile-chart-container {
+    overflow-x: auto;
+  }
+}
+

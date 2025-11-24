@@ -1,0 +1,97 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { calculateNisab, fetchMetalPrices } from '@/lib/nisab-api';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Database } from '@/types/database';
+
+const supabase = createClientComponentClient<Database>();
+
+// Supported currencies
+const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'PKR', 'INR', 'MYR', 'IDR'];
+
+/**
+ * API Route to update Nisab prices daily
+ * This should be called by a cron job or scheduled task at midnight
+ * 
+ * Usage:
+ * - Manual trigger: GET /api/nisab/update
+ * - Cron job: Set up to call this endpoint daily at midnight
+ */
+export async function GET(request: NextRequest) {
+  try {
+    // Optional: Add authentication/authorization check for cron jobs
+    const authHeader = request.headers.get('authorization');
+    const cronSecret = process.env.CRON_SECRET;
+    
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const results: { [key: string]: { success: boolean; error?: string } } = {};
+
+    // Update Nisab prices for all supported currencies
+    for (const currency of CURRENCIES) {
+      try {
+        // Fetch current metal prices
+        const prices = await fetchMetalPrices(currency);
+        
+        // Calculate Nisab values
+        const nisab = await calculateNisab(currency);
+
+        // Store in database
+        const { error } = await supabase
+          .from('nisab_prices')
+          .upsert({
+            date: today,
+            gold_price_per_gram: prices.goldPerGram,
+            silver_price_per_gram: prices.silverPerGram,
+            nisab_gold_value: nisab.goldBased,
+            nisab_silver_value: nisab.silverBased,
+            currency,
+          }, {
+            onConflict: 'date,currency'
+          });
+
+        if (error) {
+          results[currency] = { success: false, error: error.message };
+        } else {
+          results[currency] = { success: true };
+        }
+      } catch (error: any) {
+        results[currency] = { 
+          success: false, 
+          error: error.message || 'Unknown error' 
+        };
+      }
+    }
+
+    const successCount = Object.values(results).filter(r => r.success).length;
+    const totalCount = CURRENCIES.length;
+
+    return NextResponse.json({
+      success: successCount === totalCount,
+      date: today,
+      updated: successCount,
+      total: totalCount,
+      results,
+    });
+  } catch (error: any) {
+    console.error('Error updating Nisab prices:', error);
+    return NextResponse.json(
+      { 
+        error: 'Failed to update Nisab prices',
+        message: error.message 
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// Also support POST for cron services that use POST
+export async function POST(request: NextRequest) {
+  return GET(request);
+}
+
