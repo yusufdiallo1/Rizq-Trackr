@@ -6,7 +6,7 @@ interface iPhoneMockupProps {
   className?: string;
 }
 
-export const iPhoneMockup: React.FC<iPhoneMockupProps> = ({ className = '' }) => {
+export function iPhoneMockup({ className = '' }: iPhoneMockupProps) {
   const [currentScreen, setCurrentScreen] = useState(0);
 
   const screens = [
@@ -187,5 +187,5 @@ export const iPhoneMockup: React.FC<iPhoneMockupProps> = ({ className = '' }) =>
       </div>
     </div>
   );
-};
+}
 
