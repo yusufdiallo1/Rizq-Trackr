@@ -1,6 +1,6 @@
 # Finance Tracker
 
-A comprehensive Next.js 14 Finance Tracker application with Supabase integration for tracking income, expenses, and Zakat payments with authentic Islamic principles.
+A comprehensive Next.js 14 Finance Tracker application with Supabase integration for tracking income, expenses, and Zakat payments with authentic Islamic principles
 
 ## 🌟 Features
 
