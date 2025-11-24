@@ -16,6 +16,7 @@ import { useRouter, usePathname } from 'next/navigation';
 interface DashboardLayoutProps {
   children: ReactNode;
   user?: {
+    id: string;
     email: string;
   } | null;
 }
