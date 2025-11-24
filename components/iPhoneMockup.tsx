@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 
-interface iPhoneMockupProps {
+interface IPhoneMockupProps {
   className?: string;
 }
 
-export function iPhoneMockup({ className = '' }: iPhoneMockupProps) {
+export function IPhoneMockup({ className = '' }: IPhoneMockupProps) {
   const [currentScreen, setCurrentScreen] = useState(0);
 
   const screens = [
