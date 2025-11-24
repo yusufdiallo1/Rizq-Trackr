@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/lib/contexts/ThemeContext';
+import { useLocation } from '@/lib/contexts/LocationContext';
 import {
   getCurrentDualDate,
   formatDualDate,
@@ -29,8 +30,10 @@ export function DualDateDisplay({
   className = '',
 }: DualDateDisplayProps) {
   const { theme } = useTheme();
+  const { location } = useLocation();
+  const timezone = location?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
   const [dualDate, setDualDate] = useState<DualDate>(getCurrentDualDate());
-  const [time, setTime] = useState<{ time: string; timezone: string }>(getCurrentTimeWithTimezone());
+  const [time, setTime] = useState<{ time: string; timezone: string }>(getCurrentTimeWithTimezone(timezone));
   const [showPicker, setShowPicker] = useState(false);
 
   // Update date when prop changes
@@ -61,8 +64,9 @@ export function DualDateDisplay({
       const msUntilMidnight = tomorrow.getTime() - now.getTime();
 
       const updateDate = () => {
+        const currentTimezone = location?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
         setDualDate(getCurrentDualDate());
-        setTime(getCurrentTimeWithTimezone());
+        setTime(getCurrentTimeWithTimezone(currentTimezone));
       };
 
       // Update immediately
@@ -75,7 +79,8 @@ export function DualDateDisplay({
       let timeInterval: NodeJS.Timeout | null = null;
       if (showTime) {
         timeInterval = setInterval(() => {
-          setTime(getCurrentTimeWithTimezone());
+          const currentTimezone = location?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+          setTime(getCurrentTimeWithTimezone(currentTimezone));
         }, 60000);
       }
 
@@ -89,12 +94,13 @@ export function DualDateDisplay({
   // Update time every minute if showing time
   useEffect(() => {
     if (showTime && !date) {
+      const currentTimezone = location?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
       const interval = setInterval(() => {
-        setTime(getCurrentTimeWithTimezone());
+        setTime(getCurrentTimeWithTimezone(currentTimezone));
       }, 60000);
       return () => clearInterval(interval);
     }
-  }, [showTime, date]);
+  }, [showTime, date, location?.timezone]);
 
   const handleDateChange = (newDate: Date, hijriDate: { year: number; month: number; day: number }) => {
     const hijri = require('hijri-date');

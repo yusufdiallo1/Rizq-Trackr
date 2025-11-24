@@ -163,8 +163,9 @@ export function AddIncomeModal({ isOpen, onClose, onSave }: AddIncomeModalProps)
     }
 
     setSaving(true);
-    // Get time and timezone
-    const { time, timezone } = getCurrentTimeWithTimezone();
+    // Get time and timezone based on user's location
+    const timezone = location?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const { time, timezone: resolvedTimezone } = getCurrentTimeWithTimezone(timezone);
     const dateHijriString = `${hijriDate.year}-${String(hijriDate.month).padStart(2, '0')}-${String(hijriDate.day).padStart(2, '0')}`;
 
     onSave({

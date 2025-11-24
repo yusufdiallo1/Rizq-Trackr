@@ -223,7 +223,9 @@ export function AddExpenseModal({ isOpen, onClose, onSave }: AddExpenseModalProp
       }
 
       // Get time and timezone
-      const { time, timezone } = getCurrentTimeWithTimezone();
+      // Get time and timezone based on user's location
+      const timezone = location?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const { time, timezone: resolvedTimezone } = getCurrentTimeWithTimezone(timezone);
       const dateHijriString = `${hijriDate.year}-${String(hijriDate.month).padStart(2, '0')}-${String(hijriDate.day).padStart(2, '0')}`;
 
       // Always save the expense, even if receipt upload failed

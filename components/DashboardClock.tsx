@@ -24,17 +24,23 @@ export function DashboardClock({ showPrayerTimes = false, className = '' }: Dash
   const [timeInfo, setTimeInfo] = useState(getCurrentTimeWithTimezone());
   const [nextPrayer, setNextPrayer] = useState<{ name: string; time: string } | null>(null);
 
-  // Update time every second
+  // Update time every second based on user's location timezone
   useEffect(() => {
-    const interval = setInterval(() => {
+    const updateTime = () => {
       const now = new Date();
       setCurrentTime(now);
       setDualDate(getCurrentDualDate());
-      setTimeInfo(getCurrentTimeWithTimezone());
-    }, 1000);
+      
+      // Use location timezone if available, otherwise use system timezone
+      const timezone = location?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      setTimeInfo(getCurrentTimeWithTimezone(timezone));
+    };
+
+    updateTime(); // Initial update
+    const interval = setInterval(updateTime, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [location?.timezone]);
 
   // Update at midnight for date changes
   useEffect(() => {
@@ -111,11 +117,14 @@ export function DashboardClock({ showPrayerTimes = false, className = '' }: Dash
   const bgColor = theme === 'dark' ? 'bg-slate-800/50' : 'bg-white/50';
   const borderColor = theme === 'dark' ? 'border-white/20' : 'border-slate-200';
 
+  // Format time based on user's location timezone
+  const timezone = location?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
   const timeString = currentTime.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
     hour12: true,
+    timeZone: timezone,
   });
 
   return (

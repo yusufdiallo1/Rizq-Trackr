@@ -142,12 +142,18 @@ export function isIslamicHoliday(hijri: { year: number; month: number; day: numb
 /**
  * Get current time with timezone
  */
-export function getCurrentTimeWithTimezone(): { time: string; timezone: string } {
+export function getCurrentTimeWithTimezone(timezone?: string): { time: string; timezone: string } {
   const now = new Date();
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const time = now.toTimeString().slice(0, 8); // HH:MM:SS format
+  const resolvedTimezone = timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const time = now.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: resolvedTimezone,
+  });
 
-  return { time, timezone };
+  return { time, timezone: resolvedTimezone };
 }
 
 /**
