@@ -194,7 +194,7 @@ export default function DashboardPage() {
 
   // Label renderer for pie chart - using useMemo to avoid parsing issues
   const renderPieChartLabel = useMemo(() => {
-    return (props: any) => {
+    const PieChartLabel = (props: any) => {
       const { cx, cy, midAngle, innerRadius, outerRadius, percent, payload } = props;
       if (percent < 0.05) return null;
       
@@ -237,6 +237,8 @@ export default function DashboardPage() {
         }, amountText)
       );
     };
+    PieChartLabel.displayName = 'PieChartLabel';
+    return PieChartLabel;
   }, [theme, formatCurrency]);
 
   // Custom tooltip for expense breakdown pie chart

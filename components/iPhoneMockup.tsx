@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface iPhoneMockupProps {
   className?: string;
 }
 
-export function iPhoneMockup({ className = '' }: iPhoneMockupProps) {
+export const iPhoneMockup: React.FC<iPhoneMockupProps> = ({ className = '' }) => {
   const [currentScreen, setCurrentScreen] = useState(0);
 
   const screens = [
@@ -187,5 +187,5 @@ export function iPhoneMockup({ className = '' }: iPhoneMockupProps) {
       </div>
     </div>
   );
-}
+};
 

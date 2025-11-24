@@ -669,7 +669,7 @@ export default function TransactionsPage() {
             ) : (
               <div className="space-y-2">
                 {displayedTransactions.map((transaction) => (
-                  <div className="card-hover">
+                  <div key={`${transaction.type}-${transaction.id}`} className="card-hover">
                   <TransactionCard
                     key={`${transaction.type}-${transaction.id}`}
                     transaction={transaction}

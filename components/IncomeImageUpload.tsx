@@ -166,7 +166,7 @@ export function IncomeImageUpload({ onDataExtracted, onClose }: IncomeImageUploa
           <div className="p-6 space-y-6">
             {/* Description */}
             <p className="text-slate-400 text-sm">
-              Upload or take a photo of your invoice, check, or pay stub. We'll automatically extract the payment details.
+              Upload or take a photo of your invoice, check, or pay stub. We&apos;ll automatically extract the payment details.
             </p>
 
             {/* Camera View */}

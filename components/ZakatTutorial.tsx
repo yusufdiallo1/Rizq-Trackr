@@ -46,7 +46,7 @@ const TUTORIAL_PAGES = [
           border: '1px solid rgba(245, 158, 11, 0.3)',
         }}>
           <p className="text-sm italic">
-            "And establish prayer and give Zakat, and whatever good you put forward for yourselves - you will find it with Allah." - Quran 2:110
+            &quot;And establish prayer and give Zakat, and whatever good you put forward for yourselves - you will find it with Allah.&quot; - Quran 2:110
           </p>
         </div>
       </div>
@@ -150,7 +150,7 @@ const TUTORIAL_PAGES = [
         }}>
           <p className="text-sm font-semibold mb-2">⚠️ Important Note</p>
           <p className="text-sm opacity-80">
-            Most scholars recommend using the gold-based Nisab as it's more stable and reflects modern economic conditions. The silver-based Nisab is typically much lower and may not accurately represent the threshold.
+            Most scholars recommend using the gold-based Nisab as it&apos;s more stable and reflects modern economic conditions. The silver-based Nisab is typically much lower and may not accurately represent the threshold.
           </p>
         </div>
       </div>
@@ -214,7 +214,7 @@ const TUTORIAL_PAGES = [
     content: (
       <div className="space-y-4">
         <p className="text-lg leading-relaxed">
-          Not all wealth is subject to Zakat. Here's what counts as zakatable wealth:
+          Not all wealth is subject to Zakat. Here&apos;s what counts as zakatable wealth:
         </p>
         <div className="space-y-3">
           <div className="p-4 rounded-xl" style={{
@@ -280,7 +280,7 @@ const TUTORIAL_PAGES = [
     content: (
       <div className="space-y-4">
         <p className="text-lg leading-relaxed">
-          Once you've determined your zakatable wealth exceeds Nisab for a full year, calculate Zakat at <strong>2.5%</strong> of your total zakatable wealth.
+          Once you&apos;ve determined your zakatable wealth exceeds Nisab for a full year, calculate Zakat at <strong>2.5%</strong> of your total zakatable wealth.
         </p>
         <div className="p-4 rounded-xl" style={{
           background: 'rgba(6, 182, 212, 0.1)',
@@ -425,7 +425,7 @@ const TUTORIAL_PAGES = [
               Early Payment
             </p>
             <p className="text-sm opacity-80">
-              You can pay Zakat in advance for future years, which is recommended if you have the means. This ensures you don't miss the obligation.
+              You can pay Zakat in advance for future years, which is recommended if you have the means. This ensures you don&apos;t miss the obligation.
             </p>
           </div>
         </div>

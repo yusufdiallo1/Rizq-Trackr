@@ -150,7 +150,7 @@ export function SpendingLimitsModal({ isOpen, onClose, userId }: SpendingLimitsM
           <div className="p-6 space-y-6">
             {/* Description */}
             <p className="text-slate-400 text-sm">
-              Set spending limits and get notified when you're approaching or exceeding them.
+              Set spending limits and get notified when you&apos;re approaching or exceeding them.
             </p>
 
             {/* Current Limits */}
