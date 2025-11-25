@@ -565,7 +565,7 @@ function ExpensesPageContent() {
             </div>
           </div>
 
-          {/* Gold Price Button */}
+          {/* Precious Metals Converter Button */}
           <motion.div
             className="mx-4 mt-4 lg:mx-0 lg:mt-6"
             variants={prefersReducedMotion ? {} : getCardVariants(1)}
@@ -597,10 +597,10 @@ function ExpensesPageContent() {
                   </div>
                   <div className="text-left">
                     <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                      Gold Price
+                      Precious Metals Converter
                     </h3>
                     <p className={`text-sm ${theme === 'dark' ? 'text-white/70' : 'text-slate-600'}`}>
-                      Check current gold & silver prices
+                      Convert gold & silver to multiple currencies
                     </p>
                   </div>
                 </div>

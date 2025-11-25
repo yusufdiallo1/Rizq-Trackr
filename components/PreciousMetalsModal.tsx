@@ -69,7 +69,7 @@ export function PreciousMetalsModal({ isOpen, onClose }: PreciousMetalsModalProp
               id="precious-metals-modal-title"
               className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}
             >
-              Gold Price
+              Precious Metals Converter
             </h2>
             <button
               type="button"
