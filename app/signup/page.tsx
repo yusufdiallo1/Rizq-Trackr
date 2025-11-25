@@ -159,9 +159,11 @@ export default function SignUpPage() {
       setSuccess(true);
       setLoading(false);
 
-      // After account creation (email confirmation disabled), redirect to PIN setup immediately
-      // Users are auto-confirmed, so they can proceed to PIN setup right away
-      router.push('/login/setup-pin');
+      // After account creation, redirect to dashboard
+      // Small delay to show success message
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 1500);
     } catch (err) {
       setError('An unexpected error occurred');
       setLoading(false);
