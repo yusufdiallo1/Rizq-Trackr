@@ -207,7 +207,7 @@ export default function DashboardPage() {
       const isDark = theme === 'dark';
       const cardColor = isDark ? '#ffffff' : '#000000';
       const textColor = isDark ? '#000000' : '#ffffff';
-      const amountText = formatCurrency(payload.amount);
+      const amountText = formatCurrency(payload?.amount || 0);
       
       return React.createElement('g', null,
         React.createElement('rect', {
@@ -227,7 +227,7 @@ export default function DashboardPage() {
           dominantBaseline: 'central',
           fontSize: 14,
           fontWeight: 'bold'
-        }, payload.category),
+        }, payload?.category || 'Unknown'),
         React.createElement('text', {
           x: x,
           y: y + 12,
@@ -576,11 +576,11 @@ export default function DashboardPage() {
                         {transaction.category || transaction.description || 'Transaction'}
               </div>
                       <div className="iphone-transaction-date">
-                        {transaction.date ? new Date(transaction.date).toLocaleDateString() : ''}
+                        {transaction?.date ? new Date(transaction.date).toLocaleDateString() : ''}
                       </div>
                     </div>
                     <div className={`iphone-transaction-amount ${transaction.type === 'income' ? 'iphone-transaction-amount-income' : 'iphone-transaction-amount-expense'}`}>
-                      {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount || 0))}
+                      {transaction?.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction?.amount || 0))}
                     </div>
                     <svg className="iphone-transaction-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M9 5l7 7-7 7" />
@@ -994,12 +994,12 @@ export default function DashboardPage() {
                             {transaction.category || transaction.description || 'Transaction'}
                           </p>
                           <p className={`text-xs ${theme === 'dark' ? 'text-white/60' : 'text-slate-600'}`}>
-                            {transaction.date ? new Date(transaction.date).toLocaleDateString() : ''}
+                            {transaction?.date ? new Date(transaction.date).toLocaleDateString() : ''}
                           </p>
                         </div>
                       </div>
                       <p className={`text-sm font-bold ${transaction.type === 'income' ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount || 0))}
+                        {transaction?.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction?.amount || 0))}
                       </p>
                     </div>
                   ))}
@@ -1656,7 +1656,7 @@ export default function DashboardPage() {
                     <div>
                       <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-charcoal-dark'}`}>{transaction.category}</p>
                       <p className={`text-sm ${theme === 'dark' ? 'text-white/60' : 'text-slate-600'}`}>
-                        {new Date(transaction.date).toLocaleDateString('en-US', {
+                        {transaction?.date ? new Date(transaction.date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',

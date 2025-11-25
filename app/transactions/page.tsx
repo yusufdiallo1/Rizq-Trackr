@@ -106,6 +106,7 @@ export default function TransactionsPage() {
   };
 
   const loadTransactions = async (userId: string, filters: TransactionFilters) => {
+    let isMounted = true;
     try {
       // Load transactions and summary in parallel
       const [transactionsResult, summaryData] = await Promise.all([
@@ -113,14 +114,18 @@ export default function TransactionsPage() {
         getTransactionSummary(userId, filters),
       ]);
       
-      setTransactions(transactionsResult.data || []);
-      setSummary(summaryData || { totalIncome: 0, totalExpenses: 0, netAmount: 0, transactionCount: 0 });
-      setCurrentPage(1);
+      if (isMounted) {
+        setTransactions(transactionsResult?.data || []);
+        setSummary(summaryData || { totalIncome: 0, totalExpenses: 0, netAmount: 0, transactionCount: 0 });
+        setCurrentPage(1);
+      }
     } catch (err: any) {
       // Silent error - will show empty state
-      showToast('Failed to load transactions. Please try again.', 'error');
-      setTransactions([]);
-      setSummary({ totalIncome: 0, totalExpenses: 0, netAmount: 0, transactionCount: 0 });
+      if (isMounted) {
+        showToast('Failed to load transactions. Please try again.', 'error');
+        setTransactions([]);
+        setSummary({ totalIncome: 0, totalExpenses: 0, netAmount: 0, transactionCount: 0 });
+      }
     }
   };
 

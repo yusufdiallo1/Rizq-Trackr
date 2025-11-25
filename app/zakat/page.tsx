@@ -441,8 +441,8 @@ export default function ZakatPage() {
                             <div key={entry.id} className="flex items-center justify-between p-4 rounded-xl bg-white/60 backdrop-blur-md border border-white/50 hover:bg-white/80 transition-all">
                               <div className="flex-1 flex items-center gap-4">
                                 <span className={`text-sm ${getMutedTextColor(theme)}`}>{formatDate(entry.date)}</span>
-                                <span className={`text-sm font-bold ${getTextColor(theme)}`}>{entry.category}</span>
-                                <span className="text-sm font-mono font-bold text-emerald-600">{formatCurrency(Number(entry.amount))}</span>
+                                <span className={`text-sm font-bold ${getTextColor(theme)}`}>{entry?.category || 'Unknown'}</span>
+                                <span className="text-sm font-mono font-bold text-emerald-600">{formatCurrency(Number(entry?.amount || 0))}</span>
                               </div>
                               {/* Glass toggle switch */}
                               <label className="relative inline-flex items-center cursor-pointer">

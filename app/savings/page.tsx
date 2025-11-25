@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser, User } from '@/lib/auth';
 import {
@@ -62,20 +62,21 @@ export default function SavingsPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    let isMounted = true;
     setLoading(true);
 
     const currentUser = await getCurrentUser();
-    if (!currentUser) {
+    if (!currentUser || !isMounted) {
       // Avoid redirect loop when auth lookup is slow; middleware already protects page.
-      setLoading(false);
-      return;
+      if (isMounted) {
+        setLoading(false);
+      }
+      return () => { isMounted = false; };
     }
-    setUser(currentUser);
+    if (isMounted) {
+      setUser(currentUser);
+    }
 
     // Load data in parallel
     try {
@@ -86,16 +87,24 @@ export default function SavingsPage() {
         getMonthOverMonthChange(currentUser.id).catch(() => ({ change: 0, percentage: 0 })),
       ]);
 
-      setCurrentSavings(savings);
-      setSavingsHistory(history);
-      setGoalsWithProgress(goalsResult.data || []);
-      setMonthOverMonth(momChange);
+      if (isMounted) {
+        setCurrentSavings(savings);
+        setSavingsHistory(history);
+        setGoalsWithProgress(goalsResult.data || []);
+        setMonthOverMonth(momChange);
+      }
     } catch (error) {
       // Silent error - will show empty state
     } finally {
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleAddGoal = async (data: { goalName: string; targetAmount: number; icon?: string; targetDate?: string; notes?: string }) => {
     if (!user) return;

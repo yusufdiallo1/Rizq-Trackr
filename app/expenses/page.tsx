@@ -115,8 +115,10 @@ function ExpensesPageContent() {
   };
 
   const loadExpenseEntries = async (userId: string, filters: ExpenseFilters) => {
+    let isMounted = true;
     try {
       const { data, error } = await getExpenseEntries(userId, filters);
+      if (!isMounted) return; // Prevent state update if unmounted
       if (!error) {
       let filteredData = data;
       
@@ -149,14 +151,19 @@ function ExpensesPageContent() {
       }
       // 'All Time' shows all data, no filtering needed
       
-      setExpenseEntries(filteredData);
+      if (isMounted) {
+        setExpenseEntries(filteredData);
+      }
       } else {
-        console.error('Error loading expenses:', error);
-        setExpenseEntries([]);
+        if (isMounted) {
+          setExpenseEntries([]);
+        }
       }
     } catch (err: any) {
       // Silent error - will show empty state
-      setExpenseEntries([]);
+      if (isMounted) {
+        setExpenseEntries([]);
+      }
     }
   };
 
