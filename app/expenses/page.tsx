@@ -95,7 +95,7 @@ function ExpensesPageContent() {
         url.searchParams.delete('action');
         window.history.replaceState({}, '', url.pathname + url.search);
       }
-    }
+      }
   }, [searchParams]);
 
   const loadData = async () => {
@@ -565,7 +565,7 @@ function ExpensesPageContent() {
             </div>
           </div>
 
-          {/* Precious Metals Converter Button */}
+          {/* Gold Price Button */}
           <motion.div
             className="mx-4 mt-4 lg:mx-0 lg:mt-6"
             variants={prefersReducedMotion ? {} : getCardVariants(1)}
@@ -597,10 +597,10 @@ function ExpensesPageContent() {
                   </div>
                   <div className="text-left">
                     <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                      Precious Metals Converter
+                      Gold Price
                     </h3>
                     <p className={`text-sm ${theme === 'dark' ? 'text-white/70' : 'text-slate-600'}`}>
-                      Convert gold & silver to multiple currencies
+                      Check current gold & silver prices
                     </p>
                   </div>
                 </div>

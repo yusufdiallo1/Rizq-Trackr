@@ -33,17 +33,17 @@ export default function Home() {
         if (authenticated) {
           const currentUser = await getCurrentUser();
           if (mounted) {
-            setUser(currentUser);
+          setUser(currentUser);
           }
         } else {
           if (mounted) {
-            setUser(null); // Clear user if not authenticated
+          setUser(null); // Clear user if not authenticated
           }
         }
       } catch (error) {
         // Silently fail - user can still view homepage
         if (mounted) {
-          setUser(null);
+        setUser(null);
         }
       }
     };
@@ -61,11 +61,11 @@ export default function Home() {
       if (event === 'SIGNED_IN' && session) {
         const currentUser = await getCurrentUser();
         if (mounted) {
-          setUser(currentUser);
+        setUser(currentUser);
         }
       } else if (event === 'SIGNED_OUT') {
         if (mounted) {
-          setUser(null); // Clear user on logout
+        setUser(null); // Clear user on logout
         }
       } else if (event === 'TOKEN_REFRESHED' && session) {
         // Don't update user on token refresh - it's the same user

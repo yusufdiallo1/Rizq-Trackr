@@ -84,10 +84,10 @@ export default function ProfilePage() {
       setLoading(false);
       return;
     }
-    setUser(currentUser);
-    setProfile(prev => ({ ...prev, email: currentUser.email }));
-    setEditForm(prev => ({ ...prev, email: currentUser.email }));
-    setLoading(false);
+      setUser(currentUser);
+      setProfile(prev => ({ ...prev, email: currentUser.email }));
+      setEditForm(prev => ({ ...prev, email: currentUser.email }));
+      setLoading(false);
   };
 
   const getInitials = (name: string) => {
