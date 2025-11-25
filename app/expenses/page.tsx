@@ -258,7 +258,7 @@ function ExpensesPageContent() {
   const handleApplyFilters = () => {
     if (!user) return;
     const filters: ExpenseFilters = {};
-      if (filterMonth) {
+      if (filterMonth && typeof filterMonth === 'string') {
         const parts = filterMonth.split('-');
         if (parts.length === 2) {
           const monthNum = parseInt(parts[1], 10);

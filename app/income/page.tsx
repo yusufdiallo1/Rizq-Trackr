@@ -189,7 +189,7 @@ function IncomePageContent() {
     if (!user) return;
     const filters: IncomeFilters = {};
     if (filterMonth) {
-      const [year, month] = filterMonth.split('-');
+      const [year, month] = filterMonth && typeof filterMonth === 'string' ? filterMonth.split('-') : ['', ''];
       filters.month = parseInt(month);
       filters.year = parseInt(year);
     }
