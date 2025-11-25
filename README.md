@@ -343,13 +343,13 @@ Convert gold and silver to multiple currencies with live market prices:
 ### Row Level Security (RLS)
 
 All database tables have RLS enabled:
-- Users can only access their own data
+   - Users can only access their own data
 - Enforced at the database level
 - Prevents unauthorized data access
 
 ### Authentication Security
 
-- Secure password requirements
+   - Secure password requirements
 - Session-based authentication
 - Protected API routes
 - Middleware validation
