@@ -136,12 +136,16 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
   }
 }
 
-// Get current user (no artificial timeout – needed for auth/PIN flows)
+// Get current user with 2-second timeout to prevent infinite loading
 export async function getCurrentUser(): Promise<User | null> {
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // Race between auth check and 2-second timeout
+    const userPromise = supabase.auth.getUser();
+    const timeoutPromise = new Promise<{ data: { user: null } }>((resolve) =>
+      setTimeout(() => resolve({ data: { user: null } }), 2000)
+    );
+
+    const { data: { user } } = await Promise.race([userPromise, timeoutPromise]);
 
     if (!user) return null;
 

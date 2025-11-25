@@ -52,11 +52,8 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
     const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
 
-    // Fetch critical data in parallel - no timeout delays
-    const [
-      { data: incomeData, error: incomeError },
-      { data: expenseData, error: expenseError },
-    ] = await Promise.all([
+    // Fetch critical data in parallel with 3-second timeout
+    const dataPromise = Promise.all([
       supabase
         .from('income_entries')
         .select('amount')
@@ -71,7 +68,19 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
         .gte('date', firstDayOfMonth)
         .lte('date', lastDayOfMonth)
         .limit(100), // Reasonable limit for performance
-    ]).catch(() => [
+    ]);
+
+    const timeoutPromise = new Promise<any>((resolve) =>
+      setTimeout(() => resolve([
+        { data: [], error: null },
+        { data: [], error: null }
+      ]), 3000)
+    );
+
+    const [
+      { data: incomeData, error: incomeError },
+      { data: expenseData, error: expenseError },
+    ] = await Promise.race([dataPromise, timeoutPromise]).catch(() => [
       { data: [], error: null },
       { data: [], error: null }
     ]);

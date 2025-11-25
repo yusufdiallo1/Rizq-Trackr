@@ -284,9 +284,8 @@ export default function TransactionsPage() {
   // Load more transactions
   const handleLoadMore = async () => {
     if (isLoadingMore || currentPage * ITEMS_PER_PAGE >= transactions.length) return;
-    
+
     setIsLoadingMore(true);
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
     setCurrentPage(prev => prev + 1);
     setIsLoadingMore(false);
   };
