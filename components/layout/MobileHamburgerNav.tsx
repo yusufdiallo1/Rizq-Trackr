@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOut, getCurrentUser } from '@/lib/auth';
+import { logError } from '@/lib/logger';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { useLanguage, Language } from '@/lib/contexts/LanguageContext';
 import { Logo } from '@/components/Logo';
@@ -141,11 +142,27 @@ export function MobileHamburgerNav({ user, isOpen, onClose }: MobileHamburgerNav
       if (biometricEnabled) localStorage.setItem('finance_tracker_biometric_enabled', biometricEnabled);
       if (credentialId) localStorage.setItem('finance_tracker_credential_id', credentialId);
     }
-    // Sign out in background (non-blocking)
-    signOut().catch((error) => {
-      console.error('Logout error:', error);
-    });
-    router.push('/login');
+    // Sign out and redirect
+    signOut()
+      .then((result) => {
+        if (result.error) {
+          logError(result.error, 'Logout error');
+        }
+        // Redirect after sign out
+        router.push('/login');
+        // Fallback redirect
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 100);
+      })
+      .catch((error) => {
+        logError(error, 'Logout error');
+        // Still redirect even if there's an error
+        router.push('/login');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 100);
+      });
     // NO router.refresh() - no auto-refresh!
   };
 

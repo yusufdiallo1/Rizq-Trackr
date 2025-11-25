@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect, useRef, MouseEvent, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { signOut, User } from '@/lib/auth';
+import { logError } from '@/lib/logger';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { slideDownVariants } from '@/lib/animations';
@@ -99,9 +100,12 @@ export function Navbar({ user }: NavbarProps) {
 
     try {
       // Clear Supabase session
-      await signOut();
+      const result = await signOut();
+      if (result.error) {
+        logError(result.error, 'Logout error');
+      }
     } catch (error) {
-      console.error('Logout error:', error);
+      logError(error, 'Logout error');
     }
 
     // Clear client-side state but preserve PIN + biometric settings
@@ -119,8 +123,12 @@ export function Navbar({ user }: NavbarProps) {
       if (biometricEnabled) localStorage.setItem('finance_tracker_biometric_enabled', biometricEnabled);
       if (credentialId) localStorage.setItem('finance_tracker_credential_id', credentialId);
 
-      // Force fresh login page; middleware will keep dashboard protected
-      window.location.href = '/login';
+      // Force redirect to login page
+      router.push('/login');
+      // Also use window.location as fallback to ensure redirect happens
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 100);
     }
   };
 

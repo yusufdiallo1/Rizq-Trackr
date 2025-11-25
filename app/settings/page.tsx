@@ -135,7 +135,16 @@ export default function SettingsPage() {
   };
 
   const handleLogout = async () => {
-    await signOut();
+    const result = await signOut();
+    if (result.error) {
+      // Silent error - still redirect
+    }
+    // Redirect to login
+    router.push('/login');
+    // Fallback redirect
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 100);
     router.push('/login');
   };
 
