@@ -560,8 +560,8 @@ export default function DashboardPage() {
                     href={`/transactions?id=${transaction.id}`}
                     className={`iphone-transaction-item ${isDark ? 'iphone-transaction-item-dark' : 'iphone-transaction-item-light'}`}
                   >
-                    <div className={`iphone-transaction-icon ${transaction.type === 'income' ? 'iphone-transaction-icon-income' : 'iphone-transaction-icon-expense'}`}>
-                      {transaction.type === 'income' ? (
+                    <div className={`iphone-transaction-icon ${transaction?.type === 'income' ? 'iphone-transaction-icon-income' : 'iphone-transaction-icon-expense'}`}>
+                      {transaction?.type === 'income' ? (
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                   </svg>
@@ -579,7 +579,7 @@ export default function DashboardPage() {
                         {transaction?.date ? new Date(transaction.date).toLocaleDateString() : ''}
                       </div>
                     </div>
-                    <div className={`iphone-transaction-amount ${transaction.type === 'income' ? 'iphone-transaction-amount-income' : 'iphone-transaction-amount-expense'}`}>
+                    <div className={`iphone-transaction-amount ${transaction?.type === 'income' ? 'iphone-transaction-amount-income' : 'iphone-transaction-amount-expense'}`}>
                       {transaction?.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction?.amount || 0))}
                     </div>
                     <svg className="iphone-transaction-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -979,7 +979,7 @@ export default function DashboardPage() {
                               : 'rgba(239, 68, 68, 0.2)',
                           }}
                         >
-                          {transaction.type === 'income' ? (
+                          {transaction?.type === 'income' ? (
                             <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                             </svg>
@@ -1666,9 +1666,9 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`text-lg font-bold font-mono ${
-                      transaction.type === 'income' 
+                      transaction?.type === 'income' 
                         ? (theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600')
-                        : transaction.type === 'zakat'
+                        : transaction?.type === 'zakat'
                         ? (theme === 'dark' ? 'text-purple-400' : 'text-purple-600')
                         : (theme === 'dark' ? 'text-red-400' : 'text-red-600')
                     }`}>
