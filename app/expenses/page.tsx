@@ -28,21 +28,11 @@ const CustomPieTooltip = ({ active, payload, formatCurrency }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     return (
-      <div
-        style={{
-          background: 'rgba(30, 41, 59, 0.98)',
-          borderRadius: '12px',
-          padding: '12px 16px',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          zIndex: 9999,
-          position: 'relative',
-        }}
-      >
-        <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px', marginBottom: '4px' }}>
+      <div className={`rounded-xl p-4 shadow-lg border relative z-[9999] ${theme === 'dark' ? 'bg-slate-800/98 border-white/15' : 'bg-white/98 border-slate-200/50'}`}>
+        <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-white/70' : 'text-slate-600'}`}>
           {data.name}
         </p>
-        <p style={{ color: '#ffffff', fontSize: '18px', fontWeight: 'bold' }}>
+        <p className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
           {formatCurrency(data.value)}
         </p>
       </div>
@@ -529,14 +519,7 @@ function ExpensesPageContent() {
   return (
     <DashboardLayout user={user}>
       {/* Theme-aware Gradient Background */}
-        <div 
-          className="min-h-screen lg:pb-8"
-          style={{
-            background: theme === 'dark'
-              ? 'linear-gradient(135deg, #1a1d2e 0%, #1e2139 100%)'
-              : 'linear-gradient(to bottom, #f8fafc, #e2e8f0, #f1f5f9)',
-          }}
-        >
+        <div className={`min-h-screen lg:pb-8 ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-b from-slate-50 via-slate-100 to-slate-50'}`}>
         {/* Mobile Top Nav */}
         <div className="lg:hidden">
           <MobileTopNav onMenuClick={() => setMobileMenuOpen(true)} />
@@ -550,10 +533,7 @@ function ExpensesPageContent() {
             variants={prefersReducedMotion ? {} : getCardVariants(0)}
             initial="hidden"
             animate="visible"
-            style={{
-              background: 'linear-gradient(135deg, #fecaca, #fed7aa)',
-              border: '1px solid #fecaca',
-            }}
+            className="bg-gradient-to-br from-red-200 to-orange-200 border border-red-200"
           >
             <div className="relative z-10 flex flex-col justify-between items-start gap-4">
               <div>
@@ -563,10 +543,7 @@ function ExpensesPageContent() {
               <motion.button
                 onClick={() => setShowAddModal(true)}
                 className="iphone-button iphone-button-primary"
-                style={{
-                  minHeight: '48px',
-                  padding: '0.75rem 1.5rem',
-                  background: '#f97373',
+                className="min-h-[48px] px-6 py-3 bg-red-400 hover:bg-red-500 active:scale-95"
                   border: '1px solid #b91c1c',
                 }}
                 whileHover={prefersReducedMotion ? {} : { scale: 1.05 }}

@@ -108,6 +108,7 @@ export default function SavingsPage() {
 
   const handleAddGoal = async (data: { goalName: string; targetAmount: number; icon?: string; targetDate?: string; notes?: string }) => {
     if (!user) return;
+    setLoading(true); // Add loading state
     try {
       const { error } = await createSavingsGoal(user.id, data.goalName, data.targetAmount, data.icon, data.targetDate, data.notes);
       if (!error) {

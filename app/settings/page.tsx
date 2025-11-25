@@ -214,23 +214,10 @@ export default function SettingsPage() {
 
           <div className="space-y-6">
             {/* Profile Header Card */}
-            <div 
-              className="rounded-3xl p-8 shadow-2xl border backdrop-blur-xl relative overflow-hidden"
-              style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(25px)',
-              }}
-            >
+            <div className={`rounded-3xl p-8 shadow-2xl border backdrop-blur-xl relative overflow-hidden ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200/50'}`}>
               <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                 {/* Avatar */}
-                <div 
-                  className="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold text-white relative"
-                  style={{
-                    background: 'linear-gradient(135deg, #06b6d4, #0891b2)',
-                    border: '3px solid rgba(255, 255, 255, 0.3)',
-                  }}
-                >
+                <div className="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold text-white relative bg-gradient-to-br from-cyan-500 to-cyan-600 border-[3px] border-white/30">
                       {fullName.charAt(0).toUpperCase()}
                 </div>
 
@@ -243,12 +230,7 @@ export default function SettingsPage() {
                 {/* Edit Button */}
                   <button
                   onClick={() => setShowEditProfile(true)}
-                  className="px-6 py-3 rounded-xl font-medium text-white transition-all hover:scale-105"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    backdropFilter: 'blur(15px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                  }}
+                  className="px-6 py-3 rounded-xl font-medium text-white transition-all hover:scale-105 bg-white/20 backdrop-blur-md border border-white/30"
                 >
                   Edit Profile
                   </button>
