@@ -55,6 +55,12 @@ export default function SavingsPage() {
   const [selectedGoal, setSelectedGoal] = useState<SavingsGoal | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<'6M' | '1Y' | 'All'>('1Y');
   const [showPreciousMetalsModal, setShowPreciousMetalsModal] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => {
     loadData();
@@ -112,7 +118,7 @@ export default function SavingsPage() {
     });
       if (error) {
         console.error('Error updating goal:', error);
-        alert(`Failed to update goal: ${error}`);
+        showToast(`Failed to update goal: ${error}`, 'error');
         return;
       }
       // Close modal first
@@ -123,7 +129,7 @@ export default function SavingsPage() {
       setGoalsWithProgress(goals || []);
     } catch (err) {
       console.error('Unexpected error updating goal:', err);
-      alert('An unexpected error occurred while updating the goal');
+      showToast('An unexpected error occurred while updating the goal', 'error');
     }
   };
 
@@ -697,6 +703,34 @@ export default function SavingsPage() {
             isOpen={showPreciousMetalsModal}
             onClose={() => setShowPreciousMetalsModal(false)}
           />
+
+          {/* Toast Notification */}
+          {toast && (
+            <div
+              className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[99999] px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-xl animate-slide-up"
+              style={{
+                background: toast.type === 'success' 
+                  ? 'rgba(16, 185, 129, 0.95)' 
+                  : 'rgba(239, 68, 68, 0.95)',
+                border: `1px solid ${toast.type === 'success' ? 'rgba(16, 185, 129, 0.5)' : 'rgba(239, 68, 68, 0.5)'}`,
+                minWidth: '280px',
+                maxWidth: '90vw',
+              }}
+            >
+              <div className="flex items-center gap-3">
+                {toast.type === 'success' ? (
+                  <svg className="w-6 h-6 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+                <p className="text-white font-medium text-sm flex-1">{toast.message}</p>
+              </div>
+            </div>
+          )}
       </div>
 
       <style dangerouslySetInnerHTML={{
