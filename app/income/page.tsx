@@ -21,6 +21,7 @@ import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { MobileTopNav } from '@/components/layout/MobileTopNav';
 import { useTheme } from '@/lib/contexts/ThemeContext';
+import { PreciousMetalsModal } from '@/components/PreciousMetalsModal';
 
 // Inner component that uses searchParams
 function IncomePageContent() {
@@ -35,6 +36,7 @@ function IncomePageContent() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPreciousMetalsModal, setShowPreciousMetalsModal] = useState(false);
   const [selectedIncome, setSelectedIncome] = useState<IncomeEntry | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -996,6 +998,10 @@ function IncomePageContent() {
               setShowDeleteModal(false);
               setSelectedIncome(null);
             }}
+          />
+          <PreciousMetalsModal
+            isOpen={showPreciousMetalsModal}
+            onClose={() => setShowPreciousMetalsModal(false)}
           />
     </DashboardLayout>
   );

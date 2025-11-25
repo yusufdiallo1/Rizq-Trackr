@@ -21,13 +21,15 @@ export function PreciousMetalsModal({ isOpen, onClose }: PreciousMetalsModalProp
 
   return (
     <>
-      {/* Modal Overlay */}
+      {/* Modal Overlay - Blur background with slight tint, NO BLACK */}
       <motion.div
         className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
         style={{
-          background: 'transparent',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          background: theme === 'dark'
+            ? 'rgba(15, 23, 42, 0.5)' // Slight dark tint
+            : 'rgba(255, 255, 255, 0.5)', // Slight light tint
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           paddingTop: 'env(safe-area-inset-top, 0)',
           paddingBottom: 'env(safe-area-inset-bottom, 0)',
           paddingLeft: 'env(safe-area-inset-left, 0)',

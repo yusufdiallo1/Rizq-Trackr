@@ -252,13 +252,15 @@ export function AddIncomeModal({ isOpen, onClose, onSave }: AddIncomeModalProps)
 
   return (
     <>
-      {/* Modal Overlay */}
+      {/* Modal Overlay - Blur background with slight tint, NO BLACK */}
       <motion.div
         className="fixed inset-0 z-[99999] flex items-center justify-center"
         style={{
-          background: 'rgba(0, 0, 0, 0.7)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
+          background: theme === 'dark'
+            ? 'rgba(15, 23, 42, 0.5)'
+            : 'rgba(255, 255, 255, 0.5)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           paddingTop: 'env(safe-area-inset-top, 0)',
           paddingBottom: 'env(safe-area-inset-bottom, 0)',
           paddingLeft: 'env(safe-area-inset-left, 0)',
@@ -710,8 +712,10 @@ export function AddIncomeModal({ isOpen, onClose, onSave }: AddIncomeModalProps)
         <div
           className="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
           style={{
-            background: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(10px)',
+            background: theme === 'dark'
+              ? 'rgba(15, 23, 42, 0.5)'
+              : 'rgba(255, 255, 255, 0.5)',
+            backdropFilter: 'blur(12px)',
           }}
           onClick={() => setShowCategorySheet(false)}
         >
