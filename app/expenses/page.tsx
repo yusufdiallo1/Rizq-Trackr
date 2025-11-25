@@ -17,6 +17,7 @@ import { AddExpenseModal } from '@/components/AddExpenseModal';
 import { EditExpenseModal } from '@/components/EditExpenseModal';
 import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { MobileTopNav } from '@/components/layout/MobileTopNav';
 import { getIslamicDate } from '@/lib/utils/dateUtils';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { useTheme } from '@/lib/contexts/ThemeContext';
