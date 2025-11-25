@@ -12,6 +12,9 @@ export interface AuthResponse {
 export interface User {
   id: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
 }
 
 // Sign up new user
@@ -81,6 +84,9 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
       ? {
           id: data.user.id,
           email: data.user.email || '',
+          firstName: data.user.user_metadata?.first_name,
+          lastName: data.user.user_metadata?.last_name,
+          fullName: data.user.user_metadata?.full_name,
         }
       : null;
 
@@ -148,6 +154,9 @@ export async function getCurrentUser(): Promise<User | null> {
       return {
         id: session.user.id,
         email: session.user.email || '',
+        firstName: session.user.user_metadata?.first_name,
+        lastName: session.user.user_metadata?.last_name,
+        fullName: session.user.user_metadata?.full_name,
       };
     }
 
@@ -167,6 +176,9 @@ export async function getCurrentUser(): Promise<User | null> {
         return {
           id: retrySession.user.id,
           email: retrySession.user.email || '',
+          firstName: retrySession.user.user_metadata?.first_name,
+          lastName: retrySession.user.user_metadata?.last_name,
+          fullName: retrySession.user.user_metadata?.full_name,
         };
       }
       return null;
@@ -178,6 +190,9 @@ export async function getCurrentUser(): Promise<User | null> {
     return {
       id: user.id,
       email: user.email || '',
+      firstName: user.user_metadata?.first_name,
+      lastName: user.user_metadata?.last_name,
+      fullName: user.user_metadata?.full_name,
     };
   } catch {
     // On any error, try one more time with getSession before giving up
@@ -187,6 +202,9 @@ export async function getCurrentUser(): Promise<User | null> {
         return {
           id: session.user.id,
           email: session.user.email || '',
+          firstName: session.user.user_metadata?.first_name,
+          lastName: session.user.user_metadata?.last_name,
+          fullName: session.user.user_metadata?.full_name,
         };
       }
     } catch {
