@@ -197,8 +197,8 @@ export default function ProfilePage() {
                 </div>
 
               {/* Name & Email */}
-              <h1 className={`${textColor} font-bold text-xl sm:text-2xl lg:text-3xl mb-1 sm:mb-2 text-center`}>{profile.full_name}</h1>
-              <p className={`${textColorLight} text-sm sm:text-base lg:text-lg mb-0.5 sm:mb-1 text-center`}>{profile.email}</p>
+              <h1 className={`${textColor} font-bold text-xl sm:text-2xl lg:text-3xl mb-1 sm:mb-2 text-center truncate px-4`}>{profile.full_name}</h1>
+              <p className={`${textColorLight} text-sm sm:text-base lg:text-lg mb-0.5 sm:mb-1 text-center truncate px-4`}>{profile.email}</p>
               <p className={`${textColorMuted} text-xs sm:text-sm text-center`}>Member since {formatDate(profile.created_at)}</p>
 
               {/* Edit Button */}

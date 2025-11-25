@@ -226,9 +226,9 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Profile Info */}
-                <div className="flex-1 text-center md:text-left">
-                  <h2 className={`text-2xl font-bold ${getTextColor(theme)} mb-1`}>{fullName}</h2>
-                  <p className={getMutedTextColor(theme)}>{email}</p>
+                <div className="flex-1 text-center md:text-left min-w-0">
+                  <h2 className={`text-2xl font-bold ${getTextColor(theme)} mb-1 truncate`}>{fullName}</h2>
+                  <p className={`${getMutedTextColor(theme)} truncate`}>{email}</p>
                 </div>
 
                 {/* Edit Button */}

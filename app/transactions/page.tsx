@@ -14,6 +14,7 @@ import {
   TransactionSummary,
 } from '@/lib/transactions';
 import { deleteIncome } from '@/lib/income';
+import { deleteExpense, updateExpense } from '@/lib/expenses';
 import { ViewTransactionModal } from '@/components/ViewTransactionModal';
 import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { TransactionCard } from '@/components/TransactionCard';
@@ -186,7 +187,7 @@ export default function TransactionsPage() {
     if (transaction.type === 'income') {
       router.push(`/income?edit=${transaction.id}`);
     } else {
-      alert('Expense editing coming soon!');
+      router.push(`/expenses?edit=${transaction.id}`);
     }
   };
 
@@ -200,10 +201,19 @@ export default function TransactionsPage() {
         setSelectedTransaction(null);
         await loadTransactions(user.id, activeFilters);
         showToast('Transaction deleted successfully', 'success');
+      } else {
+        showToast('Failed to delete transaction', 'error');
       }
     } else {
-      alert('Expense deletion coming soon!');
-      setShowDeleteModal(false);
+      const { error } = await deleteExpense(selectedTransaction.id, user.id);
+      if (!error) {
+        setShowDeleteModal(false);
+        setSelectedTransaction(null);
+        await loadTransactions(user.id, activeFilters);
+        showToast('Transaction deleted successfully', 'success');
+      } else {
+        showToast('Failed to delete transaction', 'error');
+      }
     }
   };
 
