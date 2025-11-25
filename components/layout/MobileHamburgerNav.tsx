@@ -180,7 +180,7 @@ export function MobileHamburgerNav({ user, isOpen, onClose }: MobileHamburgerNav
     });
     onClose();
     router.push('/login');
-    router.refresh();
+    // NO router.refresh() - no auto-refresh!
   };
 
   // Menu items for authenticated users - All navigation items

@@ -70,7 +70,7 @@ export default function PasswordPage() {
       }
 
       router.push('/dashboard');
-      router.refresh();
+      // NO router.refresh() - no auto-refresh!
     } catch (err) {
       setError('An unexpected error occurred');
       setLoading(false);

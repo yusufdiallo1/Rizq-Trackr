@@ -100,7 +100,7 @@ export default function LoginPage() {
       // Successful login - clear password attempts and go to dashboard
       clearPasswordAttempts();
       router.push('/dashboard');
-      router.refresh();
+      // NO router.refresh() - no auto-refresh!
     } catch (err) {
       setError('An unexpected error occurred');
       setLoading(false);
