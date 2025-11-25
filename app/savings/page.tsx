@@ -102,8 +102,11 @@ export default function SavingsPage() {
     const { error } = await createSavingsGoal(user.id, data.goalName, data.targetAmount, data.icon, data.targetDate, data.notes);
     if (!error) {
       setShowAddModal(false);
+      showToast('Savings goal created successfully!', 'success');
       const { data: goals } = await getSavingsGoalsWithProgress(user.id);
       setGoalsWithProgress(goals || []);
+    } else {
+      showToast(`Failed to create goal: ${error}`, 'error');
     }
   };
 
@@ -124,6 +127,7 @@ export default function SavingsPage() {
       // Close modal first
       setShowEditModal(false);
       setSelectedGoal(null);
+      showToast('Savings goal updated successfully!', 'success');
       // Reload goals data
       const { data: goals } = await getSavingsGoalsWithProgress(user.id);
       setGoalsWithProgress(goals || []);
@@ -139,8 +143,11 @@ export default function SavingsPage() {
     if (!error) {
       setShowDeleteModal(false);
       setSelectedGoal(null);
+      showToast('Savings goal deleted successfully!', 'success');
       const { data: goals } = await getSavingsGoalsWithProgress(user.id);
-      setGoalsWithProgress(goals);
+      setGoalsWithProgress(goals || []);
+    } else {
+      showToast(`Failed to delete goal: ${error}`, 'error');
     }
   };
 
