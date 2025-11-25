@@ -7,6 +7,7 @@ import { MobileTopNav } from './MobileTopNav';
 import { MobileHamburgerNav } from './MobileHamburgerNav';
 import { DesktopPillNav } from './DesktopPillNav';
 import { IslamicPattern } from './IslamicPattern';
+import { InactivityTracker } from '../InactivityTracker';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { useReducedMotion } from 'framer-motion';
 import { fadeInUp } from '@/lib/animations';
@@ -85,6 +86,9 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       >
           {children}
       </motion.main>
+
+      {/* Inactivity Tracker - Only show if user is authenticated */}
+      {user && <InactivityTracker />}
 
     </div>
   );

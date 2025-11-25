@@ -67,20 +67,11 @@ export async function signUp(
 // Sign in existing user
 export async function signIn(email: string, password: string): Promise<AuthResponse> {
   try {
-    // Add 2 second timeout to prevent infinite loading
-    const signInPromise = supabase.auth.signInWithPassword({
+    // No timeout - let it complete naturally
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-
-    const timeoutPromise = new Promise<{ data: { user: null }; error: { message: string } }>((resolve) =>
-      setTimeout(() => resolve({
-        data: { user: null },
-        error: { message: 'Login timed out. Please check your connection and try again.' }
-      }), 2000)
-    );
-
-    const { data, error } = await Promise.race([signInPromise, timeoutPromise]);
 
     if (error) {
       return { error: error.message, success: false, user: null };

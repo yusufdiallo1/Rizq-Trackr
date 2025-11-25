@@ -159,11 +159,9 @@ export default function SignUpPage() {
       setSuccess(true);
       setLoading(false);
 
-      // After account creation, redirect to dashboard
-      // Small delay to show success message
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 1500);
+      // After account creation, go DIRECTLY to dashboard
+      // No delays, no false reloads, just redirect immediately
+      router.push('/dashboard');
     } catch (err) {
       setError('An unexpected error occurred');
       setLoading(false);
