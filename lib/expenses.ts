@@ -39,7 +39,7 @@ export async function createExpense(
         user_id: userId,
         amount: data.amount,
         category: data.category,
-        date: typeof data.date === 'string' ? data.date : data.date.toISOString().split('T')[0],
+        date: typeof data.date === 'string' ? data.date : (data.date instanceof Date ? data.date.toISOString().split('T')[0] : dateObj.toISOString().split('T')[0]),
         notes: data.notes || null,
         location_latitude: data.location_latitude || null,
         location_longitude: data.location_longitude || null,
