@@ -571,7 +571,7 @@ function ExpensesPageContent() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex-1">
                 <p className={`text-xs uppercase tracking-wider mb-1 ${theme === 'dark' ? 'text-white/70' : 'text-slate-500'}`}>Total Expenses</p>
-                <p className={`text-4xl lg:text-5xl font-bold font-mono ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} style={{ fontSize: '2.5rem' }}>
+                <p className={`text-[2.5rem] lg:text-5xl font-bold font-mono ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
                   -{formatCurrency(calculateTotal())}
                 </p>
                 <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-white/80' : 'text-slate-600'}`}>{entriesThisMonth} entries this month</p>
@@ -579,13 +579,7 @@ function ExpensesPageContent() {
                   <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-white/80' : 'text-slate-600'}`}>Top category: {topCategory.category} ({formatCurrency(topCategory.amount)})</p>
                 )}
               </div>
-              <div
-                className="px-4 py-2 rounded-full flex items-center gap-2"
-                style={{
-                  background: trendPercentage >= 0 ? '#fee2e2' : '#dcfce7',
-                  border: trendPercentage >= 0 ? '1px solid #fecaca' : '1px solid #bbf7d0',
-                }}
-              >
+              <div className={`px-4 py-2 rounded-full flex items-center gap-2 ${trendPercentage >= 0 ? 'bg-red-100 border border-red-200' : 'bg-emerald-100 border border-emerald-200'}`}>
                 <svg 
                   className={`w-4 h-4 ${trendPercentage >= 0 ? 'text-red-400' : 'text-emerald-400'}`} 
                   fill="none" 
@@ -670,12 +664,7 @@ function ExpensesPageContent() {
                       ? 'text-white'
                       : 'text-slate-800 hover:text-slate-900'
                   }`}
-                  style={{
-                    background: timePeriod === period ? '#f97373' : '#f9fafb',
-                    border: timePeriod === period
-                      ? '1px solid #b91c1c'
-                      : '1px solid rgba(148, 163, 184, 0.5)',
-                  }}
+                  className={timePeriod === period ? 'bg-red-400 border border-red-700' : 'bg-slate-50 border border-slate-300/50'}
                 >
                   {period}
                 </button>
