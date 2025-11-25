@@ -477,12 +477,12 @@ export default function ProfilePage() {
                 <span className="px-3 py-1.5 rounded-lg text-xs font-medium"
                   style={{
                     background: theme === 'dark'
-                      ? 'rgba(255, 255, 255, 0.1)'
-                      : 'rgba(0, 0, 0, 0.05)',
-                    color: theme === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)'
+                      ? 'rgba(107, 114, 128, 0.3)'
+                      : 'rgba(107, 114, 128, 0.1)',
+                    color: theme === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(107, 114, 128, 0.8)'
                   }}
                 >
-                  Coming Soon
+                  Not Available
                 </span>
               </div>
             </div>

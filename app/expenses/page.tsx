@@ -115,8 +115,9 @@ function ExpensesPageContent() {
   };
 
   const loadExpenseEntries = async (userId: string, filters: ExpenseFilters) => {
-    const { data, error } = await getExpenseEntries(userId, filters);
-    if (!error) {
+    try {
+      const { data, error } = await getExpenseEntries(userId, filters);
+      if (!error) {
       let filteredData = data;
       
       // Apply time period filter
@@ -149,6 +150,13 @@ function ExpensesPageContent() {
       // 'All Time' shows all data, no filtering needed
       
       setExpenseEntries(filteredData);
+      } else {
+        console.error('Error loading expenses:', error);
+        setExpenseEntries([]);
+      }
+    } catch (err: any) {
+      console.error('Unexpected error loading expenses:', err);
+      setExpenseEntries([]);
     }
   };
 
@@ -230,11 +238,17 @@ function ExpensesPageContent() {
 
   const handleDeleteExpense = async () => {
     if (!user || !selectedExpense) return;
-    const { error } = await deleteExpense(selectedExpense.id, user.id);
-    if (!error) {
-      setShowDeleteModal(false);
-      setSelectedExpense(null);
-      await loadExpenseEntries(user.id, activeFilters);
+    try {
+      const { error } = await deleteExpense(selectedExpense.id, user.id);
+      if (!error) {
+        setShowDeleteModal(false);
+        setSelectedExpense(null);
+        await loadExpenseEntries(user.id, activeFilters);
+      } else {
+        console.error('Error deleting expense:', error);
+      }
+    } catch (err: any) {
+      console.error('Unexpected error deleting expense:', err);
     }
   };
 

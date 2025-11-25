@@ -106,15 +106,22 @@ export default function TransactionsPage() {
   };
 
   const loadTransactions = async (userId: string, filters: TransactionFilters) => {
-    // Load transactions and summary in parallel
-    const [transactionsResult, summaryData] = await Promise.all([
-      getAllTransactions(userId, filters), // No limit when filtering
-      getTransactionSummary(userId, filters),
-    ]);
-    
-    setTransactions(transactionsResult.data);
-    setSummary(summaryData);
-    setCurrentPage(1);
+    try {
+      // Load transactions and summary in parallel
+      const [transactionsResult, summaryData] = await Promise.all([
+        getAllTransactions(userId, filters), // No limit when filtering
+        getTransactionSummary(userId, filters),
+      ]);
+      
+      setTransactions(transactionsResult.data || []);
+      setSummary(summaryData || { totalIncome: 0, totalExpenses: 0, netAmount: 0, transactionCount: 0 });
+      setCurrentPage(1);
+    } catch (err: any) {
+      console.error('Error loading transactions:', err);
+      showToast('Failed to load transactions. Please try again.', 'error');
+      setTransactions([]);
+      setSummary({ totalIncome: 0, totalExpenses: 0, netAmount: 0, transactionCount: 0 });
+    }
   };
 
   const handleApplyFilters = () => {
@@ -194,26 +201,31 @@ export default function TransactionsPage() {
   const handleDeleteTransaction = async () => {
     if (!user || !selectedTransaction) return;
 
-    if (selectedTransaction.type === 'income') {
-      const { error } = await deleteIncome(selectedTransaction.id, user.id);
-      if (!error) {
-        setShowDeleteModal(false);
-        setSelectedTransaction(null);
-        await loadTransactions(user.id, activeFilters);
-        showToast('Transaction deleted successfully', 'success');
+    try {
+      if (selectedTransaction.type === 'income') {
+        const { error } = await deleteIncome(selectedTransaction.id, user.id);
+        if (!error) {
+          setShowDeleteModal(false);
+          setSelectedTransaction(null);
+          await loadTransactions(user.id, activeFilters);
+          showToast('Transaction deleted successfully', 'success');
+        } else {
+          showToast('Failed to delete transaction', 'error');
+        }
       } else {
-        showToast('Failed to delete transaction', 'error');
+        const { error } = await deleteExpense(selectedTransaction.id, user.id);
+        if (!error) {
+          setShowDeleteModal(false);
+          setSelectedTransaction(null);
+          await loadTransactions(user.id, activeFilters);
+          showToast('Transaction deleted successfully', 'success');
+        } else {
+          showToast('Failed to delete transaction', 'error');
+        }
       }
-    } else {
-      const { error } = await deleteExpense(selectedTransaction.id, user.id);
-      if (!error) {
-        setShowDeleteModal(false);
-        setSelectedTransaction(null);
-        await loadTransactions(user.id, activeFilters);
-        showToast('Transaction deleted successfully', 'success');
-      } else {
-        showToast('Failed to delete transaction', 'error');
-      }
+    } catch (err: any) {
+      console.error('Unexpected error deleting transaction:', err);
+      showToast('An unexpected error occurred while deleting the transaction', 'error');
     }
   };
 

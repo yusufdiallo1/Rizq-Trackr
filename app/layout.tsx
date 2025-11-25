@@ -101,13 +101,15 @@ export default function RootLayout({
         </a>
         <ClientErrorBoundary>
         <ErrorHandler />
-        <ThemeProvider>
-          <LanguageProvider>
-            <LocationProvider>
-              <PageTransition>{children}</PageTransition>
-            </LocationProvider>
-          </LanguageProvider>
-        </ThemeProvider>
+        <ErrorFirewall>
+          <ThemeProvider>
+            <LanguageProvider>
+              <LocationProvider>
+                <PageTransition>{children}</PageTransition>
+              </LocationProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </ErrorFirewall>
         </ClientErrorBoundary>
       </body>
     </html>

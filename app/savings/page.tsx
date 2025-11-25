@@ -99,14 +99,19 @@ export default function SavingsPage() {
 
   const handleAddGoal = async (data: { goalName: string; targetAmount: number; icon?: string; targetDate?: string; notes?: string }) => {
     if (!user) return;
-    const { error } = await createSavingsGoal(user.id, data.goalName, data.targetAmount, data.icon, data.targetDate, data.notes);
-    if (!error) {
-      setShowAddModal(false);
-      showToast('Savings goal created successfully!', 'success');
-      const { data: goals } = await getSavingsGoalsWithProgress(user.id);
-      setGoalsWithProgress(goals || []);
-    } else {
-      showToast(`Failed to create goal: ${error}`, 'error');
+    try {
+      const { error } = await createSavingsGoal(user.id, data.goalName, data.targetAmount, data.icon, data.targetDate, data.notes);
+      if (!error) {
+        setShowAddModal(false);
+        showToast('Savings goal created successfully!', 'success');
+        const { data: goals } = await getSavingsGoalsWithProgress(user.id);
+        setGoalsWithProgress(goals || []);
+      } else {
+        showToast(`Failed to create goal: ${error}`, 'error');
+      }
+    } catch (err: any) {
+      console.error('Unexpected error creating goal:', err);
+      showToast('An unexpected error occurred while creating the goal', 'error');
     }
   };
 
@@ -139,15 +144,20 @@ export default function SavingsPage() {
 
   const handleDeleteGoal = async () => {
     if (!user || !selectedGoal) return;
-    const { error } = await deleteSavingsGoal(selectedGoal.id, user.id);
-    if (!error) {
-      setShowDeleteModal(false);
-      setSelectedGoal(null);
-      showToast('Savings goal deleted successfully!', 'success');
-      const { data: goals } = await getSavingsGoalsWithProgress(user.id);
-      setGoalsWithProgress(goals || []);
-    } else {
-      showToast(`Failed to delete goal: ${error}`, 'error');
+    try {
+      const { error } = await deleteSavingsGoal(selectedGoal.id, user.id);
+      if (!error) {
+        setShowDeleteModal(false);
+        setSelectedGoal(null);
+        showToast('Savings goal deleted successfully!', 'success');
+        const { data: goals } = await getSavingsGoalsWithProgress(user.id);
+        setGoalsWithProgress(goals || []);
+      } else {
+        showToast(`Failed to delete goal: ${error}`, 'error');
+      }
+    } catch (err: any) {
+      console.error('Unexpected error deleting goal:', err);
+      showToast('An unexpected error occurred while deleting the goal', 'error');
     }
   };
 
