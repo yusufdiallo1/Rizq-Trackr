@@ -10,15 +10,12 @@ import { IslamicPattern } from './IslamicPattern';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { useReducedMotion } from 'framer-motion';
 import { fadeInUp } from '@/lib/animations';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, User } from '@/lib/auth';
 import { useRouter, usePathname } from 'next/navigation';
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  user?: {
-    id: string;
-    email: string;
-  } | null;
+  user?: User | null;
 }
 
 export function DashboardLayout({ children, user }: DashboardLayoutProps) {
@@ -120,7 +117,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       <IslamicPattern />
 
       {/* Desktop Navigation - Only show when authenticated */}
-      {isAuthenticated && (
+      {isAuthenticated && user && (
         <div className="hidden lg:block" style={{ pointerEvents: 'auto', zIndex: 9999 }}>
           <Navbar user={user} />
         </div>

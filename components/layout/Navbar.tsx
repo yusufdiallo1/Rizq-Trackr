@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect, useRef, MouseEvent, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { signOut, getCurrentUser } from '@/lib/auth';
+import { signOut, getCurrentUser, User } from '@/lib/auth';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { slideDownVariants } from '@/lib/animations';
@@ -14,10 +14,7 @@ import { DesktopPillNav } from './DesktopPillNav';
 import { Logo } from '@/components/Logo';
 
 interface NavbarProps {
-  user?: {
-    id: string;
-    email: string;
-  } | null;
+  user?: User | null;
 }
 
 export function Navbar({ user }: NavbarProps) {
