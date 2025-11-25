@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { getCurrentUser, User } from '@/lib/auth';
@@ -23,7 +23,8 @@ import { MobileTopNav } from '@/components/layout/MobileTopNav';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { PreciousMetalsConverter } from '@/components/precious-metals-converter';
 
-export default function IncomePage() {
+// Inner component that uses searchParams
+function IncomePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { theme } = useTheme();
@@ -935,5 +936,18 @@ export default function IncomePage() {
             }}
           />
     </DashboardLayout>
+  );
+}
+
+// Wrapper component with Suspense boundary
+export default function IncomePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-16 h-16 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <IncomePageContent />
+    </Suspense>
   );
 }

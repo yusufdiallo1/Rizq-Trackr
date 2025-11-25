@@ -9,9 +9,14 @@ import { createBackup } from '@/lib/backup';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 
-const supabase = createClientComponentClient<Database>();
+// Mark this route as dynamic to prevent build-time execution
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
+  // Create Supabase client inside the function to avoid build-time execution
+  const supabase = createClientComponentClient<Database>();
+
   try {
     // Optional: Add authentication/authorization check
     const authHeader = request.headers.get('authorization');

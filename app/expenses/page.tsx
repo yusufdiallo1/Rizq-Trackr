@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { getCurrentUser, User } from '@/lib/auth';
@@ -52,7 +52,8 @@ const CustomPieTooltip = ({ active, payload, formatCurrency }: any) => {
   return null;
 };
 
-export default function ExpensesPage() {
+// Inner component that uses searchParams
+function ExpensesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { theme } = useTheme();
@@ -962,5 +963,18 @@ export default function ExpensesPage() {
             }}
           />
     </DashboardLayout>
+  );
+}
+
+// Wrapper component with Suspense boundary
+export default function ExpensesPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-16 h-16 border-4 border-red-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <ExpensesPageContent />
+    </Suspense>
   );
 }
