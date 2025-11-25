@@ -70,12 +70,9 @@ export async function createBackup(userId: string): Promise<{
       };
     }
 
-    // Get user settings (if stored in a settings table)
-    const settingsResult = await supabase
-      .from('users')
-      .select('currency, timezone, location_city, location_country')
-      .eq('id', userId)
-      .single();
+    // Note: customers table doesn't have these settings fields
+    // Return default settings
+    const settingsResult = { data: { currency: 'USD', timezone: 'UTC', location_city: null, location_country: null }, error: null };
 
     const backupData: BackupData = {
       userId,

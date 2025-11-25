@@ -844,3 +844,95 @@ export const springScaleVariants: Variants = {
   },
 };
 
+/**
+ * Shimmer animation variants for button hover effects
+ */
+export const shimmerVariants: Variants = {
+  hidden: {
+    backgroundPosition: '200% 0',
+  },
+  visible: {
+    backgroundPosition: '-200% 0',
+    transition: {
+      duration: 1.5,
+      ease: 'linear',
+      repeat: Infinity,
+    },
+  },
+};
+
+/**
+ * Ripple animation variants for click effects
+ */
+export const rippleVariants: Variants = {
+  hidden: {
+    scale: 0,
+    opacity: 0.6,
+  },
+  visible: {
+    scale: 4,
+    opacity: 0,
+    transition: {
+      duration: 0.6,
+      ease: EASING.EASE_OUT,
+    },
+  },
+};
+
+/**
+ * Pulse animation variants for glowing borders
+ */
+export const pulseVariants: Variants = {
+  hidden: {
+    opacity: 0.5,
+    scale: 1,
+  },
+  visible: {
+    opacity: [0.5, 1, 0.5],
+    scale: [1, 1.02, 1],
+    transition: {
+      duration: 2,
+      ease: 'easeInOut',
+      repeat: Infinity,
+    },
+  },
+};
+
+/**
+ * Slide up variants for placeholder/label animations
+ */
+export const slideUpVariants: Variants = {
+  hidden: {
+    y: 10,
+    opacity: 0,
+  },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: ANIMATION_DURATION.base,
+      ease: ANIMATION_EASING.easeOut,
+    },
+  },
+};
+
+/**
+ * Bounce in variants for checkmark/icon animations
+ */
+export const bounceInVariants: Variants = {
+  hidden: {
+    scale: 0,
+    opacity: 0,
+  },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 500,
+      damping: 15,
+      duration: 0.4,
+    },
+  },
+};
+

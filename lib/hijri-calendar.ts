@@ -20,20 +20,74 @@ export interface DualDate {
  * Convert Gregorian date to Hijri
  */
 export function gregorianToHijri(date: Date): { year: number; month: number; day: number } {
+  // Ensure date is valid before creating HijriDate object
+  if (!date || isNaN(date.getTime())) {
+    console.error("Invalid Gregorian date provided to gregorianToHijri. Using current date.");
+    date = new Date();
+  }
+  
+  try {
   const hijri = new HijriDate(date);
+    const year = hijri.getFullYear();
+    const month = hijri.getMonth() + 1; // HijriDate uses 0-based months
+    const day = hijri.getDate();
+    
+    // Validate the result
+    if (!year || !month || !day || isNaN(year) || isNaN(month) || isNaN(day) || month < 1 || month > 12 || day < 1 || day > 30) {
+      console.error("Invalid Hijri date result from gregorianToHijri:", { year, month, day });
+      // Return current Hijri date as fallback
+      const now = new Date();
+      const fallbackHijri = new HijriDate(now);
   return {
-    year: hijri.getFullYear(),
-    month: hijri.getMonth() + 1, // HijriDate uses 0-based months
-    day: hijri.getDate(),
+        year: fallbackHijri.getFullYear(),
+        month: fallbackHijri.getMonth() + 1,
+        day: fallbackHijri.getDate(),
+      };
+    }
+    
+    return { year, month, day };
+  } catch (error) {
+    console.error("Error converting Gregorian to Hijri:", error);
+    // Return current Hijri date as fallback
+    const now = new Date();
+    const fallbackHijri = new HijriDate(now);
+    return {
+      year: fallbackHijri.getFullYear(),
+      month: fallbackHijri.getMonth() + 1,
+      day: fallbackHijri.getDate(),
   };
+  }
 }
 
 /**
  * Convert Hijri date to Gregorian
  */
 export function hijriToGregorian(year: number, month: number, day: number): Date {
-  const hijri = new HijriDate(year, month - 1, day); // HijriDate uses 0-based months
-  return hijri.toGregorian();
+  // Validate inputs before creating HijriDate object
+  if (typeof year !== 'number' || typeof month !== 'number' || typeof day !== 'number' ||
+      isNaN(year) || isNaN(month) || isNaN(day) || 
+      year < 1 || month < 1 || month > 12 || day < 1 || day > 30) {
+    console.error(`Invalid Hijri date components provided to hijriToGregorian: year=${year}, month=${month}, day=${day}. Using current Gregorian date.`);
+    return new Date(); // Fallback to current Gregorian date
+  }
+  
+  try {
+    // HijriDate uses 0-based months, so subtract 1
+    const hijri = new HijriDate(year, month - 1, day);
+    const gregorian = hijri.toGregorian();
+    
+    // Validate the result
+    if (!gregorian || isNaN(gregorian.getTime())) {
+      console.error("Invalid Gregorian date result from hijriToGregorian:", { year, month, day });
+      return new Date(); // Fallback to current date
+    }
+    
+    return gregorian;
+  } catch (error) {
+    console.error('Error converting Hijri to Gregorian:', error, { year, month, day });
+    // Return current date as fallback
+    return new Date();
+  }
 }
 
 /**

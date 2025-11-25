@@ -1,5 +1,6 @@
 // Precious metals converter for gold and silver
 // Supports USD, GBP, AED, SAR, EGP currencies
+// Multi-API fallback system for reliability
 
 export type SupportedCurrency = 'USD' | 'GBP' | 'AED' | 'SAR' | 'EGP';
 export type MetalType = 'gold' | 'silver';
@@ -9,6 +10,11 @@ export interface MetalPrice {
   pricePerGram: number;
   pricePerOunce: number;
   lastUpdated: Date;
+  source?: string;
+  priceChange?: {
+    percentage: number;
+    direction: 'up' | 'down' | 'neutral';
+  };
 }
 
 export interface MetalPrices {
@@ -25,62 +31,126 @@ export interface ConversionResult {
   lastUpdated: Date;
 }
 
-// Cache for metal prices (1 hour cache)
+export interface NisabValue {
+  gold: number;
+  silver: number;
+  currency: SupportedCurrency;
+  lastUpdated: Date;
+}
+
+// Constants
+const GRAMS_PER_OUNCE = 31.1034768;
+export const NISAB_GOLD_GRAMS = 87.48; // Approximately 3 ounces
+export const NISAB_SILVER_GRAMS = 612.36; // Approximately 21.5 ounces
+
+// Cache for metal prices (1 hour cache, optimized for fast load)
 let priceCache: { data: MetalPrices | null; timestamp: number } = {
   data: null,
   timestamp: 0,
 };
 
+// Price history for trend tracking (stored in localStorage for persistence)
+const PRICE_HISTORY_KEY = 'precious_metals_price_history';
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
-const GRAMS_PER_OUNCE = 31.1034768;
+const API_TIMEOUT = 2000; // 2 seconds max for API calls (optimized for load time)
 
-// Free API key for MetalpriceAPI (100 requests/month on free tier)
-// You should replace this with your own API key from https://metalpriceapi.com
-const API_KEY = process.env.NEXT_PUBLIC_METAL_PRICE_API_KEY || 'demo';
-const API_URL = 'https://api.metalpriceapi.com/v1/latest';
+// API Configuration
+const METAL_PRICE_API_KEY = process.env.NEXT_PUBLIC_METAL_PRICE_API_KEY || 'demo';
+const METALS_LIVE_API_KEY = process.env.NEXT_PUBLIC_METALS_LIVE_API_KEY;
+const GOLD_API_KEY = process.env.NEXT_PUBLIC_GOLD_API_KEY;
 
 /**
- * Fetch current gold and silver prices from MetalpriceAPI
- * Note: Free tier allows 100 requests/month
+ * Get price history from localStorage
  */
-export async function fetchMetalPrices(): Promise<MetalPrices> {
-  // Check cache first
-  const now = Date.now();
-  if (priceCache.data && now - priceCache.timestamp < CACHE_DURATION) {
-    return priceCache.data;
-  }
-
+function getPriceHistory(): MetalPrices | null {
+  if (typeof window === 'undefined') return null;
   try {
-    // Fetch prices for gold (XAU) and silver (XAG) in all supported currencies
+    const stored = localStorage.getItem(PRICE_HISTORY_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Convert date strings back to Date objects
+      Object.keys(parsed).forEach((metal) => {
+        Object.keys(parsed[metal]).forEach((currency) => {
+          if (parsed[metal][currency].lastUpdated) {
+            parsed[metal][currency].lastUpdated = new Date(parsed[metal][currency].lastUpdated);
+          }
+        });
+      });
+      return parsed;
+    }
+  } catch (error) {
+    console.error('Error reading price history:', error);
+  }
+  return null;
+}
+
+/**
+ * Save price history to localStorage
+ */
+function savePriceHistory(prices: MetalPrices): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PRICE_HISTORY_KEY, JSON.stringify(prices));
+  } catch (error) {
+    console.error('Error saving price history:', error);
+  }
+}
+
+/**
+ * Calculate price change percentage
+ */
+function calculatePriceChange(
+  current: number,
+  previous: number | undefined
+): { percentage: number; direction: 'up' | 'down' | 'neutral' } | undefined {
+  if (previous === undefined || previous === 0) return undefined;
+  const change = ((current - previous) / previous) * 100;
+  return {
+    percentage: Math.abs(change),
+    direction: change > 0 ? 'up' : change < 0 ? 'down' : 'neutral',
+  };
+}
+
+/**
+ * Fetch from MetalpriceAPI (primary)
+ */
+async function fetchFromMetalpriceAPI(): Promise<MetalPrices | null> {
+  try {
     const currencies = ['USD', 'GBP', 'AED', 'SAR', 'EGP'].join(',');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
     const response = await fetch(
-      `${API_URL}?api_key=${API_KEY}&base=USD&currencies=${currencies}`,
+      `https://api.metalpriceapi.com/v1/latest?api_key=${METAL_PRICE_API_KEY}&base=USD&currencies=${currencies}`,
       {
-        next: { revalidate: 3600 }, // Cache for 1 hour in Next.js
+        signal: controller.signal,
+        next: { revalidate: 3600 },
       }
     );
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      throw new Error(`API request failed: ${response.status}`);
     }
 
     const data = await response.json();
-
     if (!data.success) {
       throw new Error('API returned unsuccessful response');
     }
 
-    // Get gold and silver prices (in troy ounces) for USD base
     const goldPriceUsdPerOz = data.rates?.XAU ? 1 / data.rates.XAU : 0;
     const silverPriceUsdPerOz = data.rates?.XAG ? 1 / data.rates.XAG : 0;
 
-    // Convert to grams
+    if (goldPriceUsdPerOz === 0 || silverPriceUsdPerOz === 0) {
+      throw new Error('Invalid price data from API');
+    }
+
     const goldPriceUsdPerGram = goldPriceUsdPerOz / GRAMS_PER_OUNCE;
     const silverPriceUsdPerGram = silverPriceUsdPerOz / GRAMS_PER_OUNCE;
 
     const lastUpdated = new Date();
-
-    // Build prices for all currencies
+    const previousPrices = getPriceHistory();
     const metalPrices: MetalPrices = {
       gold: {} as Record<SupportedCurrency, MetalPrice>,
       silver: {} as Record<SupportedCurrency, MetalPrice>,
@@ -90,53 +160,311 @@ export async function fetchMetalPrices(): Promise<MetalPrices> {
 
     for (const currency of supportedCurrencies) {
       const rate = currency === 'USD' ? 1 : (data.rates?.[currency] || 1);
+      const goldPricePerGram = goldPriceUsdPerGram * rate;
+      const silverPricePerGram = silverPriceUsdPerGram * rate;
 
       metalPrices.gold[currency] = {
         currency,
-        pricePerGram: goldPriceUsdPerGram * rate,
+        pricePerGram: goldPricePerGram,
         pricePerOunce: goldPriceUsdPerOz * rate,
         lastUpdated,
+        source: 'metalpriceapi',
+        priceChange: previousPrices
+          ? calculatePriceChange(goldPricePerGram, previousPrices.gold[currency]?.pricePerGram)
+          : undefined,
       };
 
       metalPrices.silver[currency] = {
         currency,
-        pricePerGram: silverPriceUsdPerGram * rate,
+        pricePerGram: silverPricePerGram,
         pricePerOunce: silverPriceUsdPerOz * rate,
         lastUpdated,
+        source: 'metalpriceapi',
+        priceChange: previousPrices
+          ? calculatePriceChange(silverPricePerGram, previousPrices.silver[currency]?.pricePerGram)
+          : undefined,
       };
     }
 
-    // Update cache
-    priceCache = {
-      data: metalPrices,
-      timestamp: now,
+    return metalPrices;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.warn('MetalpriceAPI request timed out');
+    } else {
+      console.error('Error fetching from MetalpriceAPI:', error);
+    }
+    return null;
+  }
+    }
+
+/**
+ * Fetch from metals.live API (fallback 1)
+ */
+async function fetchFromMetalsLive(): Promise<MetalPrices | null> {
+  if (!METALS_LIVE_API_KEY) return null;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+    // Fetch gold and silver prices
+    const [goldResponse, silverResponse] = await Promise.all([
+      fetch(`https://api.metals.live/v1/spot/gold?currency=USD`, {
+        signal: controller.signal,
+        headers: {
+          'X-API-Key': METALS_LIVE_API_KEY,
+        },
+      }),
+      fetch(`https://api.metals.live/v1/spot/silver?currency=USD`, {
+        signal: controller.signal,
+        headers: {
+          'X-API-Key': METALS_LIVE_API_KEY,
+        },
+      }),
+    ]);
+
+    clearTimeout(timeoutId);
+
+    if (!goldResponse.ok || !silverResponse.ok) {
+      throw new Error('Metals.live API request failed');
+    }
+
+    const goldData = await goldResponse.json();
+    const silverData = await silverResponse.json();
+
+    const goldPriceUsdPerOz = goldData.price || 0;
+    const silverPriceUsdPerOz = silverData.price || 0;
+
+    if (goldPriceUsdPerOz === 0 || silverPriceUsdPerOz === 0) {
+      throw new Error('Invalid price data from metals.live');
+    }
+
+    // Get currency exchange rates (simplified - would need currency API in production)
+    const exchangeRates: Record<string, number> = {
+      USD: 1,
+      GBP: 0.79, // Approximate
+      AED: 3.67,
+      SAR: 3.75,
+      EGP: 50.0,
     };
+
+    const goldPriceUsdPerGram = goldPriceUsdPerOz / GRAMS_PER_OUNCE;
+    const silverPriceUsdPerGram = silverPriceUsdPerOz / GRAMS_PER_OUNCE;
+
+    const lastUpdated = new Date();
+    const previousPrices = getPriceHistory();
+    const metalPrices: MetalPrices = {
+      gold: {} as Record<SupportedCurrency, MetalPrice>,
+      silver: {} as Record<SupportedCurrency, MetalPrice>,
+    };
+
+    const supportedCurrencies: SupportedCurrency[] = ['USD', 'GBP', 'AED', 'SAR', 'EGP'];
+
+    for (const currency of supportedCurrencies) {
+      const rate = exchangeRates[currency] || 1;
+      const goldPricePerGram = goldPriceUsdPerGram * rate;
+      const silverPricePerGram = silverPriceUsdPerGram * rate;
+
+      metalPrices.gold[currency] = {
+        currency,
+        pricePerGram: goldPricePerGram,
+        pricePerOunce: goldPriceUsdPerOz * rate,
+        lastUpdated,
+        source: 'metals.live',
+        priceChange: previousPrices
+          ? calculatePriceChange(goldPricePerGram, previousPrices.gold[currency]?.pricePerGram)
+          : undefined,
+      };
+
+      metalPrices.silver[currency] = {
+        currency,
+        pricePerGram: silverPricePerGram,
+        pricePerOunce: silverPriceUsdPerOz * rate,
+        lastUpdated,
+        source: 'metals.live',
+        priceChange: previousPrices
+          ? calculatePriceChange(silverPricePerGram, previousPrices.silver[currency]?.pricePerGram)
+          : undefined,
+    };
+    }
 
     return metalPrices;
   } catch (error) {
-    console.error('Error fetching metal prices:', error);
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.warn('Metals.live API request timed out');
+    } else {
+      console.error('Error fetching from metals.live:', error);
+    }
+    return null;
+  }
+}
 
-    // Return fallback prices if API fails (approximate values as of 2025)
-    // These should be updated periodically
-    const fallbackPrices: MetalPrices = {
-      gold: {
-        USD: { currency: 'USD', pricePerGram: 85, pricePerOunce: 2643, lastUpdated: new Date() },
-        GBP: { currency: 'GBP', pricePerGram: 68, pricePerOunce: 2115, lastUpdated: new Date() },
-        AED: { currency: 'AED', pricePerGram: 312, pricePerOunce: 9706, lastUpdated: new Date() },
-        SAR: { currency: 'SAR', pricePerGram: 319, pricePerOunce: 9913, lastUpdated: new Date() },
-        EGP: { currency: 'EGP', pricePerGram: 4250, pricePerOunce: 132189, lastUpdated: new Date() },
-      },
-      silver: {
-        USD: { currency: 'USD', pricePerGram: 0.95, pricePerOunce: 29.5, lastUpdated: new Date() },
-        GBP: { currency: 'GBP', pricePerGram: 0.76, pricePerOunce: 23.6, lastUpdated: new Date() },
-        AED: { currency: 'AED', pricePerGram: 3.49, pricePerOunce: 108.5, lastUpdated: new Date() },
-        SAR: { currency: 'SAR', pricePerGram: 3.56, pricePerOunce: 110.6, lastUpdated: new Date() },
-        EGP: { currency: 'EGP', pricePerGram: 47.5, pricePerOunce: 1476, lastUpdated: new Date() },
-      },
+/**
+ * Fetch from goldapi.io (fallback 2)
+ */
+async function fetchFromGoldAPI(): Promise<MetalPrices | null> {
+  if (!GOLD_API_KEY) return null;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+    const [goldResponse, silverResponse] = await Promise.all([
+      fetch(`https://www.goldapi.io/api/XAU/USD`, {
+        signal: controller.signal,
+        headers: {
+          'x-access-token': GOLD_API_KEY,
+        },
+      }),
+      fetch(`https://www.goldapi.io/api/XAG/USD`, {
+        signal: controller.signal,
+        headers: {
+          'x-access-token': GOLD_API_KEY,
+        },
+      }),
+    ]);
+
+    clearTimeout(timeoutId);
+
+    if (!goldResponse.ok || !silverResponse.ok) {
+      throw new Error('GoldAPI request failed');
+    }
+
+    const goldData = await goldResponse.json();
+    const silverData = await silverResponse.json();
+
+    const goldPriceUsdPerOz = goldData.price || 0;
+    const silverPriceUsdPerOz = silverData.price || 0;
+
+    if (goldPriceUsdPerOz === 0 || silverPriceUsdPerOz === 0) {
+      throw new Error('Invalid price data from goldapi.io');
+    }
+
+    // Get currency exchange rates (simplified)
+    const exchangeRates: Record<string, number> = {
+      USD: 1,
+      GBP: 0.79,
+      AED: 3.67,
+      SAR: 3.75,
+      EGP: 50.0,
     };
 
-    return fallbackPrices;
+    const goldPriceUsdPerGram = goldPriceUsdPerOz / GRAMS_PER_OUNCE;
+    const silverPriceUsdPerGram = silverPriceUsdPerOz / GRAMS_PER_OUNCE;
+
+    const lastUpdated = new Date();
+    const previousPrices = getPriceHistory();
+    const metalPrices: MetalPrices = {
+      gold: {} as Record<SupportedCurrency, MetalPrice>,
+      silver: {} as Record<SupportedCurrency, MetalPrice>,
+    };
+
+    const supportedCurrencies: SupportedCurrency[] = ['USD', 'GBP', 'AED', 'SAR', 'EGP'];
+
+    for (const currency of supportedCurrencies) {
+      const rate = exchangeRates[currency] || 1;
+      const goldPricePerGram = goldPriceUsdPerGram * rate;
+      const silverPricePerGram = silverPriceUsdPerGram * rate;
+
+      metalPrices.gold[currency] = {
+        currency,
+        pricePerGram: goldPricePerGram,
+        pricePerOunce: goldPriceUsdPerOz * rate,
+        lastUpdated,
+        source: 'goldapi.io',
+        priceChange: previousPrices
+          ? calculatePriceChange(goldPricePerGram, previousPrices.gold[currency]?.pricePerGram)
+          : undefined,
+      };
+
+      metalPrices.silver[currency] = {
+        currency,
+        pricePerGram: silverPricePerGram,
+        pricePerOunce: silverPriceUsdPerOz * rate,
+        lastUpdated,
+        source: 'goldapi.io',
+        priceChange: previousPrices
+          ? calculatePriceChange(silverPricePerGram, previousPrices.silver[currency]?.pricePerGram)
+          : undefined,
+      };
+    }
+
+    return metalPrices;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.warn('GoldAPI request timed out');
+    } else {
+      console.error('Error fetching from goldapi.io:', error);
+    }
+    return null;
   }
+}
+
+/**
+ * Get fallback prices (last resort)
+ */
+function getFallbackPrices(): MetalPrices {
+  const lastUpdated = new Date();
+  return {
+      gold: {
+      USD: { currency: 'USD', pricePerGram: 85, pricePerOunce: 2643, lastUpdated },
+      GBP: { currency: 'GBP', pricePerGram: 68, pricePerOunce: 2115, lastUpdated },
+      AED: { currency: 'AED', pricePerGram: 312, pricePerOunce: 9706, lastUpdated },
+      SAR: { currency: 'SAR', pricePerGram: 319, pricePerOunce: 9913, lastUpdated },
+      EGP: { currency: 'EGP', pricePerGram: 4250, pricePerOunce: 132189, lastUpdated },
+      },
+      silver: {
+      USD: { currency: 'USD', pricePerGram: 0.95, pricePerOunce: 29.5, lastUpdated },
+      GBP: { currency: 'GBP', pricePerGram: 0.76, pricePerOunce: 23.6, lastUpdated },
+      AED: { currency: 'AED', pricePerGram: 3.49, pricePerOunce: 108.5, lastUpdated },
+      SAR: { currency: 'SAR', pricePerGram: 3.56, pricePerOunce: 110.6, lastUpdated },
+      EGP: { currency: 'EGP', pricePerGram: 47.5, pricePerOunce: 1476, lastUpdated },
+    },
+  };
+}
+
+/**
+ * Fetch current gold and silver prices with multi-API fallback
+ * Optimized for fast load times (max 2 seconds)
+ */
+export async function fetchMetalPrices(): Promise<MetalPrices> {
+  // Check cache first (fast path)
+  const now = Date.now();
+  if (priceCache.data && now - priceCache.timestamp < CACHE_DURATION) {
+    return priceCache.data;
+  }
+
+  // Try APIs in order with timeout
+  let prices: MetalPrices | null = null;
+
+  // Try MetalpriceAPI first
+  prices = await fetchFromMetalpriceAPI();
+  if (prices) {
+    priceCache = { data: prices, timestamp: now };
+    savePriceHistory(prices);
+    return prices;
+  }
+
+  // Try metals.live
+  prices = await fetchFromMetalsLive();
+  if (prices) {
+    priceCache = { data: prices, timestamp: now };
+    savePriceHistory(prices);
+    return prices;
+  }
+
+  // Try goldapi.io
+  prices = await fetchFromGoldAPI();
+  if (prices) {
+    priceCache = { data: prices, timestamp: now };
+    savePriceHistory(prices);
+    return prices;
+  }
+
+  // Fallback to cached prices or default
+  const fallback = getFallbackPrices();
+  priceCache = { data: fallback, timestamp: now };
+  return fallback;
 }
 
 /**
@@ -161,24 +489,19 @@ export async function convertMetalToValue(
 }
 
 /**
- * Convert multiple metals to multiple currencies at once
+ * Calculate Nisab value for all currencies
  */
-export async function convertMultipleMetals(
-  conversions: Array<{ metal: MetalType; grams: number; currency: SupportedCurrency }>
-): Promise<ConversionResult[]> {
+export async function calculateNisabValues(currency: SupportedCurrency): Promise<NisabValue> {
   const prices = await fetchMetalPrices();
+  const goldPrice = prices.gold[currency];
+  const silverPrice = prices.silver[currency];
 
-  return conversions.map(({ metal, grams, currency }) => {
-    const metalPrice = prices[metal][currency];
     return {
-      metal,
-      grams,
+    gold: NISAB_GOLD_GRAMS * goldPrice.pricePerGram,
+    silver: NISAB_SILVER_GRAMS * silverPrice.pricePerGram,
       currency,
-      value: grams * metalPrice.pricePerGram,
-      pricePerGram: metalPrice.pricePerGram,
-      lastUpdated: metalPrice.lastUpdated,
+    lastUpdated: goldPrice.lastUpdated,
     };
-  });
 }
 
 /**

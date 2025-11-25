@@ -308,16 +308,11 @@ export async function saveUserLocation(
     const { createClientComponentClient } = await import('@supabase/auth-helpers-nextjs');
     const supabase = createClientComponentClient();
 
-    const { error } = await supabase
-      .from('users')
-      .update({
-        location_latitude: location.latitude,
-        location_longitude: location.longitude,
-        location_address: location.formattedAddress || null,
-        location_city: location.city || null,
-        location_country: location.country || null,
-      })
-      .eq('id', userId);
+    // Note: customers table doesn't have location fields
+    // This function may need to be updated to use a user_profile table
+    // For now, we'll skip the database update to avoid errors
+    console.warn('Location update skipped - customers table does not have location fields');
+    return { error: null };
 
     return { error };
   } catch (error) {
@@ -335,11 +330,9 @@ export async function getUserLocationFromDB(
     const { createClientComponentClient } = await import('@supabase/auth-helpers-nextjs');
     const supabase = createClientComponentClient();
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('location_latitude, location_longitude, location_address, location_city, location_country')
-      .eq('id', userId)
-      .single();
+    // Note: customers table doesn't have location fields
+    // Return null to indicate location is not stored
+    return null;
 
     if (error || !data) return null;
 

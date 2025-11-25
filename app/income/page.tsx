@@ -21,6 +21,7 @@ import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { MobileTopNav } from '@/components/layout/MobileTopNav';
 import { useTheme } from '@/lib/contexts/ThemeContext';
+import { PreciousMetalsModal } from '@/components/PreciousMetalsModal';
 
 // Inner component that uses searchParams
 function IncomePageContent() {
@@ -35,6 +36,7 @@ function IncomePageContent() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPreciousMetalsModal, setShowPreciousMetalsModal] = useState(false);
   const [selectedIncome, setSelectedIncome] = useState<IncomeEntry | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -60,23 +62,23 @@ function IncomePageContent() {
     setLoading(true);
 
     try {
-      const currentUser = await getCurrentUser();
+    const currentUser = await getCurrentUser();
       
-      if (!currentUser) {
-        // Don't bounce the user away if auth check is slow; middleware already protects routes.
+    if (!currentUser) {
+      // Don't bounce the user away if auth check is slow; middleware already protects routes.
         // If middleware didn't redirect, user is likely authenticated but check was slow
-        setLoading(false);
-        return;
-      }
+      setLoading(false);
+      return;
+    }
       
-      setUser(currentUser);
+    setUser(currentUser);
 
-      // Show page immediately - don't wait for data
+    // Show page immediately - don't wait for data
       setLoading(false);
 
-      // Load data in background (non-blocking)
-      loadIncomeEntries(currentUser.id, {});
-      loadExpenseEntries(currentUser.id);
+    // Load data in background (non-blocking)
+    loadIncomeEntries(currentUser.id, {});
+    loadExpenseEntries(currentUser.id);
     } catch (error) {
       console.error('Error loading data:', error);
       setLoading(false);
@@ -671,6 +673,69 @@ function IncomePageContent() {
             </div>
           </motion.div>
 
+          {/* Precious Metals Converter Button */}
+          <motion.div
+            variants={prefersReducedMotion ? {} : getCardVariants(4)}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.button
+              onClick={(e) => {
+                setShowPreciousMetalsModal(true);
+                // Ripple effect
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                // Visual feedback handled by framer-motion
+              }}
+              className="w-full rounded-3xl p-5 lg:p-6 transition-all"
+              style={{
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                background: theme === 'dark' ? 'rgba(42, 45, 61, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.06)',
+                borderRadius: '20px',
+                boxShadow: theme === 'dark' ? '0 4px 20px rgba(245, 158, 11, 0.2)' : '0 4px 20px rgba(0, 0, 0, 0.1)',
+              }}
+              whileHover={prefersReducedMotion ? {} : { translateY: -4, scale: 1.02 }}
+              whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <motion.div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 179, 8, 0.2))',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
+                    }}
+                    whileHover={prefersReducedMotion ? {} : { rotate: 5, scale: 1.1 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                  >
+                    🥇
+                  </motion.div>
+                  <div className="text-left">
+                    <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                      Precious Metals Converter
+                    </h3>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-white/70' : 'text-slate-600'}`}>
+                      Convert gold & silver to multiple currencies
+                    </p>
+                  </div>
+                </div>
+                <motion.svg
+                  className={`w-6 h-6 ${theme === 'dark' ? 'text-white/60' : 'text-slate-400'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  whileHover={prefersReducedMotion ? {} : { rotate: 90 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </motion.svg>
+              </div>
+            </motion.button>
+          </motion.div>
+
           {/* Filter Section - iPhone Native */}
           <motion.div
             className="rounded-3xl p-4 lg:p-6"
@@ -946,6 +1011,10 @@ function IncomePageContent() {
               setShowDeleteModal(false);
               setSelectedIncome(null);
             }}
+          />
+          <PreciousMetalsModal
+            isOpen={showPreciousMetalsModal}
+            onClose={() => setShowPreciousMetalsModal(false)}
           />
     </DashboardLayout>
   );

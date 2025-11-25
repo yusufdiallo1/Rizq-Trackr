@@ -29,23 +29,26 @@ export interface ZakatReminder {
  */
 export async function checkZakatReminders(): Promise<ZakatReminder[]> {
   try {
-    // Get all users with Zakat dates set
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('id, zakat_date_hijri, currency')
+    // Get all users with Zakat dates set from customers table
+    // Note: currency is not stored in customers, will default to USD
+    const { data: customers, error } = await supabase
+      .from('customers')
+      .select('user_id, zakat_date_hijri')
       .not('zakat_date_hijri', 'is', null);
 
     if (error) throw error;
-    if (!users || users.length === 0) return [];
+    if (!customers || customers.length === 0) return [];
 
     const reminders: ZakatReminder[] = [];
     const now = new Date();
 
-    for (const user of users) {
-      if (!user.zakat_date_hijri) continue;
+    for (const customer of customers) {
+      if (!customer.zakat_date_hijri || !customer.user_id) continue;
 
       // Parse Zakat date
-      const [year, month, day] = user.zakat_date_hijri.split('-').map(Number);
+      const [year, month, day] = customer.zakat_date_hijri.split('-').map(Number);
+      if (!year || !month || !day) continue; // Skip invalid dates
+      
       const zakatDateHijri = { year, month, day };
       const zakatDateGregorian = hijriToGregorian(year, month, day);
 
@@ -73,11 +76,11 @@ export async function checkZakatReminders(): Promise<ZakatReminder[]> {
       const shouldSendReminder = daysUntil <= 30 && daysUntil > 0;
 
       if (shouldSendReminder) {
-        // Get eligibility info
-        const eligibility = await calculateZakatEligibility(user.id, user.currency || 'USD');
+        // Get eligibility info (default to USD for currency)
+        const eligibility = await calculateZakatEligibility(customer.user_id, 'USD');
 
         reminders.push({
-          userId: user.id,
+          userId: customer.user_id,
           zakatDateHijri,
           zakatDateGregorian: nextZakatDate,
           daysUntil,

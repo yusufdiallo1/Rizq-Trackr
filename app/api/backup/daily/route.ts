@@ -29,11 +29,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get all active users (you might want to filter by last activity)
-    const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('id')
+    // Get all users from auth.users via customers table
+    // Note: This is a simplified approach - you may want to query auth.users directly
+    const { data: customers, error: usersError } = await supabase
+      .from('customers')
+      .select('user_id')
       .limit(100); // Process in batches
+    
+    const users = customers?.map(c => ({ id: c.user_id })) || [];
 
     if (usersError) {
       return NextResponse.json(

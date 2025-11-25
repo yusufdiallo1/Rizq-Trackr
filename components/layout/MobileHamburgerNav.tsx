@@ -104,42 +104,11 @@ export function MobileHamburgerNav({ user, isOpen, onClose }: MobileHamburgerNav
     setMounted(true);
   }, []);
 
-  // Check authentication status - if user logs out, close menu and redirect
+  // Update authentication status based on user prop
+  // Don't do automatic auth checks - rely on user prop from parent
   useEffect(() => {
-    if (!isOpen) return;
-    
-    let isMounted = true;
-    
-    const checkAuth = async () => {
-      if (!isMounted) return;
-      
-      const currentUser = await getCurrentUser();
-      const authenticated = !!currentUser;
-      
-      if (!isMounted) return;
-      setIsAuthenticated(authenticated);
-      
-      // If user is not authenticated, just close menu
-      // Don't redirect - middleware handles authentication
-      if (!authenticated && isOpen) {
-        onClose();
-        // Don't redirect - let middleware handle it
-      }
-    };
-    
-    checkAuth();
-    // Check periodically when menu is open to catch logout from other devices
-    const interval = setInterval(() => {
-      if (isMounted && isOpen) {
-        checkAuth();
-      }
-    }, 3000); // Check every 3 seconds
-    
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, [isOpen, user, onClose, router]);
+    setIsAuthenticated(!!user);
+  }, [user]);
 
   useEffect(() => {
     // Prevent body scroll when sidebar is open
@@ -163,9 +132,9 @@ export function MobileHamburgerNav({ user, isOpen, onClose }: MobileHamburgerNav
       const userId = localStorage.getItem('finance_tracker_user_id');
       const biometricEnabled = localStorage.getItem('finance_tracker_biometric_enabled');
       const credentialId = localStorage.getItem('finance_tracker_credential_id');
-
+      
       localStorage.clear();
-
+      
       // Restore PIN and biometric data if they exist
       if (pinHash) localStorage.setItem('finance_tracker_pin_hash', pinHash);
       if (userId) localStorage.setItem('finance_tracker_user_id', userId);

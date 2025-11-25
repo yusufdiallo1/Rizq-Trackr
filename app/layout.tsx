@@ -7,6 +7,7 @@ import { LanguageProvider } from "@/lib/contexts/LanguageContext";
 import { LocationProvider } from "@/lib/contexts/LocationContext";
 import { PageTransition } from "@/components/PageTransition";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
+import { ErrorHandler } from "@/components/ErrorHandler";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -99,6 +100,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         <ClientErrorBoundary>
+        <ErrorHandler />
         <ThemeProvider>
           <LanguageProvider>
             <LocationProvider>

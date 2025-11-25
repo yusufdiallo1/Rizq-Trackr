@@ -25,7 +25,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const prefersReducedMotion = useReducedMotion();
 
   const isDark = theme === 'dark';
-
+  
   // Don't do automatic auth checks - middleware handles authentication
   // Only use the user prop passed from parent components
   useEffect(() => {
