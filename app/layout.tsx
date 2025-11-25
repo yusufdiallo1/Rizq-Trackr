@@ -11,11 +11,64 @@ import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Rizq Trackr",
-  description: "Track your income, expenses, and zakat payments",
+  title: {
+    default: "Rizq Trackr - Islamic Finance Tracker | Income, Expenses & Zakat",
+    template: "%s | Rizq Trackr"
+  },
+  description: "Track your income, expenses, and zakat payments with Rizq Trackr. The comprehensive Islamic finance management app for Muslims. Manage your finances, calculate Zakat, and achieve your financial goals.",
+  keywords: ["Islamic finance", "Zakat calculator", "expense tracker", "income tracker", "Muslim finance", "halal finance", "budget tracker", "financial management", "Islamic banking"],
+  authors: [{ name: "Rizq Trackr" }],
+  creator: "Rizq Trackr",
+  publisher: "Rizq Trackr",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://rizqtrackr.com'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://rizqtrackr.com',
+    siteName: 'Rizq Trackr',
+    title: 'Rizq Trackr - Islamic Finance Tracker',
+    description: 'Track your income, expenses, and zakat payments with Rizq Trackr. The comprehensive Islamic finance management app for Muslims.',
+    images: [
+      {
+        url: '/logo.svg',
+        width: 1200,
+        height: 630,
+        alt: 'Rizq Trackr Logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Rizq Trackr - Islamic Finance Tracker',
+    description: 'Track your income, expenses, and zakat payments with Rizq Trackr.',
+    images: ['/logo.svg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
     icon: '/logo.svg',
     apple: '/logo.svg',
+  },
+  verification: {
+    // Add your Google Search Console verification code here after setup
+    // google: 'your-verification-code',
   },
 };
 
