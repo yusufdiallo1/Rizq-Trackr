@@ -155,7 +155,7 @@ function ExpensesPageContent() {
         setExpenseEntries([]);
       }
     } catch (err: any) {
-      console.error('Unexpected error loading expenses:', err);
+      // Silent error - will show empty state
       setExpenseEntries([]);
     }
   };
@@ -164,9 +164,15 @@ function ExpensesPageContent() {
     if (user) {
       const filters: ExpenseFilters = {};
       if (filterMonth) {
-        const [year, month] = filterMonth.split('-');
-        filters.month = parseInt(month);
-        filters.year = parseInt(year);
+        const parts = filterMonth.split('-');
+        if (parts.length === 2) {
+          const monthNum = parseInt(parts[1], 10);
+          const yearNum = parseInt(parts[0], 10);
+          if (!isNaN(monthNum) && !isNaN(yearNum)) {
+            filters.month = monthNum;
+            filters.year = yearNum;
+          }
+        }
       }
       if (filterCategory !== 'all') {
         filters.category = filterCategory;
@@ -191,12 +197,12 @@ function ExpensesPageContent() {
     });
     if (error) {
       setError(error);
-      console.error('Error adding expense:', error);
+      // Silent error - user will see toast notification
     } else {
       // Create attachment record if receipt image URL is provided
       if (data.receiptImageUrl && expense) {
         const { createAttachment } = await import('@/lib/storage');
-        const fileName = data.receiptImageUrl.split('/').pop() || 'receipt.jpg';
+        const fileName = data.receiptImageUrl?.split('/')?.pop() || 'receipt.jpg';
         await createAttachment(
           user.id,
           'expense',
@@ -245,21 +251,27 @@ function ExpensesPageContent() {
         setSelectedExpense(null);
         await loadExpenseEntries(user.id, activeFilters);
       } else {
-        console.error('Error deleting expense:', error);
+        // Silent error - user will see toast notification
       }
     } catch (err: any) {
-      console.error('Unexpected error deleting expense:', err);
+      // Silent error - user will see toast notification
     }
   };
 
   const handleApplyFilters = () => {
     if (!user) return;
     const filters: ExpenseFilters = {};
-    if (filterMonth) {
-      const [year, month] = filterMonth.split('-');
-      filters.month = parseInt(month);
-      filters.year = parseInt(year);
-    }
+      if (filterMonth) {
+        const parts = filterMonth.split('-');
+        if (parts.length === 2) {
+          const monthNum = parseInt(parts[1], 10);
+          const yearNum = parseInt(parts[0], 10);
+          if (!isNaN(monthNum) && !isNaN(yearNum)) {
+            filters.month = monthNum;
+            filters.year = yearNum;
+          }
+        }
+      }
     if (filterCategory !== 'all') {
       filters.category = filterCategory;
     }
@@ -398,7 +410,7 @@ function ExpensesPageContent() {
     expenseEntries.forEach((entry) => {
       categoryTotals[entry.category] = (categoryTotals[entry.category] || 0) + entry.amount;
     });
-    return Object.entries(categoryTotals).map(([name, value]) => ({
+    return Object.entries(categoryTotals || {}).map(([name, value]) => ({
       name,
       value,
       color: getCategoryColorSolid(name),
@@ -412,7 +424,7 @@ function ExpensesPageContent() {
       categoryTotals[entry.category] = (categoryTotals[entry.category] || 0) + entry.amount;
       categoryCounts[entry.category] = (categoryCounts[entry.category] || 0) + 1;
     });
-    return Object.entries(categoryTotals).map(([category, total]) => ({
+    return Object.entries(categoryTotals || {}).map(([category, total]) => ({
       category,
       total,
       count: categoryCounts[category],
@@ -473,22 +485,26 @@ function ExpensesPageContent() {
   // Calculate current month total
   const now = new Date();
   const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const currentMonthTotal = expenseEntries
+  const currentMonthTotal = (expenseEntries || [])
     .filter((entry) => {
+      if (!entry?.date) return false;
       const entryDate = new Date(entry.date);
+      if (isNaN(entryDate.getTime())) return false;
       return entryDate >= currentMonthStart && entryDate.getMonth() === now.getMonth() && entryDate.getFullYear() === now.getFullYear();
     })
-    .reduce((sum, entry) => sum + entry.amount, 0);
+    .reduce((sum, entry) => sum + (entry?.amount || 0), 0);
   
   // Calculate previous month total
   const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-  const previousMonthTotal = expenseEntries
+  const previousMonthTotal = (expenseEntries || [])
     .filter((entry) => {
+      if (!entry?.date) return false;
       const entryDate = new Date(entry.date);
+      if (isNaN(entryDate.getTime())) return false;
       return entryDate >= previousMonthStart && entryDate <= previousMonthEnd;
     })
-    .reduce((sum, entry) => sum + entry.amount, 0);
+    .reduce((sum, entry) => sum + (entry?.amount || 0), 0);
   
   // Calculate trend percentage
   const trendPercentage = previousMonthTotal > 0

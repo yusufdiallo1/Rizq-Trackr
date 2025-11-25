@@ -117,7 +117,7 @@ export default function TransactionsPage() {
       setSummary(summaryData || { totalIncome: 0, totalExpenses: 0, netAmount: 0, transactionCount: 0 });
       setCurrentPage(1);
     } catch (err: any) {
-      console.error('Error loading transactions:', err);
+      // Silent error - will show empty state
       showToast('Failed to load transactions. Please try again.', 'error');
       setTransactions([]);
       setSummary({ totalIncome: 0, totalExpenses: 0, netAmount: 0, transactionCount: 0 });
@@ -224,7 +224,7 @@ export default function TransactionsPage() {
         }
       }
     } catch (err: any) {
-      console.error('Unexpected error deleting transaction:', err);
+      // Silent error - user will see toast notification
       showToast('An unexpected error occurred while deleting the transaction', 'error');
     }
   };

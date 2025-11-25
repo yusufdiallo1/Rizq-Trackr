@@ -2,6 +2,8 @@
 // Supports USD, GBP, AED, SAR, EGP currencies
 // Multi-API fallback system for reliability
 
+import { logError } from './logger';
+
 export type SupportedCurrency = 'USD' | 'GBP' | 'AED' | 'SAR' | 'EGP';
 export type MetalType = 'gold' | 'silver';
 
@@ -79,7 +81,7 @@ function getPriceHistory(): MetalPrices | null {
       return parsed;
     }
   } catch (error) {
-    console.error('Error reading price history:', error);
+    logError(error, 'Error reading price history');
   }
   return null;
 }
@@ -92,7 +94,7 @@ function savePriceHistory(prices: MetalPrices): void {
   try {
     localStorage.setItem(PRICE_HISTORY_KEY, JSON.stringify(prices));
   } catch (error) {
-    console.error('Error saving price history:', error);
+    logError(error, 'Error saving price history');
   }
 }
 
@@ -142,8 +144,8 @@ async function fetchFromMetalpriceAPI(): Promise<MetalPrices | null> {
     const goldPriceUsdPerOz = data.rates?.XAU ? 1 / data.rates.XAU : 0;
     const silverPriceUsdPerOz = data.rates?.XAG ? 1 / data.rates.XAG : 0;
 
-    if (goldPriceUsdPerOz === 0 || silverPriceUsdPerOz === 0) {
-      throw new Error('Invalid price data from API');
+    if (goldPriceUsdPerOz === 0 || silverPriceUsdPerOz === 0 || !isFinite(goldPriceUsdPerOz) || !isFinite(silverPriceUsdPerOz)) {
+      return null; // Silent failure - invalid data
     }
 
     const goldPriceUsdPerGram = goldPriceUsdPerOz / GRAMS_PER_OUNCE;
@@ -188,10 +190,9 @@ async function fetchFromMetalpriceAPI(): Promise<MetalPrices | null> {
 
     return metalPrices;
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.warn('MetalpriceAPI request timed out');
-    } else {
-      console.error('Error fetching from MetalpriceAPI:', error);
+    // Silent failure - will try next API
+    if (error instanceof Error && error.name !== 'AbortError') {
+      logError(error, 'MetalpriceAPI fetch error');
     }
     return null;
   }
@@ -235,8 +236,8 @@ async function fetchFromMetalsLive(): Promise<MetalPrices | null> {
     const goldPriceUsdPerOz = goldData.price || 0;
     const silverPriceUsdPerOz = silverData.price || 0;
 
-    if (goldPriceUsdPerOz === 0 || silverPriceUsdPerOz === 0) {
-      throw new Error('Invalid price data from metals.live');
+    if (goldPriceUsdPerOz === 0 || silverPriceUsdPerOz === 0 || !isFinite(goldPriceUsdPerOz) || !isFinite(silverPriceUsdPerOz)) {
+      return null; // Silent failure - invalid data
     }
 
     // Get currency exchange rates (simplified - would need currency API in production)
@@ -290,10 +291,9 @@ async function fetchFromMetalsLive(): Promise<MetalPrices | null> {
 
     return metalPrices;
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.warn('Metals.live API request timed out');
-    } else {
-      console.error('Error fetching from metals.live:', error);
+    // Silent failure - will try next API
+    if (error instanceof Error && error.name !== 'AbortError') {
+      logError(error, 'Metals.live API fetch error');
     }
     return null;
   }
@@ -336,8 +336,8 @@ async function fetchFromGoldAPI(): Promise<MetalPrices | null> {
     const goldPriceUsdPerOz = goldData.price || 0;
     const silverPriceUsdPerOz = silverData.price || 0;
 
-    if (goldPriceUsdPerOz === 0 || silverPriceUsdPerOz === 0) {
-      throw new Error('Invalid price data from goldapi.io');
+    if (goldPriceUsdPerOz === 0 || silverPriceUsdPerOz === 0 || !isFinite(goldPriceUsdPerOz) || !isFinite(silverPriceUsdPerOz)) {
+      return null; // Silent failure - invalid data
     }
 
     // Get currency exchange rates (simplified)
@@ -391,10 +391,9 @@ async function fetchFromGoldAPI(): Promise<MetalPrices | null> {
 
     return metalPrices;
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.warn('GoldAPI request timed out');
-    } else {
-      console.error('Error fetching from goldapi.io:', error);
+    // Silent failure - will use fallback prices
+    if (error instanceof Error && error.name !== 'AbortError') {
+      logError(error, 'GoldAPI fetch error');
     }
     return null;
   }

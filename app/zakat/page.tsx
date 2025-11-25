@@ -113,7 +113,7 @@ export default function ZakatPage() {
       setZakatHistory(history);
       setTotalPaid(total);
     } catch (error) {
-      console.error('Error loading zakat data:', error);
+      // Silent error - will show empty state
       setCalculation({
         currentSavings: 0,
         zakatableIncome: 0,

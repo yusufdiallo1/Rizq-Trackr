@@ -80,7 +80,7 @@ function IncomePageContent() {
     loadIncomeEntries(currentUser.id, {});
     loadExpenseEntries(currentUser.id);
     } catch (error) {
-      console.error('Error loading data:', error);
+      // Silent error - will show empty state
       setLoading(false);
     }
   };
@@ -142,7 +142,7 @@ function IncomePageContent() {
     });
     if (error) {
       setError(error);
-      console.error('Error adding income:', error);
+      // Silent error - user will see toast notification
     } else {
       setShowAddModal(false);
       setError(null);

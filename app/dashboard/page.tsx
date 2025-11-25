@@ -124,7 +124,7 @@ export default function DashboardPage() {
         // Silently fail - data will update when it's ready
       });
     } catch (error) {
-      console.error('Error loading dashboard:', error);
+      // Silent error - will show empty state
       setLoading(false);
     }
   }, [router]);

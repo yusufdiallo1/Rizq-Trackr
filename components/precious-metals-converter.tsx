@@ -163,7 +163,7 @@ export function PreciousMetalsConverter({ className }: PreciousMetalsConverterPr
           notifyPriceChange(metal, currency, metalPrice.priceChange, preferences);
         }
       } catch (err) {
-        console.error('Error fetching data:', err);
+        logError(err, 'Error fetching precious metals data');
         setError('Failed to fetch current price. Please try again.');
         setPricePerUnit(null);
       } finally {
@@ -208,7 +208,9 @@ export function PreciousMetalsConverter({ className }: PreciousMetalsConverterPr
     if (preferences && user) {
       const updatedPrefs = { ...preferences, currency };
       setPreferences(updatedPrefs);
-      savePreferences(updatedPrefs, user.id).catch(console.error);
+      savePreferences(updatedPrefs, user.id).catch((err) => {
+        logError(err, 'Failed to save precious metals preferences');
+      });
     }
   }, [currency]);
 
@@ -720,15 +722,15 @@ export function PreciousMetalsConverter({ className }: PreciousMetalsConverterPr
             )}
           </div>
           <div className="flex items-center justify-between">
-            {loading ? (
+              {loading ? (
               <motion.div
                 className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full"
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
               />
-            ) : error ? (
-              <span className="text-red-500 text-sm">Error</span>
-            ) : pricePerUnit !== null ? (
+              ) : error ? (
+                <span className="text-red-500 text-sm">Error</span>
+              ) : pricePerUnit !== null ? (
               <motion.span
                 className={`text-xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}
                 key={pricePerUnit}
@@ -736,7 +738,7 @@ export function PreciousMetalsConverter({ className }: PreciousMetalsConverterPr
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.3, type: 'spring', stiffness: 300 }}
               >
-                {getCurrencySymbol(currency)}{pricePerUnit.toFixed(2)}
+                  {getCurrencySymbol(currency)}{pricePerUnit.toFixed(2)}
               </motion.span>
             ) : (
               <span className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>--</span>
@@ -744,8 +746,8 @@ export function PreciousMetalsConverter({ className }: PreciousMetalsConverterPr
             {priceData?.lastUpdated && (
               <span className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
                 Updated: {new Date(priceData.lastUpdated).toLocaleTimeString()}
-              </span>
-            )}
+                </span>
+              )}
           </div>
         </motion.div>
 
@@ -783,15 +785,15 @@ export function PreciousMetalsConverter({ className }: PreciousMetalsConverterPr
             </motion.button>
             <motion.input
               ref={amountInputRef}
-              type="number"
+            type="number"
               step={unit === 'grams' ? '1' : '0.1'}
-              min="0"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder={`Enter amount in ${unit}`}
+            min="0"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder={`Enter amount in ${unit}`}
               className={`flex-1 px-4 py-3 rounded-xl text-base font-medium transition-all ${
                 isDark
-                  ? 'bg-slate-800/50 text-white border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+                ? 'bg-slate-800/50 text-white border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
                   : 'bg-white/80 text-slate-900 border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
               }`}
               style={{

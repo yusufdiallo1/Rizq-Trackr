@@ -91,7 +91,7 @@ export default function SavingsPage() {
       setGoalsWithProgress(goalsResult.data || []);
       setMonthOverMonth(momChange);
     } catch (error) {
-      console.error('Error loading savings data:', error);
+      // Silent error - will show empty state
     } finally {
       setLoading(false);
     }
@@ -110,7 +110,7 @@ export default function SavingsPage() {
         showToast(`Failed to create goal: ${error}`, 'error');
       }
     } catch (err: any) {
-      console.error('Unexpected error creating goal:', err);
+      // Silent error - user will see toast notification
       showToast('An unexpected error occurred while creating the goal', 'error');
     }
   };
@@ -125,7 +125,7 @@ export default function SavingsPage() {
         target_date: data.targetDate || null,
     });
       if (error) {
-        console.error('Error updating goal:', error);
+        // Silent error - user will see toast notification
         showToast(`Failed to update goal: ${error}`, 'error');
         return;
       }
@@ -137,7 +137,7 @@ export default function SavingsPage() {
       const { data: goals } = await getSavingsGoalsWithProgress(user.id);
       setGoalsWithProgress(goals || []);
     } catch (err) {
-      console.error('Unexpected error updating goal:', err);
+      // Silent error - user will see toast notification
       showToast('An unexpected error occurred while updating the goal', 'error');
     }
   };
@@ -156,7 +156,7 @@ export default function SavingsPage() {
         showToast(`Failed to delete goal: ${error}`, 'error');
       }
     } catch (err: any) {
-      console.error('Unexpected error deleting goal:', err);
+      // Silent error - user will see toast notification
       showToast('An unexpected error occurred while deleting the goal', 'error');
     }
   };

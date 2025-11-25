@@ -5,6 +5,8 @@
  * Auto-detect user location using GPS/IP, save with transactions
  */
 
+import { logError } from './logger';
+
 export interface UserLocation {
   latitude: number;
   longitude: number;
@@ -53,7 +55,7 @@ function getCachedLocation(): UserLocation | null {
     localStorage.removeItem(LOCATION_CACHE_KEY);
     return null;
   } catch (error) {
-    console.error('Error reading location cache:', error);
+    logError(error, 'Error reading location cache');
     return null;
   }
 }
@@ -71,7 +73,7 @@ function setCachedLocation(location: UserLocation): void {
     };
     localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(cache));
   } catch (error) {
-    console.error('Error caching location:', error);
+    logError(error, 'Error caching location');
   }
 }
 
@@ -91,7 +93,7 @@ export async function checkLocationPermission(): Promise<LocationPermissionState
       prompt: result.state === 'prompt',
     };
   } catch (error) {
-    console.error('Error checking location permission:', error);
+    logError(error, 'Error checking location permission');
     return { granted: false, denied: false, prompt: true };
   }
 }
@@ -151,7 +153,7 @@ export async function reverseGeocode(
       formattedAddress: data.display_name,
     };
   } catch (error) {
-    console.error('Reverse geocoding error:', error);
+    logError(error, 'Reverse geocoding error');
     return {};
   }
 }
@@ -165,10 +167,16 @@ export async function getLocationByIP(): Promise<UserLocation | null> {
     const response = await fetch('https://ipapi.co/json/');
 
     if (!response.ok) {
-      throw new Error('IP geolocation failed');
+      return null; // Silent failure
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      logError(parseError, 'Failed to parse IP geolocation response');
+      return null;
+    }
 
     return {
       latitude: data.latitude,
@@ -183,7 +191,7 @@ export async function getLocationByIP(): Promise<UserLocation | null> {
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    console.error('IP geolocation error:', error);
+    logError(error, 'IP geolocation error');
     return null;
   }
 }
@@ -367,7 +375,7 @@ export async function requestLocationPermission(): Promise<boolean> {
     const location = await getUserLocation(true);
     return location !== null;
   } catch (error) {
-    console.error('Error requesting location permission:', error);
+    logError(error, 'Error requesting location permission');
     return false;
   }
 }

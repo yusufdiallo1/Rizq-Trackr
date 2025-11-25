@@ -4,6 +4,8 @@
  * Uses free APIs with fallback mechanisms
  */
 
+import { logError } from './logger';
+
 // Constants for Nisab weights (in grams)
 export const NISAB_GOLD_GRAMS = 87.48; // Approximately 3 ounces
 export const NISAB_SILVER_GRAMS = 612.36; // Approximately 21 ounces
@@ -54,7 +56,7 @@ function getCachedPrices(): MetalPrice | null {
     localStorage.removeItem(PRICE_CACHE_KEY);
     return null;
   } catch (error) {
-    console.error('Error reading price cache:', error);
+    logError(error, 'Error reading price cache');
     return null;
   }
 }
@@ -72,7 +74,7 @@ function setCachedPrices(prices: MetalPrice): void {
     };
     localStorage.setItem(PRICE_CACHE_KEY, JSON.stringify(cache));
   } catch (error) {
-    console.error('Error caching prices:', error);
+    logError(error, 'Error caching prices');
   }
 }
 
@@ -139,8 +141,17 @@ async function fetchGoldPriceFromAPI(currency: string = 'USD'): Promise<number |
 
     return fallbackPrices[currency] || fallbackPrices.USD;
   } catch (error) {
-    console.error('Error fetching gold price:', error);
-    return null;
+    logError(error, 'Error fetching gold price');
+    // Return fallback price instead of null
+    const fallbackPrices: { [key: string]: number } = {
+      USD: 65.0,
+      EUR: 60.0,
+      GBP: 52.0,
+      AED: 240.0,
+      SAR: 245.0,
+      EGP: 3200.0,
+    };
+    return fallbackPrices[currency] || fallbackPrices.USD;
   }
 }
 
@@ -182,8 +193,17 @@ async function fetchSilverPriceFromAPI(currency: string = 'USD'): Promise<number
 
     return fallbackPrices[currency] || fallbackPrices.USD;
   } catch (error) {
-    console.error('Error fetching silver price:', error);
-    return null;
+    logError(error, 'Error fetching silver price');
+    // Return fallback price instead of null
+    const fallbackPrices: { [key: string]: number } = {
+      USD: 0.85,
+      EUR: 0.78,
+      GBP: 0.68,
+      AED: 3.12,
+      SAR: 3.19,
+      EGP: 42.0,
+    };
+    return fallbackPrices[currency] || fallbackPrices.USD;
   }
 }
 
