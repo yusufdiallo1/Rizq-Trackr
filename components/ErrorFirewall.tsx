@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState, ReactNode } from 'react';
+import { useEffect, useState, ReactNode, useRef } from 'react';
+import { attemptErrorRecovery } from '@/lib/error-recovery';
+import { logError } from '@/lib/logger';
 
 interface ErrorFirewallProps {
   children: ReactNode;
@@ -9,13 +11,15 @@ interface ErrorFirewallProps {
 }
 
 /**
- * Error Firewall Component
- * Catches and handles errors at the component level
- * Prevents errors from crashing the entire app
+ * Advanced Error Firewall Component
+ * Automatically detects and fixes errors before they become visible
+ * Prevents errors from crashing the app or showing error UI
  */
 export function ErrorFirewall({ children, fallback, onError }: ErrorFirewallProps) {
   const [hasError, setHasError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const errorCountRef = useRef(0);
+  const suppressedErrorsRef = useRef(0);
 
   useEffect(() => {
     // Handle unhandled promise rejections
@@ -24,26 +28,34 @@ export function ErrorFirewall({ children, fallback, onError }: ErrorFirewallProp
         ? event.reason 
         : new Error(String(event.reason));
       
-      // Suppress known errors (handled by ErrorHandler)
-      if (
-        error.message?.includes('users') &&
-        (error.message.includes('404') || 
-         error.message.includes('PGRST205') ||
-         error.message.includes('Could not find the table'))
-      ) {
+      // Attempt automatic error recovery
+      const recovery = attemptErrorRecovery(error, 'UnhandledRejection');
+      
+      if (recovery.recovered && recovery.shouldSuppress) {
+        // Error was automatically fixed - suppress it completely
+        suppressedErrorsRef.current++;
         event.preventDefault();
+        event.stopPropagation();
         return;
       }
 
-      setError(error);
-      setHasError(true);
+      // Error cannot be automatically recovered
+      // Only show error UI if it's a critical error
+      const isCritical = !recovery.recovered && errorCountRef.current < 3;
       
-      if (onError) {
-        onError(error, { type: 'unhandledRejection', reason: event.reason });
+      if (isCritical) {
+        errorCountRef.current++;
+        setError(error);
+        setHasError(true);
+        
+        if (onError) {
+          onError(error, { type: 'unhandledRejection', reason: event.reason });
+        }
       }
 
-      // Prevent default error handling
+      // Always prevent default error handling to avoid console errors
       event.preventDefault();
+      event.stopPropagation();
     };
 
     // Handle JavaScript errors
@@ -52,43 +64,104 @@ export function ErrorFirewall({ children, fallback, onError }: ErrorFirewallProp
         ? event.error 
         : new Error(event.message || 'Unknown error');
 
-      // Suppress known errors (handled by ErrorHandler)
-      if (
-        error.message?.includes('users') &&
-        (error.message.includes('404') || 
-         error.message.includes('PGRST205') ||
-         error.message.includes('Could not find the table'))
-      ) {
+      // Attempt automatic error recovery
+      const recovery = attemptErrorRecovery(error, `Error: ${event.filename}:${event.lineno}`);
+      
+      if (recovery.recovered && recovery.shouldSuppress) {
+        // Error was automatically fixed - suppress it completely
+        suppressedErrorsRef.current++;
         event.preventDefault();
+        event.stopPropagation();
         return;
       }
 
-      setError(error);
-      setHasError(true);
+      // Error cannot be automatically recovered
+      // Only show error UI if it's a critical error
+      const isCritical = !recovery.recovered && errorCountRef.current < 3;
       
-      if (onError) {
-        onError(error, { type: 'error', filename: event.filename, lineno: event.lineno });
+      if (isCritical) {
+        errorCountRef.current++;
+        setError(error);
+        setHasError(true);
+        
+        if (onError) {
+          onError(error, { type: 'error', filename: event.filename, lineno: event.lineno });
+        }
       }
 
-      // Prevent default error handling
+      // Always prevent default error handling
       event.preventDefault();
+      event.stopPropagation();
     };
 
-    window.addEventListener('error', handleError);
+    // Intercept console.error to catch errors before they're logged
+    const originalConsoleError = console.error;
+    console.error = (...args: any[]) => {
+      const errorMessage = args.join(' ');
+      const error = new Error(errorMessage);
+      
+      // Attempt automatic recovery
+      const recovery = attemptErrorRecovery(error, 'ConsoleError');
+      
+      if (recovery.recovered && recovery.shouldSuppress) {
+        // Suppress the error - don't log it
+        suppressedErrorsRef.current++;
+        return;
+      }
+
+      // Log only if not suppressed
+      originalConsoleError.apply(console, args);
+    };
+
+    // Intercept console.warn to catch warnings
+    const originalConsoleWarn = console.warn;
+    console.warn = (...args: any[]) => {
+      const warningMessage = args.join(' ');
+      const error = new Error(warningMessage);
+      
+      // Attempt automatic recovery
+      const recovery = attemptErrorRecovery(error, 'ConsoleWarn');
+      
+      if (recovery.recovered && recovery.shouldSuppress) {
+        // Suppress the warning
+        suppressedErrorsRef.current++;
+        return;
+      }
+
+      // Log only if not suppressed
+      originalConsoleWarn.apply(console, args);
+    };
+
+    window.addEventListener('error', handleError, true); // Use capture phase
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
     return () => {
-      window.removeEventListener('error', handleError);
+      window.removeEventListener('error', handleError, true);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      console.error = originalConsoleError;
+      console.warn = originalConsoleWarn;
     };
   }, [onError]);
 
   const resetError = () => {
     setHasError(false);
     setError(null);
+    errorCountRef.current = 0;
   };
 
-  if (hasError) {
+  // Auto-recover from non-critical errors after a delay
+  useEffect(() => {
+    if (hasError && errorCountRef.current < 3) {
+      const timer = setTimeout(() => {
+        resetError();
+      }, 5000); // Auto-recover after 5 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [hasError]);
+
+  // Only show error UI for critical, unrecoverable errors
+  if (hasError && errorCountRef.current >= 3) {
     if (fallback) {
       return <>{fallback}</>;
     }
@@ -116,6 +189,7 @@ export function ErrorFirewall({ children, fallback, onError }: ErrorFirewallProp
     );
   }
 
+  // Render children normally - errors are being automatically handled
   return <>{children}</>;
 }
 

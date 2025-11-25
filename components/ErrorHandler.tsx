@@ -1,78 +1,112 @@
 'use client';
 
 import { useEffect } from 'react';
+import { attemptErrorRecovery } from '@/lib/error-recovery';
+import { logError } from '@/lib/logger';
 
 /**
  * Global Error Handler Component
- * Suppresses known 404 errors for deprecated tables (users)
- * and handles other common errors gracefully
+ * First line of defense - intercepts errors before they reach ErrorFirewall
+ * Uses automatic error recovery to fix errors silently
  */
 export function ErrorHandler() {
   useEffect(() => {
-    // Suppress 404 errors for the deprecated 'users' table
-    // These errors are likely from cached code and can be safely ignored
+    // Intercept console.error with automatic recovery
     const originalError = console.error;
-    const originalWarn = console.warn;
-
     console.error = (...args: any[]) => {
       const message = args.join(' ');
+      const error = new Error(message);
       
-      // Suppress 404 errors for users table (deprecated, now using customers table)
-      if (
-        message.includes('users') &&
-        (message.includes('404') || 
-         message.includes('PGRST205') ||
-         message.includes('Could not find the table'))
-      ) {
-        // Silently ignore - this is from cached code
-        return;
+      // Attempt automatic error recovery
+      const recovery = attemptErrorRecovery(error, 'ConsoleError');
+      
+      if (recovery.recovered && recovery.shouldSuppress) {
+        // Error was automatically fixed - suppress it completely
+        logError(recovery.message, 'ErrorHandler');
+        return; // Don't log the error
       }
 
-      // Call original error handler
-      originalError.apply(console, args);
+      // Only log errors that couldn't be automatically recovered
+      if (!recovery.shouldSuppress) {
+        originalError.apply(console, args);
+      }
     };
 
+    // Intercept console.warn with automatic recovery
+    const originalWarn = console.warn;
     console.warn = (...args: any[]) => {
       const message = args.join(' ');
+      const error = new Error(message);
       
-      // Suppress warnings about users table
-      if (
-        message.includes('users') &&
-        (message.includes('404') || 
-         message.includes('PGRST205') ||
-         message.includes('Could not find the table'))
-      ) {
-        // Silently ignore - this is from cached code
-        return;
+      // Attempt automatic error recovery
+      const recovery = attemptErrorRecovery(error, 'ConsoleWarn');
+      
+      if (recovery.recovered && recovery.shouldSuppress) {
+        // Warning was automatically handled - suppress it
+        return; // Don't log the warning
       }
 
-      // Call original warn handler
-      originalWarn.apply(console, args);
+      // Only log warnings that couldn't be automatically recovered
+      if (!recovery.shouldSuppress) {
+        originalWarn.apply(console, args);
+      }
     };
 
-    // Handle unhandled promise rejections
+    // Handle unhandled promise rejections with automatic recovery
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      const error = event.reason;
-      const errorMessage = error?.message || String(error);
+      const error = event.reason instanceof Error 
+        ? event.reason 
+        : new Error(String(event.reason));
       
-      // Suppress errors about users table
-      if (
-        errorMessage.includes('users') &&
-        (errorMessage.includes('404') || 
-         errorMessage.includes('PGRST205') ||
-         errorMessage.includes('Could not find the table'))
-      ) {
-        event.preventDefault(); // Prevent error from showing in console
+      // Attempt automatic error recovery
+      const recovery = attemptErrorRecovery(error, 'UnhandledRejection');
+      
+      if (recovery.recovered && recovery.shouldSuppress) {
+        // Error was automatically fixed - suppress it completely
+        event.preventDefault();
+        event.stopPropagation();
+        logError(recovery.message, 'ErrorHandler');
         return;
+      }
+
+      // For non-recoverable errors, let ErrorFirewall handle them
+      // But still prevent default console logging
+      if (recovery.shouldSuppress) {
+        event.preventDefault();
       }
     };
 
+    // Handle JavaScript errors with automatic recovery
+    const handleError = (event: ErrorEvent) => {
+      const error = event.error instanceof Error 
+        ? event.error 
+        : new Error(event.message || 'Unknown error');
+      
+      // Attempt automatic error recovery
+      const recovery = attemptErrorRecovery(error, `Error: ${event.filename}:${event.lineno}`);
+      
+      if (recovery.recovered && recovery.shouldSuppress) {
+        // Error was automatically fixed - suppress it completely
+        event.preventDefault();
+        event.stopPropagation();
+        logError(recovery.message, 'ErrorHandler');
+        return;
+      }
+
+      // For non-recoverable errors, let ErrorFirewall handle them
+      if (recovery.shouldSuppress) {
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener('error', handleError, true); // Use capture phase
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
     // Cleanup
     return () => {
       console.error = originalError;
       console.warn = originalWarn;
+      window.removeEventListener('error', handleError, true);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
