@@ -1,11 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { getCurrentUser, User } from '@/lib/auth';
-import { DashboardLayout } from '@/components/layout';
-import { PageContainer } from '@/components/layout';
-import LoadingScreen from '@/components/LoadingScreen';
+import Link from 'next/link';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { getTextColor, getMutedTextColor } from '@/lib/utils';
 
@@ -24,23 +20,10 @@ const sections = [
 ];
 
 export default function TermsOfServicePage() {
-  const router = useRouter();
   const { theme } = useTheme();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string>('agreement');
 
   useEffect(() => {
-    const init = async () => {
-      const currentUser = await getCurrentUser();
-      if (!currentUser) {
-        router.push('/login');
-      } else {
-        setUser(currentUser);
-        setLoading(false);
-      }
-    };
-    init();
 
     // Scroll spy for table of contents
     const handleScroll = () => {
@@ -59,7 +42,7 @@ export default function TermsOfServicePage() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [router]);
+  }, []);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -76,14 +59,21 @@ export default function TermsOfServicePage() {
     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
   };
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
-
   return (
-    <DashboardLayout user={user}>
-      <PageContainer>
-        <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen" style={{
+      background: theme === 'dark'
+        ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+        : 'linear-gradient(to bottom, #f8fafc, #e2e8f0, #f1f5f9)',
+    }}>
+      {/* Back to Home Link */}
+      <div className="pt-6 px-4">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium hover:underline" style={{
+          color: theme === 'dark' ? '#10b981' : '#059669'
+        }}>
+          ← Back to Home
+        </Link>
+      </div>
+      <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="grid lg:grid-cols-4 gap-8">
             {/* Table of Contents - Sticky Sidebar */}
             <div className="lg:col-span-1">
@@ -152,19 +142,6 @@ export default function TermsOfServicePage() {
                   }}
                 />
                 <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <button
-                      onClick={() => router.back()}
-                      className="w-10 h-10 rounded-full backdrop-blur-xl border flex items-center justify-center hover:scale-105 transition-transform"
-                      style={{
-                        background: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.5)',
-                        border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(31, 41, 55, 0.2)',
-                      }}
-                    >
-                      <svg className={`w-5 h-5 ${getTextColor(theme)}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                    </button>
                     <div className="flex-1">
                       <h1 className={`text-4xl md:text-5xl font-bold ${getTextColor(theme)} mb-3`}>
                         Terms of Service
@@ -610,7 +587,7 @@ export default function TermsOfServicePage() {
             </div>
           </div>
         </div>
-      </PageContainer>
-    </DashboardLayout>
+      </div>
+    </div>
   );
 }
