@@ -40,12 +40,12 @@ export default function ProfilePage() {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
 
   const [profile, setProfile] = useState<UserProfile>({
-    full_name: 'Fatoumata Balde',
-    email: 'fatoumata@email.com',
-    phone: '+1 (555) 123-4567',
-    date_of_birth: '1995-01-15',
-    location: 'Ashburn, Virginia',
-    created_at: '2024-01-15T00:00:00Z',
+    full_name: '',
+    email: '',
+    phone: '',
+    date_of_birth: '',
+    location: '',
+    created_at: new Date().toISOString(),
     avatar_url: undefined
   });
 
@@ -84,10 +84,29 @@ export default function ProfilePage() {
       setLoading(false);
       return;
     }
-      setUser(currentUser);
-      setProfile(prev => ({ ...prev, email: currentUser.email }));
-      setEditForm(prev => ({ ...prev, email: currentUser.email }));
-      setLoading(false);
+    setUser(currentUser);
+    
+    // Construct full name from firstName and lastName if fullName is not available
+    const fullName = currentUser.fullName || 
+      (currentUser.firstName && currentUser.lastName 
+        ? `${currentUser.firstName} ${currentUser.lastName}`
+        : currentUser.firstName || currentUser.lastName || 'User');
+    
+    // Update profile with actual user data
+    setProfile(prev => ({
+      ...prev,
+      full_name: fullName,
+      email: currentUser.email,
+    }));
+    
+    // Update edit form with actual user data
+    setEditForm(prev => ({
+      ...prev,
+      full_name: fullName,
+      email: currentUser.email,
+    }));
+    
+    setLoading(false);
   };
 
   const getInitials = (name: string) => {
