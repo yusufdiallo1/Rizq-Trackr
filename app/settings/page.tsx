@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCurrentUser, User, signOut } from '@/lib/auth';
+import { getCurrentUser, User, signOut, changePassword, deleteAccount } from '@/lib/auth';
 import { DashboardLayout, PageContainer } from '@/components/layout';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { useLocation } from '@/lib/contexts/LocationContext';
@@ -80,8 +80,22 @@ export default function SettingsPage() {
   };
 
   const handleChangePassword = async (data: { currentPassword: string; newPassword: string }) => {
-    // TODO: Implement password change
-    showToast('Password updated successfully!', 'success');
+    if (!data.currentPassword || !data.newPassword) {
+      showToast('Please fill in all fields', 'error');
+      return;
+    }
+    
+    if (data.newPassword.length < 8) {
+      showToast('New password must be at least 8 characters', 'error');
+      return;
+    }
+    
+    const result = await changePassword(data.currentPassword, data.newPassword);
+    if (result.error) {
+      showToast(result.error, 'error');
+    } else {
+      showToast('Password updated successfully!', 'success');
+    }
   };
 
   const handleCurrencySelect = (selectedCurrency: string) => {
@@ -95,8 +109,29 @@ export default function SettingsPage() {
   };
 
   const handleDeleteAccount = async () => {
-    // TODO: Implement account deletion
-    showToast('Account deletion initiated.', 'success');
+    const confirmed = window.confirm(
+      'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.'
+    );
+    
+    if (!confirmed) {
+      return;
+    }
+    
+    const result = await deleteAccount();
+    if (result.error) {
+      showToast(result.error, 'error');
+      // If deletion requires server-side processing, redirect to login
+      if (result.error.includes('server-side') || result.error.includes('contact support')) {
+        setTimeout(() => {
+          router.push('/login');
+        }, 2000);
+      }
+    } else {
+      showToast('Account deletion initiated. You have been signed out.', 'success');
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+    }
   };
 
   const handleLogout = async () => {

@@ -111,6 +111,64 @@ export async function signOut(): Promise<AuthResponse> {
   }
 }
 
+// Change password for authenticated user
+export async function changePassword(currentPassword: string, newPassword: string): Promise<AuthResponse> {
+  try {
+    // First verify the current password by attempting to sign in
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.email) {
+      return { error: 'No active session found. Please sign in again.', success: false };
+    }
+
+    // Verify current password
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: session.user.email,
+      password: currentPassword,
+    });
+
+    if (signInError) {
+      return { error: 'Current password is incorrect.', success: false };
+    }
+
+    // Update password
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (updateError) {
+      return { error: updateError.message, success: false };
+    }
+
+    return { error: null, success: true };
+  } catch (err: any) {
+    return { error: err?.message || 'An unexpected error occurred', success: false };
+  }
+}
+
+// Delete user account
+export async function deleteAccount(): Promise<AuthResponse> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      return { error: 'No active session found. Please sign in again.', success: false };
+    }
+
+    // Note: Supabase Auth doesn't provide a client-side method to delete user accounts
+    // This requires server-side admin API access. For now, we'll sign out the user
+    // In production, you should create an API route that uses the Supabase Admin API
+    
+    // Sign out the user
+    await supabase.auth.signOut();
+    
+    return { 
+      error: 'Account deletion requires server-side processing. Your session has been signed out. Please contact support for account deletion.', 
+      success: false
+    };
+  } catch (err: any) {
+    return { error: err?.message || 'An unexpected error occurred', success: false };
+  }
+}
+
 // Reset password - send email
 export async function resetPassword(email: string): Promise<AuthResponse> {
   try {

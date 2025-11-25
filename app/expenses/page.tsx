@@ -17,9 +17,7 @@ import { AddExpenseModal } from '@/components/AddExpenseModal';
 import { EditExpenseModal } from '@/components/EditExpenseModal';
 import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { MobileTopNav } from '@/components/layout/MobileTopNav';
 import { getIslamicDate } from '@/lib/utils/dateUtils';
-import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { PreciousMetalsModal } from '@/components/PreciousMetalsModal';
@@ -456,8 +454,31 @@ function ExpensesPageContent() {
   }).length;
 
   const topCategory = getTopCategory();
-  const previousMonthTotal = 0; // This would need to be calculated from previous month data
-  const trendPercentage = 5; // Placeholder - would calculate from previous month
+  
+  // Calculate current month total
+  const now = new Date();
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const currentMonthTotal = expenseEntries
+    .filter((entry) => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= currentMonthStart && entryDate.getMonth() === now.getMonth() && entryDate.getFullYear() === now.getFullYear();
+    })
+    .reduce((sum, entry) => sum + entry.amount, 0);
+  
+  // Calculate previous month total
+  const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+  const previousMonthTotal = expenseEntries
+    .filter((entry) => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= previousMonthStart && entryDate <= previousMonthEnd;
+    })
+    .reduce((sum, entry) => sum + entry.amount, 0);
+  
+  // Calculate trend percentage
+  const trendPercentage = previousMonthTotal > 0
+    ? ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100
+    : currentMonthTotal > 0 ? 100 : 0;
 
   // Calculate dynamic chart dimensions based on number of categories
   const categoryBreakdown = getCategoryBreakdown();
