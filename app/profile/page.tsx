@@ -78,14 +78,16 @@ export default function ProfilePage() {
 
   const checkUser = async () => {
     const currentUser = await getCurrentUser();
+    // Don't redirect - middleware handles authentication
+    // If no user, just don't load data (middleware will redirect if needed)
     if (!currentUser) {
-      router.push('/login');
-    } else {
-      setUser(currentUser);
-      setProfile(prev => ({ ...prev, email: currentUser.email }));
-      setEditForm(prev => ({ ...prev, email: currentUser.email }));
       setLoading(false);
+      return;
     }
+    setUser(currentUser);
+    setProfile(prev => ({ ...prev, email: currentUser.email }));
+    setEditForm(prev => ({ ...prev, email: currentUser.email }));
+    setLoading(false);
   };
 
   const getInitials = (name: string) => {

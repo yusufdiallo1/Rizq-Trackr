@@ -132,7 +132,12 @@ export function IncomeImageUpload({ onDataExtracted, onClose }: IncomeImageUploa
       >
         {/* Backdrop */}
         <motion.div
-          className="absolute inset-0 bg-black/60"
+          className="absolute inset-0"
+          style={{
+            background: 'transparent',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+          }}
           onClick={() => {
             stopCamera();
             onClose();
@@ -203,7 +208,11 @@ export function IncomeImageUpload({ onDataExtracted, onClose }: IncomeImageUploa
               <div className="relative rounded-2xl overflow-hidden">
                 <img src={previewImage} alt="Document preview" className="w-full" />
                 {isProcessing && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <div className="absolute inset-0 flex items-center justify-center" style={{
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    backdropFilter: 'blur(4px)',
+                    WebkitBackdropFilter: 'blur(4px)',
+                  }}>
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
                       <p className="text-white font-medium">Analyzing document...</p>

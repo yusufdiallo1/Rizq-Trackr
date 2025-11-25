@@ -108,9 +108,9 @@ export function EditExpenseModal({ isOpen, expense, onClose, onUpdate, onDelete 
       <div
         className="fixed inset-0 z-50 flex items-end tablet:items-center lg:items-center justify-center animate-fade-in-instant"
         style={{
-          background: 'rgba(0, 0, 0, 0.7)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
+          background: 'transparent',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
           paddingTop: 'env(safe-area-inset-top, 0)',
           paddingBottom: 'env(safe-area-inset-bottom, 0)',
         }}
@@ -341,8 +341,9 @@ export function EditExpenseModal({ isOpen, expense, onClose, onUpdate, onDelete 
         <div
           className="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
           style={{
-            background: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(10px)',
+            background: 'transparent',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
           }}
           onClick={() => setShowCategorySheet(false)}
         >

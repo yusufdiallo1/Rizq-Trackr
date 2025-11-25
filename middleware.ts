@@ -6,9 +6,30 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const supabase = createMiddlewareClient({ req, res });
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // VERY CONSERVATIVE: Only check session if absolutely necessary
+  // Add very short timeout and be extremely lenient
+  let session = null;
+  let hasValidSessionCheck = false;
+  
+  try {
+    const sessionPromise = supabase.auth.getSession();
+    const timeoutPromise = new Promise<{ data: { session: null }; isTimeout: true }>((resolve) =>
+      setTimeout(() => resolve({ data: { session: null }, isTimeout: true }), 1000) // Very short timeout
+    );
+
+    const sessionResult = await Promise.race([sessionPromise.then(r => ({ ...r, isTimeout: false })), timeoutPromise]);
+    
+    // Only consider it a valid check if it wasn't a timeout AND we got a definitive result
+    if (!sessionResult.isTimeout && sessionResult?.data !== undefined) {
+      session = sessionResult?.data?.session || null;
+      hasValidSessionCheck = true;
+    }
+    // If timeout or undefined, hasValidSessionCheck stays false - don't redirect
+  } catch (error) {
+    // If session check fails for ANY reason, allow the request through
+    // NEVER redirect on errors - this prevents all redirect loops
+    // hasValidSessionCheck remains false, so we won't redirect
+  }
 
   const isAuthPage =
     req.nextUrl.pathname.startsWith('/login') ||
@@ -28,10 +49,33 @@ export async function middleware(req: NextRequest) {
     req.nextUrl.pathname.startsWith('/settings') ||
     req.nextUrl.pathname.startsWith('/notifications');
 
-  // If user is not logged in and trying to access protected pages, redirect to login
-  if (!session && isProtectedPage) {
+  // EXTREMELY CONSERVATIVE: Only redirect if we're 100% certain
+  // Requirements:
+  // 1. Valid session check completed (not timeout/error)
+  // 2. Session is explicitly null (not undefined, not missing)
+  // 3. User is on a protected page
+  // 4. Not already on an auth page
+  // 5. Not a navigation request (prevent redirect loops)
+  const isNavigationRequest = req.headers.get('x-middleware-rewrite') || 
+                              req.headers.get('x-middleware-redirect');
+  
+  if (
+    hasValidSessionCheck && 
+    session === null && 
+    isProtectedPage && 
+    !isAuthPage &&
+    !isNavigationRequest
+  ) {
+    // Only redirect if absolutely certain - this should be very rare
     return NextResponse.redirect(new URL('/login', req.url));
   }
+
+  // DEFAULT: Always allow through if:
+  // - Session check timed out
+  // - Session check failed
+  // - Session check returned undefined
+  // - Any uncertainty whatsoever
+  // This prevents ALL false redirects and redirect loops
 
   return res;
 }

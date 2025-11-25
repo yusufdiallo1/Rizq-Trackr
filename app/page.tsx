@@ -22,46 +22,63 @@ export default function Home() {
   const supabase = createClientComponentClient<Database>();
 
   useEffect(() => {
+    let mounted = true;
+    
     // Initial auth check - show page immediately, check in background
     const checkAuth = async () => {
       try {
         const authenticated = await isAuthenticated();
+        if (!mounted) return;
+        
         if (authenticated) {
           const currentUser = await getCurrentUser();
-          setUser(currentUser);
+          if (mounted) {
+            setUser(currentUser);
+          }
         } else {
-          setUser(null); // Clear user if not authenticated
+          if (mounted) {
+            setUser(null); // Clear user if not authenticated
+          }
         }
       } catch (error) {
         // Silently fail - user can still view homepage
-        setUser(null);
+        if (mounted) {
+          setUser(null);
+        }
       }
     };
 
     // Don't block rendering - check auth in background
     checkAuth();
 
-    // Listen for auth state changes (login/logout)
+    // Listen for auth state changes (login/logout) - only on actual auth events
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
+      // Only update state on actual auth events, not on every state change
       if (event === 'SIGNED_IN' && session) {
         const currentUser = await getCurrentUser();
-        setUser(currentUser);
+        if (mounted) {
+          setUser(currentUser);
+        }
       } else if (event === 'SIGNED_OUT') {
-        setUser(null); // Clear user on logout
+        if (mounted) {
+          setUser(null); // Clear user on logout
+        }
       } else if (event === 'TOKEN_REFRESHED' && session) {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
-      } else if (!session) {
-        setUser(null); // Clear user if no session
+        // Don't update user on token refresh - it's the same user
+        // This prevents unnecessary re-renders
       }
+      // Don't clear user on other events - let the initial check handle it
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
-  }, [router, supabase]);
+  }, []); // Empty deps - only run once on mount
 
   return (
     <main

@@ -24,7 +24,7 @@ import { useTheme } from '@/lib/contexts/ThemeContext';
 import { getTextColor, getMutedTextColor, getCardTextColor } from '@/lib/utils';
 import { motion, useReducedMotion } from 'framer-motion';
 import { getCardVariants, staggerContainerVariants, getListItemVariants } from '@/lib/animations';
-import { PreciousMetalsConverter } from '@/components/precious-metals-converter';
+import { PreciousMetalsModal } from '@/components/PreciousMetalsModal';
 import {
   LineChart,
   Line,
@@ -54,6 +54,7 @@ export default function SavingsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<SavingsGoal | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<'6M' | '1Y' | 'All'>('1Y');
+  const [showPreciousMetalsModal, setShowPreciousMetalsModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -248,13 +249,54 @@ export default function SavingsPage() {
             </div>
           </motion.div>
 
-          {/* Precious Metals Converter */}
+          {/* Precious Metals Converter Button */}
           <motion.div
             variants={prefersReducedMotion ? {} : getCardVariants(1)}
             initial="hidden"
             animate="visible"
           >
-            <PreciousMetalsConverter />
+            <button
+              onClick={() => setShowPreciousMetalsModal(true)}
+              className="w-full rounded-3xl p-5 lg:p-6 transition-all active:scale-98"
+              style={{
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                background: theme === 'dark' ? 'rgba(42, 45, 61, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.06)',
+                borderRadius: '20px',
+                boxShadow: theme === 'dark' ? '0 4px 20px rgba(245, 158, 11, 0.2)' : '0 4px 20px rgba(0, 0, 0, 0.1)',
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 179, 8, 0.2))',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
+                    }}
+                  >
+                    🥇
+                  </div>
+                  <div className="text-left">
+                    <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                      Precious Metals Converter
+                    </h3>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-white/70' : 'text-slate-600'}`}>
+                      Convert gold & silver to multiple currencies
+                    </p>
+                  </div>
+                </div>
+                <svg 
+                  className={`w-6 h-6 ${theme === 'dark' ? 'text-white/60' : 'text-slate-400'}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </button>
           </motion.div>
 
           {/* Savings Growth Chart - iPhone Native */}
@@ -644,6 +686,10 @@ export default function SavingsPage() {
               setShowDeleteModal(false);
               setSelectedGoal(null);
             }}
+          />
+          <PreciousMetalsModal
+            isOpen={showPreciousMetalsModal}
+            onClose={() => setShowPreciousMetalsModal(false)}
           />
       </div>
 

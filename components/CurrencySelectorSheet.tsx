@@ -59,7 +59,12 @@ export function CurrencySelectorSheet({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black bg-opacity-50 transition-opacity duration-300"
+        className="fixed inset-0 z-50 transition-opacity duration-300"
+        style={{
+          background: 'transparent',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+        }}
         onClick={onClose}
       />
 

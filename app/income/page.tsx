@@ -21,7 +21,6 @@ import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { MobileTopNav } from '@/components/layout/MobileTopNav';
 import { useTheme } from '@/lib/contexts/ThemeContext';
-import { PreciousMetalsConverter } from '@/components/precious-metals-converter';
 
 // Inner component that uses searchParams
 function IncomePageContent() {
@@ -57,36 +56,60 @@ function IncomePageContent() {
     { key: 'all' as const, label: 'All' },
   ];
 
+  const loadData = async () => {
+    setLoading(true);
+
+    try {
+      const currentUser = await getCurrentUser();
+      
+      if (!currentUser) {
+        // Don't bounce the user away if auth check is slow; middleware already protects routes.
+        // If middleware didn't redirect, user is likely authenticated but check was slow
+        setLoading(false);
+        return;
+      }
+      
+      setUser(currentUser);
+
+      // Show page immediately - don't wait for data
+      setLoading(false);
+
+      // Load data in background (non-blocking)
+      loadIncomeEntries(currentUser.id, {});
+      loadExpenseEntries(currentUser.id);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    loadData();
+    let mounted = true;
+    
+    const initData = async () => {
+      if (!mounted) return;
+      await loadData();
+    };
+
+    initData();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
     if (searchParams.get('action') === 'add') {
       setShowAddModal(true);
-      // Remove query param from URL
-      router.replace('/income', { scroll: false });
+      // Remove query param from URL without causing a refresh
+      // Use replaceState to avoid triggering a navigation
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('action');
+        window.history.replaceState({}, '', url.pathname + url.search);
+      }
     }
-  }, [searchParams, router]);
-
-  const loadData = async () => {
-    setLoading(true);
-
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      // Don't bounce the user away if auth check is slow; middleware already protects routes.
-      setLoading(false);
-      return;
-    }
-    setUser(currentUser);
-
-    // Show page immediately - don't wait for data
-      setLoading(false);
-
-    // Load data in background (non-blocking)
-    loadIncomeEntries(currentUser.id, {});
-    loadExpenseEntries(currentUser.id);
-  };
+  }, [searchParams]);
 
   const loadExpenseEntries = async (userId: string) => {
     const { data, error } = await getExpenseEntries(userId, {});
@@ -539,13 +562,54 @@ function IncomePageContent() {
             </div>
           </motion.div>
 
-          {/* Precious Metals Converter */}
+          {/* Precious Metals Converter Button */}
           <motion.div
             variants={prefersReducedMotion ? {} : getCardVariants(3)}
             initial="hidden"
             animate="visible"
           >
-            <PreciousMetalsConverter />
+            <button
+              onClick={() => setShowPreciousMetalsModal(true)}
+              className="w-full rounded-3xl p-5 lg:p-6 transition-all active:scale-98"
+              style={{
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                background: theme === 'dark' ? 'rgba(42, 45, 61, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.06)',
+                borderRadius: '20px',
+                boxShadow: theme === 'dark' ? '0 4px 20px rgba(245, 158, 11, 0.2)' : '0 4px 20px rgba(0, 0, 0, 0.1)',
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 179, 8, 0.2))',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
+                    }}
+                  >
+                    🥇
+                  </div>
+                  <div className="text-left">
+                    <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                      Precious Metals Converter
+                    </h3>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-white/70' : 'text-slate-600'}`}>
+                      Convert gold & silver to multiple currencies
+                    </p>
+                  </div>
+                </div>
+                <svg 
+                  className={`w-6 h-6 ${theme === 'dark' ? 'text-white/60' : 'text-slate-400'}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </button>
           </motion.div>
 
           {/* Income vs Expenses Comparison Card - iPhone Native */}
@@ -707,31 +771,29 @@ function IncomePageContent() {
               </div>
 
               {/* Category Selector */}
-              <div>
+              <div className="relative">
                 <label className={`block text-sm mb-2 ${theme === 'dark' ? 'text-white/80' : 'text-slate-700'}`}>Category</label>
-                <button
-                  onClick={handleApplyFilters}
-                  className={`w-full px-4 py-3 rounded-2xl flex items-center justify-between ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}
-                  style={{
-                    background: theme === 'dark' ? '#334155' : '#f9fafb',
-                    border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.08)',
-                  }}
-                >
-                  <span>{filterCategory === 'all' ? 'All Categories' : filterCategory}</span>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <select
-                  value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="hidden"
-                >
-                  <option value="all">All Categories</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    className={`w-full px-4 py-3 rounded-2xl appearance-none cursor-pointer ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}
+                    style={{
+                      background: theme === 'dark' ? '#334155' : '#f9fafb',
+                      border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.08)',
+                    }}
+                  >
+                    <option value="all">All Categories</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
 

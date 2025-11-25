@@ -17,8 +17,9 @@ export function DeleteConfirmation({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in-instant"
       style={{
-        background: 'rgba(0, 0, 0, 0.7)',
-        backdropFilter: 'blur(10px)',
+        background: 'transparent',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
       }}
       onClick={onCancel}
     >

@@ -67,10 +67,20 @@ export async function signUp(
 // Sign in existing user
 export async function signIn(email: string, password: string): Promise<AuthResponse> {
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    // Add 2 second timeout to prevent infinite loading
+    const signInPromise = supabase.auth.signInWithPassword({
       email,
       password,
     });
+
+    const timeoutPromise = new Promise<{ data: { user: null }; error: { message: string } }>((resolve) =>
+      setTimeout(() => resolve({
+        data: { user: null },
+        error: { message: 'Login timed out. Please check your connection and try again.' }
+      }), 2000)
+    );
+
+    const { data, error } = await Promise.race([signInPromise, timeoutPromise]);
 
     if (error) {
       return { error: error.message, success: false, user: null };
@@ -136,17 +146,42 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
   }
 }
 
-// Get current user with 2-second timeout to prevent infinite loading
+// Get current user with improved timeout handling to prevent redirect loops
 export async function getCurrentUser(): Promise<User | null> {
   try {
-    // Race between auth check and 2-second timeout
+    // First try to get session (faster than getUser)
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    // If we have a session, get the user from it (no need for getUser call)
+    if (session?.user) {
+      return {
+        id: session.user.id,
+        email: session.user.email || '',
+      };
+    }
+
+    // If no session, try getUser with a longer timeout (5 seconds)
+    // This handles cases where session might not be immediately available
     const userPromise = supabase.auth.getUser();
-    const timeoutPromise = new Promise<{ data: { user: null } }>((resolve) =>
-      setTimeout(() => resolve({ data: { user: null } }), 2000)
+    const timeoutPromise = new Promise<{ data: { user: null }; error: null }>((resolve) =>
+      setTimeout(() => resolve({ data: { user: null }, error: null }), 5000)
     );
 
-    const { data: { user } } = await Promise.race([userPromise, timeoutPromise]);
+    const result = await Promise.race([userPromise, timeoutPromise]);
+    
+    // If timeout occurred, check session one more time before giving up
+    if (!result.data?.user) {
+      const { data: { session: retrySession } } = await supabase.auth.getSession();
+      if (retrySession?.user) {
+        return {
+          id: retrySession.user.id,
+          email: retrySession.user.email || '',
+        };
+      }
+      return null;
+    }
 
+    const user = result.data.user;
     if (!user) return null;
 
     return {
@@ -154,7 +189,18 @@ export async function getCurrentUser(): Promise<User | null> {
       email: user.email || '',
     };
   } catch {
-    // On any error, treat as not authenticated
+    // On any error, try one more time with getSession before giving up
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        return {
+          id: session.user.id,
+          email: session.user.email || '',
+        };
+      }
+    } catch {
+      // Final fallback - return null
+    }
     return null;
   }
 }

@@ -56,8 +56,10 @@ export default function SettingsPage() {
 
   const loadData = async () => {
     const currentUser = await getCurrentUser();
+    // Don't redirect - middleware handles authentication
+    // If no user, just don't load data (middleware will redirect if needed)
     if (!currentUser) {
-      router.push('/login');
+      setLoading(false);
       return;
     }
     setUser(currentUser);

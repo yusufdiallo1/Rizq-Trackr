@@ -119,10 +119,11 @@ export function MobileHamburgerNav({ user, isOpen, onClose }: MobileHamburgerNav
       if (!isMounted) return;
       setIsAuthenticated(authenticated);
       
-      // If user is not authenticated, close menu and redirect to login
+      // If user is not authenticated, just close menu
+      // Don't redirect - middleware handles authentication
       if (!authenticated && isOpen) {
         onClose();
-        router.replace('/login');
+        // Don't redirect - let middleware handle it
       }
     };
     
@@ -227,9 +228,14 @@ export function MobileHamburgerNav({ user, isOpen, onClose }: MobileHamburgerNav
     <>
       {/* Backdrop Overlay - Dark overlay on content, Tap overlay to close */}
       <div
-        className={`fixed inset-0 bg-black/60 z-[9998] transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-[9998] transition-opacity duration-300 lg:hidden ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
+        style={{
+          background: 'transparent',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+        }}
         onClick={onClose}
         style={{
           top: 0,

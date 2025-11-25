@@ -313,7 +313,11 @@ export function ZakatDashboard({ userId, currency = 'USD' }: ZakatDashboardProps
 
       {/* Date Picker Modal */}
       {showDatePicker && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{
+          background: 'transparent',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+        }}>
           <HijriDatePicker
             value={zakatDate}
             onChange={handleDateChange}

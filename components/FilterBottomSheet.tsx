@@ -83,8 +83,9 @@ export function FilterBottomSheet({
       <div
         className="fixed inset-0 z-40 transition-opacity duration-300 animate-fade-in-instant"
         style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          backdropFilter: 'blur(4px)',
+          background: 'transparent',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
         }}
         onClick={onClose}
       />
