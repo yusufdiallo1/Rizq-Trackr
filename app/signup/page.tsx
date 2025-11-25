@@ -24,9 +24,9 @@ const GlassInput = ({
   showPassword 
 }: any) => (
   <div className="relative">
-    {/* Icon in Glass Circle */}
+    {/* Icon in Glass Circle - Hidden on mobile */}
     <div
-      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm z-10"
+      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full items-center justify-center backdrop-blur-sm z-10 hidden md:flex"
       style={{
         background: 'rgba(255, 255, 255, 0.1)',
         border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -41,7 +41,7 @@ const GlassInput = ({
       onChange={onChange}
       required={required}
       autoComplete={autoComplete}
-      className={`w-full pl-14 ${showToggle ? 'pr-14' : 'pr-4'} py-4 rounded-2xl backdrop-blur-[10px] border transition-all focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-50 ${isNameField ? 'text-sm' : ''} text-white placeholder:text-white/50 glass-input`}
+      className={`w-full pl-4 md:pl-14 ${showToggle ? 'pr-14' : 'pr-4'} py-4 rounded-2xl backdrop-blur-[10px] border transition-all focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-50 ${isNameField ? 'text-sm' : ''} text-white placeholder:text-white/50 glass-input`}
       style={{
         background: 'rgba(255, 255, 255, 0.1)',
         border: '1px solid rgba(255, 255, 255, 0.2)',
