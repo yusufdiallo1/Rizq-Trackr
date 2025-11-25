@@ -9,11 +9,7 @@ import {
   getCurrencySymbol,
   formatCurrencyValue,
 } from '@/lib/precious-metals';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2 } from 'lucide-react';
+import { useTheme } from '@/lib/contexts/ThemeContext';
 
 interface PreciousMetalsConverterProps {
   className?: string;
@@ -22,6 +18,7 @@ interface PreciousMetalsConverterProps {
 const GRAMS_PER_OUNCE = 31.1034768;
 
 export function PreciousMetalsConverter({ className }: PreciousMetalsConverterProps) {
+  const { theme } = useTheme();
   const [metal, setMetal] = useState<MetalType>('gold');
   const [unit, setUnit] = useState<'grams' | 'ounces'>('grams');
   const [amount, setAmount] = useState<string>('3.2');
@@ -68,57 +65,131 @@ export function PreciousMetalsConverter({ className }: PreciousMetalsConverterPr
   }, [metal, amount, unit]);
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <div
+      className={`rounded-3xl overflow-hidden ${className || ''}`}
+      style={{
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        background: theme === 'dark' ? 'rgba(42, 45, 61, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+        border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.1)',
+      }}
+    >
+      {/* Header */}
+      <div className="p-6 border-b" style={{ borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.1)' }}>
+        <h3 className={`text-xl font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
           <span className="text-2xl">{metal === 'gold' ? '🥇' : '🥈'}</span>
           Precious Metals Converter
-        </CardTitle>
-        <CardDescription>
+        </h3>
+        <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-white/70' : 'text-slate-600'}`}>
           Convert gold and silver to multiple currencies with live market prices
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+        </p>
+      </div>
+
+      {/* Content */}
+      <div className="p-6 space-y-4">
         {/* Metal Type Selector */}
         <div className="space-y-2">
-          <Label>Metal Type</Label>
-          <Tabs value={metal} onValueChange={(value) => setMetal(value as MetalType)}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="gold">Gold (Au)</TabsTrigger>
-              <TabsTrigger value="silver">Silver (Ag)</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <label className={`text-sm font-medium block ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+            Metal Type
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setMetal('gold')}
+              className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                metal === 'gold'
+                  ? theme === 'dark'
+                    ? 'bg-amber-500/20 text-amber-300 border-2 border-amber-500'
+                    : 'bg-amber-100 text-amber-700 border-2 border-amber-500'
+                  : theme === 'dark'
+                    ? 'bg-slate-700/50 text-white/70 border border-slate-600 hover:bg-slate-600/50'
+                    : 'bg-slate-100 text-slate-600 border border-slate-300 hover:bg-slate-200'
+              }`}
+            >
+              Gold (Au)
+            </button>
+            <button
+              onClick={() => setMetal('silver')}
+              className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                metal === 'silver'
+                  ? theme === 'dark'
+                    ? 'bg-slate-400/20 text-slate-300 border-2 border-slate-400'
+                    : 'bg-slate-200 text-slate-700 border-2 border-slate-400'
+                  : theme === 'dark'
+                    ? 'bg-slate-700/50 text-white/70 border border-slate-600 hover:bg-slate-600/50'
+                    : 'bg-slate-100 text-slate-600 border border-slate-300 hover:bg-slate-200'
+              }`}
+            >
+              Silver (Ag)
+            </button>
+          </div>
         </div>
 
         {/* Unit Selector */}
         <div className="space-y-2">
-          <Label>Unit of Measurement</Label>
-          <Tabs value={unit} onValueChange={(value) => setUnit(value as 'grams' | 'ounces')}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="grams">Grams (g)</TabsTrigger>
-              <TabsTrigger value="ounces">Ounces (oz)</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <label className={`text-sm font-medium block ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+            Unit of Measurement
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setUnit('grams')}
+              className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                unit === 'grams'
+                  ? theme === 'dark'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-2 border-emerald-500'
+                    : 'bg-emerald-100 text-emerald-700 border-2 border-emerald-500'
+                  : theme === 'dark'
+                    ? 'bg-slate-700/50 text-white/70 border border-slate-600 hover:bg-slate-600/50'
+                    : 'bg-slate-100 text-slate-600 border border-slate-300 hover:bg-slate-200'
+              }`}
+            >
+              Grams (g)
+            </button>
+            <button
+              onClick={() => setUnit('ounces')}
+              className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                unit === 'ounces'
+                  ? theme === 'dark'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-2 border-emerald-500'
+                    : 'bg-emerald-100 text-emerald-700 border-2 border-emerald-500'
+                  : theme === 'dark'
+                    ? 'bg-slate-700/50 text-white/70 border border-slate-600 hover:bg-slate-600/50'
+                    : 'bg-slate-100 text-slate-600 border border-slate-300 hover:bg-slate-200'
+              }`}
+            >
+              Ounces (oz)
+            </button>
+          </div>
         </div>
 
         {/* Amount Input */}
         <div className="space-y-2">
-          <Label htmlFor="amount">
+          <label
+            htmlFor="amount"
+            className={`text-sm font-medium block ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}
+          >
             Amount in {unit === 'grams' ? 'Grams' : 'Ounces'}
             {metal === 'silver' && unit === 'grams' && (
-              <span className="ml-2 text-xs text-muted-foreground">(Nisab: ~595g)</span>
+              <span className={`ml-2 text-xs ${theme === 'dark' ? 'text-white/60' : 'text-slate-500'}`}>
+                (Nisab: ~595g)
+              </span>
             )}
             {metal === 'gold' && unit === 'grams' && (
-              <span className="ml-2 text-xs text-muted-foreground">(Nisab: ~85g)</span>
+              <span className={`ml-2 text-xs ${theme === 'dark' ? 'text-white/60' : 'text-slate-500'}`}>
+                (Nisab: ~85g)
+              </span>
             )}
             {metal === 'silver' && unit === 'ounces' && (
-              <span className="ml-2 text-xs text-muted-foreground">(Nisab: ~19.1oz)</span>
+              <span className={`ml-2 text-xs ${theme === 'dark' ? 'text-white/60' : 'text-slate-500'}`}>
+                (Nisab: ~19.1oz)
+              </span>
             )}
             {metal === 'gold' && unit === 'ounces' && (
-              <span className="ml-2 text-xs text-muted-foreground">(Nisab: ~2.7oz)</span>
+              <span className={`ml-2 text-xs ${theme === 'dark' ? 'text-white/60' : 'text-slate-500'}`}>
+                (Nisab: ~2.7oz)
+              </span>
             )}
-          </Label>
-          <Input
+          </label>
+          <input
             id="amount"
             type="number"
             step="0.01"
@@ -126,19 +197,25 @@ export function PreciousMetalsConverter({ className }: PreciousMetalsConverterPr
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder={`Enter ${unit}`}
+            className={`w-full px-4 py-3 rounded-xl text-base font-medium transition-all ${
+              theme === 'dark'
+                ? 'bg-slate-800/50 text-white border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+                : 'bg-white text-slate-900 border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+            }`}
+            style={{ fontSize: '16px' }} // Prevents zoom on iOS
           />
         </div>
 
         {/* Loading State */}
         {loading && (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-500">
             {error}
           </div>
         )}
@@ -146,7 +223,7 @@ export function PreciousMetalsConverter({ className }: PreciousMetalsConverterPr
         {/* Results */}
         {!loading && !error && results.length > 0 && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div className={`flex items-center justify-between text-sm ${theme === 'dark' ? 'text-white/70' : 'text-slate-600'}`}>
               <span>Current Values</span>
               {lastUpdated && (
                 <span className="text-xs">
@@ -159,19 +236,27 @@ export function PreciousMetalsConverter({ className }: PreciousMetalsConverterPr
               {results.map((result) => (
                 <div
                   key={result.currency}
-                  className="flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-accent"
+                  className={`flex items-center justify-between rounded-xl p-4 transition-all ${
+                    theme === 'dark'
+                      ? 'bg-slate-800/50 border border-slate-700 hover:bg-slate-700/50'
+                      : 'bg-slate-50 border border-slate-200 hover:bg-slate-100'
+                  }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-semibold">{getCurrencySymbol(result.currency)}</span>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                      {getCurrencySymbol(result.currency)}
+                    </span>
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium">{result.currency}</span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                        {result.currency}
+                      </span>
+                      <span className={`text-xs ${theme === 'dark' ? 'text-white/60' : 'text-slate-500'}`}>
                         {formatCurrencyValue(result.pricePerGram, result.currency)}/g
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-bold">
+                    <div className={`text-lg font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
                       {formatCurrencyValue(result.value, result.currency)}
                     </div>
                   </div>
@@ -186,9 +271,11 @@ export function PreciousMetalsConverter({ className }: PreciousMetalsConverterPr
               const nisabThreshold = metal === 'gold' ? 85 : 595;
               return gramsNum >= nisabThreshold;
             })() && (
-              <div className="rounded-md bg-green-50 dark:bg-green-950/20 p-3 text-sm text-green-800 dark:text-green-200">
-                <p className="font-semibold">Zakat Applicable</p>
-                <p className="text-xs mt-1">
+              <div className="rounded-xl bg-green-500/10 border border-green-500/20 p-4">
+                <p className={`font-semibold text-sm ${theme === 'dark' ? 'text-green-400' : 'text-green-700'}`}>
+                  Zakat Applicable
+                </p>
+                <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-green-300/80' : 'text-green-600'}`}>
                   Your {metal} holdings have reached the Nisab threshold. Zakat of 2.5% may be due.
                 </p>
               </div>
@@ -197,13 +284,19 @@ export function PreciousMetalsConverter({ className }: PreciousMetalsConverterPr
         )}
 
         {/* Info */}
-        <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
+        <div
+          className={`rounded-xl p-3 text-xs ${
+            theme === 'dark'
+              ? 'bg-slate-800/30 text-white/60'
+              : 'bg-slate-100 text-slate-600'
+          }`}
+        >
           <p>
             <strong>Note:</strong> Prices update hourly from live market data. You can convert any amount
             of gold or silver in grams or ounces. The Nisab threshold for gold is ~85g (2.7oz) and for silver is ~595g (19.1oz).
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
