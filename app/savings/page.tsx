@@ -255,48 +255,54 @@ export default function SavingsPage() {
             initial="hidden"
             animate="visible"
           >
-            <button
+            <motion.button
               onClick={() => setShowPreciousMetalsModal(true)}
-              className="w-full rounded-3xl p-5 lg:p-6 transition-all active:scale-98"
+              className="w-full rounded-2xl px-6 py-4 font-semibold text-base transition-all duration-300 relative overflow-hidden"
               style={{
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                background: theme === 'dark' ? 'rgba(42, 45, 61, 0.8)' : 'rgba(255, 255, 255, 0.9)',
-                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.06)',
-                borderRadius: '20px',
-                boxShadow: theme === 'dark' ? '0 4px 20px rgba(245, 158, 11, 0.2)' : '0 4px 20px rgba(0, 0, 0, 0.1)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                background: theme === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.1)',
+                boxShadow: theme === 'dark' 
+                  ? '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                  : '0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+                color: theme === 'dark' ? 'white' : '#1e293b',
               }}
+              whileHover={prefersReducedMotion ? {} : { 
+                translateY: -4,
+                scale: 1.02,
+                boxShadow: theme === 'dark'
+                  ? '0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
+                  : '0 12px 40px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+              }}
+              whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 179, 8, 0.2))',
-                      border: '1px solid rgba(245, 158, 11, 0.3)',
-                    }}
-                  >
-                    🥇
-                  </div>
-                  <div className="text-left">
-                    <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                      Precious Metals Converter
-                    </h3>
-                    <p className={`text-sm ${theme === 'dark' ? 'text-white/70' : 'text-slate-600'}`}>
-                      Convert gold & silver to multiple currencies
-                    </p>
-                  </div>
-                </div>
-                <svg 
-                  className={`w-6 h-6 ${theme === 'dark' ? 'text-white/60' : 'text-slate-400'}`} 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                <motion.span
+                  animate={{ 
+                    y: [0, -2, 0],
+                  }}
+                  transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </button>
+                  🥇
+                </motion.span>
+                Precious Metals Converter
+              </span>
+              {/* Ripple effect on click */}
+              <motion.div
+                className="absolute inset-0 rounded-2xl"
+                style={{
+                  background: 'radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%)',
+                }}
+                initial={{ scale: 0, opacity: 0 }}
+                whileTap={{ scale: 2, opacity: [0, 0.5, 0] }}
+                transition={{ duration: 0.6 }}
+              />
+            </motion.button>
           </motion.div>
 
           {/* Savings Growth Chart - iPhone Native */}
