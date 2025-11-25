@@ -32,7 +32,6 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
     // Just set authenticated state based on user prop
     // No automatic checks, no redirects, no intervals
     setIsAuthenticated(!!user);
-    setCheckingAuth(false);
   }, [user]);
 
   // Don't block rendering - show content immediately

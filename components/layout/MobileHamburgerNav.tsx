@@ -163,22 +163,19 @@ export function MobileHamburgerNav({ user, isOpen, onClose }: MobileHamburgerNav
       const userId = localStorage.getItem('finance_tracker_user_id');
       const biometricEnabled = localStorage.getItem('finance_tracker_biometric_enabled');
       const credentialId = localStorage.getItem('finance_tracker_credential_id');
-      
+
       localStorage.clear();
-      
+
       // Restore PIN and biometric data if they exist
       if (pinHash) localStorage.setItem('finance_tracker_pin_hash', pinHash);
       if (userId) localStorage.setItem('finance_tracker_user_id', userId);
       if (biometricEnabled) localStorage.setItem('finance_tracker_biometric_enabled', biometricEnabled);
       if (credentialId) localStorage.setItem('finance_tracker_credential_id', credentialId);
-      
-      window.location.href = '/login';
     }
     // Sign out in background (non-blocking)
     signOut().catch((error) => {
       console.error('Logout error:', error);
     });
-    onClose();
     router.push('/login');
     // NO router.refresh() - no auto-refresh!
   };
@@ -378,13 +375,7 @@ export function MobileHamburgerNav({ user, isOpen, onClose }: MobileHamburgerNav
                   e.preventDefault();
                   e.stopPropagation();
                   onClose();
-                  const targetUrl = item.href;
-                  console.log('Hamburger menu button clicked! Navigating to:', targetUrl);
-                  if (typeof window !== 'undefined') {
-                    window.location.href = targetUrl;
-                  } else {
-                    router.push(targetUrl);
-                  }
+                  router.push(item.href);
                 }}
                 className={`flex items-center gap-3 px-4 py-3 mb-3 rounded-2xl transition-all duration-300 group mobile-tap-target active:scale-95 ${
                   isActive(item.href)
