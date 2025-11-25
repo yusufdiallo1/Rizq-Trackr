@@ -110,7 +110,10 @@ export default function ProfilePage() {
   };
 
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    if (!name || typeof name !== 'string') return 'U';
+    const parts = name.split(' ').filter(n => n.length > 0);
+    if (parts.length === 0) return 'U';
+    return parts.map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   const formatCurrency = (amount: number) => {

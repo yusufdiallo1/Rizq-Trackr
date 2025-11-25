@@ -160,7 +160,7 @@ function ExpensesPageContent() {
   useEffect(() => {
     if (user) {
       const filters: ExpenseFilters = {};
-      if (filterMonth) {
+      if (filterMonth && typeof filterMonth === 'string') {
         const parts = filterMonth.split('-');
         if (parts.length === 2) {
           const monthNum = parseInt(parts[1], 10);
@@ -332,7 +332,8 @@ function ExpensesPageContent() {
   };
 
   const calculateTotal = () => {
-    return expenseEntries.reduce((sum, entry) => sum + entry.amount, 0);
+    if (!expenseEntries || expenseEntries.length === 0) return 0;
+    return expenseEntries.reduce((sum, entry) => sum + (entry?.amount || 0), 0);
   };
 
   const getActiveFiltersList = () => {
@@ -472,9 +473,15 @@ function ExpensesPageContent() {
 
   const currentMonth = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
   const entriesThisMonth = expenseEntries.filter((entry) => {
-    const entryDate = new Date(entry.date);
-    const now = new Date();
-    return entryDate.getMonth() === now.getMonth() && entryDate.getFullYear() === now.getFullYear();
+    if (!entry?.date) return false;
+    try {
+      const entryDate = new Date(entry.date);
+      if (isNaN(entryDate.getTime())) return false;
+      const now = new Date();
+      return entryDate.getMonth() === now.getMonth() && entryDate.getFullYear() === now.getFullYear();
+    } catch {
+      return false;
+    }
   }).length;
 
   const topCategory = getTopCategory();

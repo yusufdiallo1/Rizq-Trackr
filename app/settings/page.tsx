@@ -109,13 +109,10 @@ export default function SettingsPage() {
   };
 
   const handleDeleteAccount = async () => {
-    const confirmed = window.confirm(
-      'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.'
-    );
-    
-    if (!confirmed) {
-      return;
-    }
+    setShowDeleteAccount(true);
+  };
+
+  const handleConfirmDeleteAccount = async () => {
     
     const result = await deleteAccount();
     if (result.error) {
@@ -717,7 +714,7 @@ export default function SettingsPage() {
       <DeleteAccountModal
         isOpen={showDeleteAccount}
         onClose={() => setShowDeleteAccount(false)}
-        onConfirm={handleDeleteAccount}
+        onConfirm={handleConfirmDeleteAccount}
       />
       {user && (
         <SpendingLimitsModal

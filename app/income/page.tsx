@@ -270,7 +270,9 @@ function IncomePageContent() {
   };
 
   const filteredEntries = getFilteredEntriesByPeriod();
-  const periodTotal = filteredEntries.reduce((sum, entry) => sum + entry.amount, 0);
+  const periodTotal = filteredEntries && filteredEntries.length > 0
+    ? filteredEntries.reduce((sum, entry) => sum + (entry?.amount || 0), 0)
+    : 0;
 
   // Filter expenses by same period for comparison
   const getFilteredExpensesByPeriod = () => {
@@ -298,7 +300,9 @@ function IncomePageContent() {
   };
 
   const filteredExpenses = getFilteredExpensesByPeriod();
-  const expensesTotal = filteredExpenses.reduce((sum, entry) => sum + entry.amount, 0);
+  const expensesTotal = filteredExpenses && filteredExpenses.length > 0
+    ? filteredExpenses.reduce((sum, entry) => sum + (entry?.amount || 0), 0)
+    : 0;
   const netSavings = periodTotal - expensesTotal;
   const savingsPercentage = periodTotal > 0 ? Math.round((netSavings / periodTotal) * 100) : 0;
 

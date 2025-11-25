@@ -198,8 +198,12 @@ export default function AnalyticsPage() {
       : 0;
 
     // Calculate financial health score
-    const avgIncome = monthlyDataArray.reduce((sum, m) => sum + m.income, 0) / monthlyDataArray.length;
-    const avgExpenses = monthlyDataArray.reduce((sum, m) => sum + m.expenses, 0) / monthlyDataArray.length;
+    const avgIncome = monthlyDataArray.length > 0 
+      ? monthlyDataArray.reduce((sum, m) => sum + m.income, 0) / monthlyDataArray.length 
+      : 0;
+    const avgExpenses = monthlyDataArray.length > 0 
+      ? monthlyDataArray.reduce((sum, m) => sum + m.expenses, 0) / monthlyDataArray.length 
+      : 0;
     const avgSavingsRate = avgIncome > 0 ? ((avgIncome - avgExpenses) / avgIncome) * 100 : 0;
     const healthScore = Math.min(100, Math.max(0, avgSavingsRate * 2));
 
