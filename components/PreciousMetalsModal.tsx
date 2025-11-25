@@ -48,6 +48,11 @@ export function PreciousMetalsModal({ isOpen, onClose }: PreciousMetalsModalProp
             maxHeight: '90vh',
             paddingBottom: 'env(safe-area-inset-bottom, 0)',
             zIndex: 100000,
+            background: theme === 'dark' ? 'rgba(30, 41, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.1)',
+            boxShadow: theme === 'dark' ? '0 20px 60px rgba(0, 0, 0, 0.5)' : '0 20px 60px rgba(0, 0, 0, 0.2)',
           }}
           variants={prefersReducedMotion ? {} : scaleInVariants}
           initial="hidden"
@@ -59,7 +64,7 @@ export function PreciousMetalsModal({ isOpen, onClose }: PreciousMetalsModalProp
           aria-labelledby="precious-metals-modal-title"
         >
           {/* Top Bar */}
-          <div 
+          <div
             className="flex items-center justify-between p-6 border-b"
             style={{
               borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.1)',
