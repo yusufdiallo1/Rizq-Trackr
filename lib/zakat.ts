@@ -258,13 +258,13 @@ export async function recordZakatPayment(
   }
 ): Promise<{ success: boolean; error: string | null }> {
   try {
-    // Convert date to Date object if it's a string
-    const dateObj = typeof paidDate === 'string' ? new Date(paidDate) : paidDate;
-    
+    // Convert date string to Date object for Hijri conversion
+    const dateObj = new Date(paidDate);
+
     // Get Hijri date
     const hijriDate = gregorianToHijri(dateObj);
     const dateHijriString = `${hijriDate.year}-${String(hijriDate.month).padStart(2, '0')}-${String(hijriDate.day).padStart(2, '0')}`;
-    
+
     // Get current time and timezone
     const { time, timezone } = getCurrentTimeWithTimezone();
 
@@ -273,7 +273,7 @@ export async function recordZakatPayment(
       .insert({
         user_id: userId,
         amount,
-        paid_date: typeof paidDate === 'string' ? paidDate : paidDate.toISOString().split('T')[0],
+        paid_date: paidDate,
         notes: notes || null,
         date_hijri: dateHijriString,
         time,

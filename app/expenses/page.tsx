@@ -22,6 +22,7 @@ import { getIslamicDate } from '@/lib/utils/dateUtils';
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { useTheme } from '@/lib/contexts/ThemeContext';
+import { PreciousMetalsConverter } from '@/components/precious-metals-converter';
 
 // Custom tooltip component for pie chart - shows on hover like image 2
 const CustomPieTooltip = ({ active, payload, formatCurrency }: any) => {
@@ -556,6 +557,16 @@ export default function ExpensesPage() {
               </div>
             </div>
           </div>
+
+          {/* Precious Metals Converter */}
+          <motion.div
+            className="mx-4 mt-4 lg:mx-0 lg:mt-6"
+            variants={prefersReducedMotion ? {} : getCardVariants(1)}
+            initial="hidden"
+            animate="visible"
+          >
+            <PreciousMetalsConverter />
+          </motion.div>
 
           {/* Time Period Tabs */}
           <div className="mx-4 mt-4 lg:mx-0 lg:mt-6">

@@ -21,6 +21,7 @@ import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { MobileTopNav } from '@/components/layout/MobileTopNav';
 import { useTheme } from '@/lib/contexts/ThemeContext';
+import { PreciousMetalsConverter } from '@/components/precious-metals-converter';
 
 export default function IncomePage() {
   const router = useRouter();
@@ -537,6 +538,15 @@ export default function IncomePage() {
             </div>
           </motion.div>
 
+          {/* Precious Metals Converter */}
+          <motion.div
+            variants={prefersReducedMotion ? {} : getCardVariants(3)}
+            initial="hidden"
+            animate="visible"
+          >
+            <PreciousMetalsConverter />
+          </motion.div>
+
           {/* Income vs Expenses Comparison Card - iPhone Native */}
           <motion.div
             className="rounded-3xl p-5 lg:p-6"
@@ -547,7 +557,7 @@ export default function IncomePage() {
               border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.06)',
               borderRadius: '20px',
             }}
-            variants={prefersReducedMotion ? {} : getCardVariants(1)}
+            variants={prefersReducedMotion ? {} : getCardVariants(4)}
             initial="hidden"
             animate="visible"
           >

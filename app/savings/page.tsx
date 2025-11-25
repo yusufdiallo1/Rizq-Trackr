@@ -24,6 +24,7 @@ import { useTheme } from '@/lib/contexts/ThemeContext';
 import { getTextColor, getMutedTextColor, getCardTextColor } from '@/lib/utils';
 import { motion, useReducedMotion } from 'framer-motion';
 import { getCardVariants, staggerContainerVariants, getListItemVariants } from '@/lib/animations';
+import { PreciousMetalsConverter } from '@/components/precious-metals-converter';
 import {
   LineChart,
   Line,
@@ -247,8 +248,17 @@ export default function SavingsPage() {
             </div>
           </motion.div>
 
+          {/* Precious Metals Converter */}
+          <motion.div
+            variants={prefersReducedMotion ? {} : getCardVariants(1)}
+            initial="hidden"
+            animate="visible"
+          >
+            <PreciousMetalsConverter />
+          </motion.div>
+
           {/* Savings Growth Chart - iPhone Native */}
-          <motion.div 
+          <motion.div
             className="rounded-3xl overflow-hidden mb-4"
             style={{
               backdropFilter: 'blur(20px)',
@@ -257,7 +267,7 @@ export default function SavingsPage() {
               border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.06)',
               borderRadius: '24px',
             }}
-            variants={prefersReducedMotion ? {} : getCardVariants(1)}
+            variants={prefersReducedMotion ? {} : getCardVariants(2)}
             initial="hidden"
             animate="visible"
           >
@@ -367,7 +377,7 @@ export default function SavingsPage() {
 
           {/* Savings Goals Section - iPhone Native */}
           <motion.div
-            variants={prefersReducedMotion ? {} : getCardVariants(2)}
+            variants={prefersReducedMotion ? {} : getCardVariants(3)}
             initial="hidden"
             animate="visible"
           >
