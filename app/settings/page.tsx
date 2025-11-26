@@ -138,11 +138,12 @@ export default function SettingsPage() {
     }
     // Redirect to login
     router.push('/login');
-    // Fallback redirect
+    // Fallback redirect after short delay
     setTimeout(() => {
-      window.location.href = '/login';
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
     }, 100);
-    router.push('/login');
   };
 
   // Early return for loading state
@@ -153,7 +154,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-white font-body">Loading settings...</p>
+              <p className={`font-body ${getTextColor(theme)}`}>Loading settings...</p>
             </div>
           </div>
         </PageContainer>

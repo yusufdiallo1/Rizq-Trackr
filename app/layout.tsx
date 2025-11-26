@@ -8,6 +8,7 @@ import { LocationProvider } from "@/lib/contexts/LocationContext";
 import { PageTransition } from "@/components/PageTransition";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { ErrorHandler } from "@/components/ErrorHandler";
+import { ErrorFirewall } from "@/components/ErrorFirewall";
 
 const inter = Inter({ subsets: ["latin"] });
 
