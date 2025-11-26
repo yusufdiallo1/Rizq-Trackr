@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect, useRef, MouseEvent, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { signOut, User } from '@/lib/auth';
-import { logError } from '@/lib/logger';
+import { signOut, getCurrentUser, User } from '@/lib/auth';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { slideDownVariants } from '@/lib/animations';
@@ -31,9 +30,15 @@ export function Navbar({ user }: NavbarProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(!!user);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Use the user prop directly - no need for additional auth checks
+  // Check authentication status
   useEffect(() => {
-    setIsAuthenticated(!!user);
+    const checkAuth = async () => {
+      const currentUser = await getCurrentUser();
+      setIsAuthenticated(!!currentUser);
+    };
+    checkAuth();
+    const interval = setInterval(checkAuth, 3000);
+    return () => clearInterval(interval);
   }, [user]);
 
   useEffect(() => {
@@ -53,17 +58,11 @@ export function Navbar({ user }: NavbarProps) {
       const target = event.target as Node | null;
       if (!target) return;
 
-      // Check if click is inside the user menu container
+      // Check if click is inside the user menu container or any interactive element within it
       if (userMenuRef.current && userMenuRef.current.contains(target)) {
-        // Check if clicking on language submenu - don't close
-        const element = target as HTMLElement;
-        const isLanguageSubmenu = element.closest('[data-language-submenu]') !== null;
-        if (isLanguageSubmenu) {
-          return; // Don't close when clicking in language submenu
-        }
-        
         // Additional check: if clicking on a link or button, don't close immediately
         // Let the onClick handler manage the closing
+        const element = target as HTMLElement;
         const isInteractiveElement = 
           element.tagName === 'A' || 
           element.tagName === 'BUTTON' ||
@@ -87,7 +86,7 @@ export function Navbar({ user }: NavbarProps) {
     return () => {
       document.removeEventListener('click', handleClickOutside, true);
     };
-  }, [showUserMenu, showLanguageSubmenu]);
+  }, [showUserMenu]);
 
   const handleSignOut = async (e?: MouseEvent<HTMLButtonElement>) => {
     if (e) {
@@ -100,12 +99,9 @@ export function Navbar({ user }: NavbarProps) {
 
     try {
       // Clear Supabase session
-      const result = await signOut();
-      if (result.error) {
-        logError(result.error, 'Logout error');
-      }
+      await signOut();
     } catch (error) {
-      logError(error, 'Logout error');
+      console.error('Logout error:', error);
     }
 
     // Clear client-side state but preserve PIN + biometric settings
@@ -123,12 +119,8 @@ export function Navbar({ user }: NavbarProps) {
       if (biometricEnabled) localStorage.setItem('finance_tracker_biometric_enabled', biometricEnabled);
       if (credentialId) localStorage.setItem('finance_tracker_credential_id', credentialId);
 
-      // Force redirect to login page
-      router.push('/login');
-      // Also use window.location as fallback to ensure redirect happens
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 100);
+      // Force fresh login page; middleware will keep dashboard protected
+      window.location.href = '/login';
     }
   };
 
@@ -489,21 +481,14 @@ export function Navbar({ user }: NavbarProps) {
                   <button
                     type="button"
                     onClick={(e) => {
-                      e.preventDefault();
                       e.stopPropagation();
                       setShowLanguageSubmenu(!showLanguageSubmenu);
                     }}
                     onMouseDown={(e) => {
-                      e.preventDefault();
                       e.stopPropagation();
                     }}
                     className={`w-full text-left px-4 py-2 text-sm font-body ${textColor} hover:${theme === 'dark' ? 'bg-slate-700' : 'bg-gray-50'} transition-colors flex items-center gap-2`}
-                    style={{ 
-                      pointerEvents: 'auto', 
-                      cursor: 'pointer',
-                      WebkitUserSelect: 'none',
-                      userSelect: 'none',
-                    }}
+                    style={{ pointerEvents: 'auto', cursor: 'pointer' }}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
@@ -511,7 +496,7 @@ export function Navbar({ user }: NavbarProps) {
                     <span className="flex-1">{t('nav.changeLanguage')}</span>
                     <span className="text-lg">{currentLanguage.flag}</span>
                     <svg
-                      className={`w-4 h-4 transition-transform duration-200 ${showLanguageSubmenu ? 'rotate-180' : ''}`}
+                      className={`w-4 h-4 transition-transform ${showLanguageSubmenu ? 'rotate-180' : ''}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -522,42 +507,23 @@ export function Navbar({ user }: NavbarProps) {
 
                   {/* Language Submenu */}
                   {showLanguageSubmenu && (
-                    <div 
-                      data-language-submenu
-                      className="pl-4 pr-2 py-1" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }} 
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      style={{ pointerEvents: 'auto' }}
-                    >
+                    <div className="pl-4 pr-2 py-1" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
                       {languages.map((lang) => (
                         <button
                           key={lang.code}
                           type="button"
                           onClick={(e) => {
-                            e.preventDefault();
                             e.stopPropagation();
                             setLanguage(lang.code);
                             setShowLanguageSubmenu(false);
                           }}
                           onMouseDown={(e) => {
-                            e.preventDefault();
                             e.stopPropagation();
                           }}
                           className={`w-full text-left px-4 py-2 text-sm font-body ${textColor} hover:${theme === 'dark' ? 'bg-slate-700' : 'bg-gray-50'} transition-colors flex items-center gap-2 rounded-lg ${
                             language === lang.code ? (theme === 'dark' ? 'bg-slate-700' : 'bg-gray-50') : ''
                           }`}
-                          style={{ 
-                            pointerEvents: 'auto', 
-                            cursor: 'pointer',
-                            WebkitUserSelect: 'none',
-                            userSelect: 'none',
-                          }}
+                          style={{ pointerEvents: 'auto', cursor: 'pointer' }}
                         >
                           <span className="text-lg">{lang.flag}</span>
                           <span className="flex-1">{lang.name}</span>

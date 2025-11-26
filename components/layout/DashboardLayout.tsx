@@ -7,11 +7,11 @@ import { MobileTopNav } from './MobileTopNav';
 import { MobileHamburgerNav } from './MobileHamburgerNav';
 import { DesktopPillNav } from './DesktopPillNav';
 import { IslamicPattern } from './IslamicPattern';
-import { InactivityTracker } from '../InactivityTracker';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { useReducedMotion } from 'framer-motion';
 import { fadeInUp } from '@/lib/animations';
-import { User } from '@/lib/auth';
+import { getCurrentUser, User } from '@/lib/auth';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -20,23 +20,87 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const { theme } = useTheme();
+  const router = useRouter();
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(!!user);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [hasRedirected, setHasRedirected] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
   const isDark = theme === 'dark';
   
-  // Don't do automatic auth checks - middleware handles authentication
-  // Only use the user prop passed from parent components
-  useEffect(() => {
-    // Just set authenticated state based on user prop
-    // No automatic checks, no redirects, no intervals
-    setIsAuthenticated(!!user);
-  }, [user]);
+  // Don't check auth if already on login/signup pages
+  const isAuthPage = pathname?.startsWith('/login') || pathname?.startsWith('/signup') || pathname?.startsWith('/forgot-password');
 
-  // Don't block rendering - show content immediately
-  // If user is not authenticated, middleware will handle redirect
-  // This prevents redirect loops and allows page to load
+  // SECURITY: Check authentication status on mount and redirect if not authenticated
+  useEffect(() => {
+    // Skip auth check if on auth pages
+    if (isAuthPage) {
+      setCheckingAuth(false);
+      setIsAuthenticated(false);
+      return;
+    }
+    
+    let isMounted = true;
+    
+    const checkAuth = async () => {
+      if (!isMounted) return;
+      
+      const currentUser = await getCurrentUser();
+      const authenticated = !!currentUser;
+      
+      if (!isMounted) return;
+      setIsAuthenticated(authenticated);
+      
+      // CRITICAL: If not authenticated, redirect to login ONCE
+      if (!authenticated && !hasRedirected && !isAuthPage) {
+        setHasRedirected(true);
+        setMobileMenuOpen(false);
+        setCheckingAuth(false);
+        router.replace('/login');
+        return;
+      }
+      
+      if (authenticated && isMounted) {
+        setCheckingAuth(false);
+      }
+    };
+    
+    checkAuth();
+    
+    if (isAuthenticated && !hasRedirected && !isAuthPage) {
+      const interval = setInterval(() => {
+        if (isMounted) {
+          checkAuth();
+        }
+      }, 3000);
+      return () => {
+        isMounted = false;
+        clearInterval(interval);
+      };
+    }
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [user, router, hasRedirected, isAuthenticated, isAuthPage, pathname]);
+
+  // Loading state with iPhone-style spinner
+  if (checkingAuth || !isAuthenticated) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${
+        isDark ? 'bg-slate-900' : 'bg-slate-50'
+      }`}>
+        <div className="text-center">
+          <div className="w-12 h-12 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>
+            Loading...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const mainVariants = prefersReducedMotion
     ? { hidden: {}, visible: {} }
@@ -52,8 +116,8 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
     >
       <IslamicPattern />
 
-      {/* Desktop Navigation - Show if user is provided */}
-      {user && (
+      {/* Desktop Navigation - Only show when authenticated */}
+      {isAuthenticated && user && (
         <div className="hidden lg:block" style={{ pointerEvents: 'auto', zIndex: 9999 }}>
           <Navbar user={user} />
         </div>
@@ -63,7 +127,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       <div className="lg:hidden">
         <MobileTopNav
           onMenuClick={() => setMobileMenuOpen(true)}
-          isAuthenticated={!!user}
+          isAuthenticated={isAuthenticated}
         />
       </div>
 
@@ -85,9 +149,6 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       >
           {children}
       </motion.main>
-
-      {/* Inactivity Tracker - Only show if user is authenticated */}
-      {user && <InactivityTracker />}
 
     </div>
   );

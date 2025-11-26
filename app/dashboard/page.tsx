@@ -80,10 +80,8 @@ export default function DashboardPage() {
       // on slow networks and bounce users back to /login in a loop.
       const currentUser = await getCurrentUser();
 
-      // Don't redirect - middleware handles authentication
-      // If no user, just don't load data (middleware will redirect if needed)
       if (!currentUser) {
-        setLoading(false);
+        router.push('/login');
         return;
       }
 
@@ -124,7 +122,7 @@ export default function DashboardPage() {
         // Silently fail - data will update when it's ready
       });
     } catch (error) {
-      // Silent error - will show empty state
+      console.error('Error loading dashboard:', error);
       setLoading(false);
     }
   }, [router]);
@@ -207,7 +205,7 @@ export default function DashboardPage() {
       const isDark = theme === 'dark';
       const cardColor = isDark ? '#ffffff' : '#000000';
       const textColor = isDark ? '#000000' : '#ffffff';
-      const amountText = formatCurrency(payload?.amount || 0);
+      const amountText = formatCurrency(payload.amount);
       
       return React.createElement('g', null,
         React.createElement('rect', {
@@ -227,7 +225,7 @@ export default function DashboardPage() {
           dominantBaseline: 'central',
           fontSize: 14,
           fontWeight: 'bold'
-        }, payload?.category || 'Unknown'),
+        }, payload.category),
         React.createElement('text', {
           x: x,
           y: y + 12,
@@ -560,8 +558,8 @@ export default function DashboardPage() {
                     href={`/transactions?id=${transaction.id}`}
                     className={`iphone-transaction-item ${isDark ? 'iphone-transaction-item-dark' : 'iphone-transaction-item-light'}`}
                   >
-                    <div className={`iphone-transaction-icon ${transaction?.type === 'income' ? 'iphone-transaction-icon-income' : 'iphone-transaction-icon-expense'}`}>
-                      {transaction?.type === 'income' ? (
+                    <div className={`iphone-transaction-icon ${transaction.type === 'income' ? 'iphone-transaction-icon-income' : 'iphone-transaction-icon-expense'}`}>
+                      {transaction.type === 'income' ? (
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                   </svg>
@@ -576,11 +574,11 @@ export default function DashboardPage() {
                         {transaction.category || transaction.description || 'Transaction'}
               </div>
                       <div className="iphone-transaction-date">
-                        {transaction?.date ? new Date(transaction.date).toLocaleDateString() : ''}
+                        {transaction.date ? new Date(transaction.date).toLocaleDateString() : ''}
                       </div>
                     </div>
-                    <div className={`iphone-transaction-amount ${transaction?.type === 'income' ? 'iphone-transaction-amount-income' : 'iphone-transaction-amount-expense'}`}>
-                      {transaction?.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction?.amount || 0))}
+                    <div className={`iphone-transaction-amount ${transaction.type === 'income' ? 'iphone-transaction-amount-income' : 'iphone-transaction-amount-expense'}`}>
+                      {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount || 0))}
                     </div>
                     <svg className="iphone-transaction-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M9 5l7 7-7 7" />
@@ -979,7 +977,7 @@ export default function DashboardPage() {
                               : 'rgba(239, 68, 68, 0.2)',
                           }}
                         >
-                          {transaction?.type === 'income' ? (
+                          {transaction.type === 'income' ? (
                             <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                             </svg>
@@ -994,12 +992,12 @@ export default function DashboardPage() {
                             {transaction.category || transaction.description || 'Transaction'}
                           </p>
                           <p className={`text-xs ${theme === 'dark' ? 'text-white/60' : 'text-slate-600'}`}>
-                            {transaction?.date ? new Date(transaction.date).toLocaleDateString() : ''}
+                            {transaction.date ? new Date(transaction.date).toLocaleDateString() : ''}
                           </p>
                         </div>
                       </div>
                       <p className={`text-sm font-bold ${transaction.type === 'income' ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {transaction?.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction?.amount || 0))}
+                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount || 0))}
                       </p>
                     </div>
                   ))}
@@ -1656,7 +1654,7 @@ export default function DashboardPage() {
                     <div>
                       <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-charcoal-dark'}`}>{transaction.category}</p>
                       <p className={`text-sm ${theme === 'dark' ? 'text-white/60' : 'text-slate-600'}`}>
-                        {transaction?.date ? new Date(transaction.date).toLocaleDateString('en-US', {
+                        {new Date(transaction.date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
@@ -1666,9 +1664,9 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`text-lg font-bold font-mono ${
-                      transaction?.type === 'income' 
+                      transaction.type === 'income' 
                         ? (theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600')
-                        : transaction?.type === 'zakat'
+                        : transaction.type === 'zakat'
                         ? (theme === 'dark' ? 'text-purple-400' : 'text-purple-600')
                         : (theme === 'dark' ? 'text-red-400' : 'text-red-600')
                     }`}>

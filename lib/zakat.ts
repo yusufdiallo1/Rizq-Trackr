@@ -443,14 +443,6 @@ export async function calculateSavingsOverHijriYear(
     }
 
     // Convert Hijri dates to Gregorian for querying
-    // Validate dates before conversion
-    if (!startHijri || !endHijri || 
-        !startHijri.year || !startHijri.month || !startHijri.day ||
-        !endHijri.year || !endHijri.month || !endHijri.day) {
-      console.error('Invalid Hijri date values:', { startHijri, endHijri });
-      return 0;
-    }
-    
     const startGregorian = hijriToGregorian(startHijri.year, startHijri.month, startHijri.day);
     const endGregorian = hijriToGregorian(endHijri.year, endHijri.month, endHijri.day);
 
@@ -487,9 +479,9 @@ export async function calculateSavingsOverHijriYear(
 export async function getUserZakatDate(userId: string): Promise<{ year: number; month: number; day: number } | null> {
   try {
     const { data, error } = await supabase
-      .from('customers')
+      .from('users')
       .select('zakat_date_hijri')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .single();
 
     if (error) throw error;
@@ -513,9 +505,8 @@ export async function setUserZakatDate(
     const dateString = `${hijriDate.year}-${String(hijriDate.month).padStart(2, '0')}-${String(hijriDate.day).padStart(2, '0')}`;
 
     const { error } = await supabase
-      .from('customers')
+      .from('users')
       .update({ zakat_date_hijri: dateString })
-      .eq('user_id', userId);
       .eq('id', userId);
 
     if (error) throw error;

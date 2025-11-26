@@ -14,7 +14,6 @@ import {
   TransactionSummary,
 } from '@/lib/transactions';
 import { deleteIncome } from '@/lib/income';
-import { deleteExpense, updateExpense } from '@/lib/expenses';
 import { ViewTransactionModal } from '@/components/ViewTransactionModal';
 import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { TransactionCard } from '@/components/TransactionCard';
@@ -106,27 +105,15 @@ export default function TransactionsPage() {
   };
 
   const loadTransactions = async (userId: string, filters: TransactionFilters) => {
-    let isMounted = true;
-    try {
-      // Load transactions and summary in parallel
-      const [transactionsResult, summaryData] = await Promise.all([
-        getAllTransactions(userId, filters), // No limit when filtering
-        getTransactionSummary(userId, filters),
-      ]);
-      
-      if (isMounted) {
-        setTransactions(transactionsResult?.data || []);
-        setSummary(summaryData || { totalIncome: 0, totalExpenses: 0, netAmount: 0, transactionCount: 0 });
-        setCurrentPage(1);
-      }
-    } catch (err: any) {
-      // Silent error - will show empty state
-      if (isMounted) {
-        showToast('Failed to load transactions. Please try again.', 'error');
-        setTransactions([]);
-        setSummary({ totalIncome: 0, totalExpenses: 0, netAmount: 0, transactionCount: 0 });
-      }
-    }
+    // Load transactions and summary in parallel
+    const [transactionsResult, summaryData] = await Promise.all([
+      getAllTransactions(userId, filters), // No limit when filtering
+      getTransactionSummary(userId, filters),
+    ]);
+    
+    setTransactions(transactionsResult.data);
+    setSummary(summaryData);
+    setCurrentPage(1);
   };
 
   const handleApplyFilters = () => {
@@ -199,38 +186,24 @@ export default function TransactionsPage() {
     if (transaction.type === 'income') {
       router.push(`/income?edit=${transaction.id}`);
     } else {
-      router.push(`/expenses?edit=${transaction.id}`);
+      alert('Expense editing coming soon!');
     }
   };
 
   const handleDeleteTransaction = async () => {
     if (!user || !selectedTransaction) return;
 
-    try {
-      if (selectedTransaction.type === 'income') {
-        const { error } = await deleteIncome(selectedTransaction.id, user.id);
-        if (!error) {
-          setShowDeleteModal(false);
-          setSelectedTransaction(null);
-          await loadTransactions(user.id, activeFilters);
-          showToast('Transaction deleted successfully', 'success');
-        } else {
-          showToast('Failed to delete transaction', 'error');
-        }
-      } else {
-        const { error } = await deleteExpense(selectedTransaction.id, user.id);
-        if (!error) {
-          setShowDeleteModal(false);
-          setSelectedTransaction(null);
-          await loadTransactions(user.id, activeFilters);
-          showToast('Transaction deleted successfully', 'success');
-        } else {
-          showToast('Failed to delete transaction', 'error');
-        }
+    if (selectedTransaction.type === 'income') {
+      const { error } = await deleteIncome(selectedTransaction.id, user.id);
+      if (!error) {
+        setShowDeleteModal(false);
+        setSelectedTransaction(null);
+        await loadTransactions(user.id, activeFilters);
+        showToast('Transaction deleted successfully', 'success');
       }
-    } catch (err: any) {
-      // Silent error - user will see toast notification
-      showToast('An unexpected error occurred while deleting the transaction', 'error');
+    } else {
+      alert('Expense deletion coming soon!');
+      setShowDeleteModal(false);
     }
   };
 

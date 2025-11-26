@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser, User } from '@/lib/auth';
 import {
@@ -24,7 +24,7 @@ import { useTheme } from '@/lib/contexts/ThemeContext';
 import { getTextColor, getMutedTextColor, getCardTextColor } from '@/lib/utils';
 import { motion, useReducedMotion } from 'framer-motion';
 import { getCardVariants, staggerContainerVariants, getListItemVariants } from '@/lib/animations';
-import { PreciousMetalsModal } from '@/components/PreciousMetalsModal';
+import { PreciousMetalsConverter } from '@/components/precious-metals-converter';
 import {
   LineChart,
   Line,
@@ -54,29 +54,21 @@ export default function SavingsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<SavingsGoal | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<'6M' | '1Y' | 'All'>('1Y');
-  const [showPreciousMetalsModal, setShowPreciousMetalsModal] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const loadData = useCallback(async () => {
-    let isMounted = true;
+  const loadData = async () => {
     setLoading(true);
 
     const currentUser = await getCurrentUser();
-    if (!currentUser || !isMounted) {
+    if (!currentUser) {
       // Avoid redirect loop when auth lookup is slow; middleware already protects page.
-      if (isMounted) {
-        setLoading(false);
-      }
-      return () => { isMounted = false; };
+      setLoading(false);
+      return;
     }
-    if (isMounted) {
-      setUser(currentUser);
-    }
+    setUser(currentUser);
 
     // Load data in parallel
     try {
@@ -87,41 +79,24 @@ export default function SavingsPage() {
         getMonthOverMonthChange(currentUser.id).catch(() => ({ change: 0, percentage: 0 })),
       ]);
 
-      if (isMounted) {
-        setCurrentSavings(savings);
-        setSavingsHistory(history);
-        setGoalsWithProgress(goalsResult.data || []);
-        setMonthOverMonth(momChange);
-      }
+      setCurrentSavings(savings);
+      setSavingsHistory(history);
+      setGoalsWithProgress(goalsResult.data || []);
+      setMonthOverMonth(momChange);
     } catch (error) {
-      // Silent error - will show empty state
+      console.error('Error loading savings data:', error);
     } finally {
-      if (isMounted) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  };
 
   const handleAddGoal = async (data: { goalName: string; targetAmount: number; icon?: string; targetDate?: string; notes?: string }) => {
     if (!user) return;
-    setLoading(true); // Add loading state
-    try {
-      const { error } = await createSavingsGoal(user.id, data.goalName, data.targetAmount, data.icon, data.targetDate, data.notes);
-      if (!error) {
-        setShowAddModal(false);
-        showToast('Savings goal created successfully!', 'success');
-        const { data: goals } = await getSavingsGoalsWithProgress(user.id);
-        setGoalsWithProgress(goals || []);
-      } else {
-        showToast(`Failed to create goal: ${error}`, 'error');
-      }
-    } catch (err: any) {
-      // Silent error - user will see toast notification
-      showToast('An unexpected error occurred while creating the goal', 'error');
+    const { error } = await createSavingsGoal(user.id, data.goalName, data.targetAmount, data.icon, data.targetDate, data.notes);
+    if (!error) {
+      setShowAddModal(false);
+      const { data: goals } = await getSavingsGoalsWithProgress(user.id);
+      setGoalsWithProgress(goals || []);
     }
   };
 
@@ -135,39 +110,30 @@ export default function SavingsPage() {
         target_date: data.targetDate || null,
     });
       if (error) {
-        // Silent error - user will see toast notification
-        showToast(`Failed to update goal: ${error}`, 'error');
+        console.error('Error updating goal:', error);
+        alert(`Failed to update goal: ${error}`);
         return;
       }
       // Close modal first
       setShowEditModal(false);
       setSelectedGoal(null);
-      showToast('Savings goal updated successfully!', 'success');
       // Reload goals data
       const { data: goals } = await getSavingsGoalsWithProgress(user.id);
       setGoalsWithProgress(goals || []);
     } catch (err) {
-      // Silent error - user will see toast notification
-      showToast('An unexpected error occurred while updating the goal', 'error');
+      console.error('Unexpected error updating goal:', err);
+      alert('An unexpected error occurred while updating the goal');
     }
   };
 
   const handleDeleteGoal = async () => {
     if (!user || !selectedGoal) return;
-    try {
-      const { error } = await deleteSavingsGoal(selectedGoal.id, user.id);
-      if (!error) {
-        setShowDeleteModal(false);
-        setSelectedGoal(null);
-        showToast('Savings goal deleted successfully!', 'success');
-        const { data: goals } = await getSavingsGoalsWithProgress(user.id);
-        setGoalsWithProgress(goals || []);
-      } else {
-        showToast(`Failed to delete goal: ${error}`, 'error');
-      }
-    } catch (err: any) {
-      // Silent error - user will see toast notification
-      showToast('An unexpected error occurred while deleting the goal', 'error');
+    const { error } = await deleteSavingsGoal(selectedGoal.id, user.id);
+    if (!error) {
+      setShowDeleteModal(false);
+      setSelectedGoal(null);
+      const { data: goals } = await getSavingsGoalsWithProgress(user.id);
+      setGoalsWithProgress(goals);
     }
   };
 
@@ -282,60 +248,13 @@ export default function SavingsPage() {
             </div>
           </motion.div>
 
-          {/* Precious Metals Converter Button */}
+          {/* Precious Metals Converter */}
           <motion.div
             variants={prefersReducedMotion ? {} : getCardVariants(1)}
             initial="hidden"
             animate="visible"
           >
-            <motion.button
-              onClick={() => setShowPreciousMetalsModal(true)}
-              className="w-full rounded-2xl px-6 py-4 font-semibold text-base transition-all duration-300 relative overflow-hidden"
-              style={{
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                background: theme === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.7)',
-                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.1)',
-                boxShadow: theme === 'dark' 
-                  ? '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-                  : '0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
-                color: theme === 'dark' ? 'white' : '#1e293b',
-              }}
-              whileHover={prefersReducedMotion ? {} : { 
-                translateY: -4,
-                scale: 1.02,
-                boxShadow: theme === 'dark'
-                  ? '0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
-                  : '0 12px 40px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
-              }}
-              whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
-            >
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                <motion.span
-                  animate={{ 
-                    y: [0, -2, 0],
-                  }}
-                  transition={{ 
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                >
-                  🥇
-                </motion.span>
-                Precious Metals Converter
-              </span>
-              {/* Ripple effect on click */}
-              <motion.div
-                className="absolute inset-0 rounded-2xl"
-                style={{
-                  background: 'radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%)',
-                }}
-                initial={{ scale: 0, opacity: 0 }}
-                whileTap={{ scale: 2, opacity: [0, 0.5, 0] }}
-                transition={{ duration: 0.6 }}
-              />
-            </motion.button>
+            <PreciousMetalsConverter />
           </motion.div>
 
           {/* Savings Growth Chart - iPhone Native */}
@@ -726,38 +645,6 @@ export default function SavingsPage() {
               setSelectedGoal(null);
             }}
           />
-          <PreciousMetalsModal
-            isOpen={showPreciousMetalsModal}
-            onClose={() => setShowPreciousMetalsModal(false)}
-          />
-
-          {/* Toast Notification */}
-          {toast && (
-            <div
-              className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[99999] px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-xl animate-slide-up"
-              style={{
-                background: toast.type === 'success' 
-                  ? 'rgba(16, 185, 129, 0.95)' 
-                  : 'rgba(239, 68, 68, 0.95)',
-                border: `1px solid ${toast.type === 'success' ? 'rgba(16, 185, 129, 0.5)' : 'rgba(239, 68, 68, 0.5)'}`,
-                minWidth: '280px',
-                maxWidth: '90vw',
-              }}
-            >
-              <div className="flex items-center gap-3">
-                {toast.type === 'success' ? (
-                  <svg className="w-6 h-6 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                ) : (
-                  <svg className="w-6 h-6 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                )}
-                <p className="text-white font-medium text-sm flex-1">{toast.message}</p>
-              </div>
-            </div>
-          )}
       </div>
 
       <style dangerouslySetInnerHTML={{

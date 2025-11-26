@@ -119,12 +119,7 @@ export function SpendingLimitsModal({ isOpen, onClose, userId }: SpendingLimitsM
       >
         {/* Backdrop */}
         <motion.div
-          className="absolute inset-0"
-          style={{
-            background: 'transparent',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-          }}
+          className="absolute inset-0 bg-black/60"
           onClick={onClose}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

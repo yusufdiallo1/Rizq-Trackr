@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { getCurrentUser, User } from '@/lib/auth';
@@ -19,20 +19,31 @@ import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { MobileTopNav } from '@/components/layout/MobileTopNav';
 import { getIslamicDate } from '@/lib/utils/dateUtils';
+import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { useTheme } from '@/lib/contexts/ThemeContext';
-import { PreciousMetalsModal } from '@/components/PreciousMetalsModal';
+import { PreciousMetalsConverter } from '@/components/precious-metals-converter';
 
 // Custom tooltip component for pie chart - shows on hover like image 2
 const CustomPieTooltip = ({ active, payload, formatCurrency }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     return (
-      <div className={`rounded-xl p-4 shadow-lg border relative z-[9999] ${theme === 'dark' ? 'bg-slate-800/98 border-white/15' : 'bg-white/98 border-slate-200/50'}`}>
-        <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-white/70' : 'text-slate-600'}`}>
+      <div
+        style={{
+          background: 'rgba(30, 41, 59, 0.98)',
+          borderRadius: '12px',
+          padding: '12px 16px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          zIndex: 9999,
+          position: 'relative',
+        }}
+      >
+        <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px', marginBottom: '4px' }}>
           {data.name}
         </p>
-        <p className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+        <p style={{ color: '#ffffff', fontSize: '18px', fontWeight: 'bold' }}>
           {formatCurrency(data.value)}
         </p>
       </div>
@@ -64,7 +75,6 @@ function ExpensesPageContent() {
   const [swipeStartX, setSwipeStartX] = useState(0);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [timePeriod, setTimePeriod] = useState<'Day' | 'Week' | 'Month' | 'Year' | 'All Time'>('Month');
-  const [showPreciousMetalsModal, setShowPreciousMetalsModal] = useState(false);
 
   const categories = ['Housing', 'Food', 'Transport', 'Healthcare', 'Education', 'Charity', 'Entertainment', 'Bills', 'Other'];
 
@@ -77,15 +87,10 @@ function ExpensesPageContent() {
   useEffect(() => {
     if (searchParams.get('action') === 'add') {
       setShowAddModal(true);
-      // Remove query param from URL without causing a refresh
-      // Use replaceState to avoid triggering a navigation
-      if (typeof window !== 'undefined') {
-        const url = new URL(window.location.href);
-        url.searchParams.delete('action');
-        window.history.replaceState({}, '', url.pathname + url.search);
+      // Remove query param from URL
+      router.replace('/expenses', { scroll: false });
       }
-      }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const loadData = async () => {
     setLoading(true);
@@ -105,11 +110,8 @@ function ExpensesPageContent() {
   };
 
   const loadExpenseEntries = async (userId: string, filters: ExpenseFilters) => {
-    let isMounted = true;
-    try {
-      const { data, error } = await getExpenseEntries(userId, filters);
-      if (!isMounted) return; // Prevent state update if unmounted
-      if (!error) {
+    const { data, error } = await getExpenseEntries(userId, filters);
+    if (!error) {
       let filteredData = data;
       
       // Apply time period filter
@@ -141,35 +143,17 @@ function ExpensesPageContent() {
       }
       // 'All Time' shows all data, no filtering needed
       
-      if (isMounted) {
-        setExpenseEntries(filteredData);
-      }
-      } else {
-        if (isMounted) {
-          setExpenseEntries([]);
-        }
-      }
-    } catch (err: any) {
-      // Silent error - will show empty state
-      if (isMounted) {
-        setExpenseEntries([]);
-      }
+      setExpenseEntries(filteredData);
     }
   };
 
   useEffect(() => {
     if (user) {
       const filters: ExpenseFilters = {};
-      if (filterMonth && typeof filterMonth === 'string') {
-        const parts = filterMonth.split('-');
-        if (parts.length === 2) {
-          const monthNum = parseInt(parts[1], 10);
-          const yearNum = parseInt(parts[0], 10);
-          if (!isNaN(monthNum) && !isNaN(yearNum)) {
-            filters.month = monthNum;
-            filters.year = yearNum;
-          }
-        }
+      if (filterMonth) {
+        const [year, month] = filterMonth.split('-');
+        filters.month = parseInt(month);
+        filters.year = parseInt(year);
       }
       if (filterCategory !== 'all') {
         filters.category = filterCategory;
@@ -194,12 +178,12 @@ function ExpensesPageContent() {
     });
     if (error) {
       setError(error);
-      // Silent error - user will see toast notification
+      console.error('Error adding expense:', error);
     } else {
       // Create attachment record if receipt image URL is provided
       if (data.receiptImageUrl && expense) {
         const { createAttachment } = await import('@/lib/storage');
-        const fileName = data.receiptImageUrl?.split('/')?.pop() || 'receipt.jpg';
+        const fileName = data.receiptImageUrl.split('/').pop() || 'receipt.jpg';
         await createAttachment(
           user.id,
           'expense',
@@ -241,34 +225,22 @@ function ExpensesPageContent() {
 
   const handleDeleteExpense = async () => {
     if (!user || !selectedExpense) return;
-    try {
-      const { error } = await deleteExpense(selectedExpense.id, user.id);
-      if (!error) {
-        setShowDeleteModal(false);
-        setSelectedExpense(null);
-        await loadExpenseEntries(user.id, activeFilters);
-      } else {
-        // Silent error - user will see toast notification
-      }
-    } catch (err: any) {
-      // Silent error - user will see toast notification
+    const { error } = await deleteExpense(selectedExpense.id, user.id);
+    if (!error) {
+      setShowDeleteModal(false);
+      setSelectedExpense(null);
+      await loadExpenseEntries(user.id, activeFilters);
     }
   };
 
   const handleApplyFilters = () => {
     if (!user) return;
     const filters: ExpenseFilters = {};
-      if (filterMonth && typeof filterMonth === 'string') {
-        const parts = filterMonth.split('-');
-        if (parts.length === 2) {
-          const monthNum = parseInt(parts[1], 10);
-          const yearNum = parseInt(parts[0], 10);
-          if (!isNaN(monthNum) && !isNaN(yearNum)) {
-            filters.month = monthNum;
-            filters.year = yearNum;
-          }
-        }
-      }
+    if (filterMonth) {
+      const [year, month] = filterMonth.split('-');
+      filters.month = parseInt(month);
+      filters.year = parseInt(year);
+    }
     if (filterCategory !== 'all') {
       filters.category = filterCategory;
     }
@@ -332,8 +304,7 @@ function ExpensesPageContent() {
   };
 
   const calculateTotal = () => {
-    if (!expenseEntries || expenseEntries.length === 0) return 0;
-    return expenseEntries.reduce((sum, entry) => sum + (entry?.amount || 0), 0);
+    return expenseEntries.reduce((sum, entry) => sum + entry.amount, 0);
   };
 
   const getActiveFiltersList = () => {
@@ -408,7 +379,7 @@ function ExpensesPageContent() {
     expenseEntries.forEach((entry) => {
       categoryTotals[entry.category] = (categoryTotals[entry.category] || 0) + entry.amount;
     });
-    return Object.entries(categoryTotals || {}).map(([name, value]) => ({
+    return Object.entries(categoryTotals).map(([name, value]) => ({
       name,
       value,
       color: getCategoryColorSolid(name),
@@ -422,7 +393,7 @@ function ExpensesPageContent() {
       categoryTotals[entry.category] = (categoryTotals[entry.category] || 0) + entry.amount;
       categoryCounts[entry.category] = (categoryCounts[entry.category] || 0) + 1;
     });
-    return Object.entries(categoryTotals || {}).map(([category, total]) => ({
+    return Object.entries(categoryTotals).map(([category, total]) => ({
       category,
       total,
       count: categoryCounts[category],
@@ -464,7 +435,7 @@ function ExpensesPageContent() {
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
             <div className="w-16 h-16 border-4 border-red-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className={`font-body ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Loading...</p>
+            <p className="text-white font-body">Loading...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -473,47 +444,14 @@ function ExpensesPageContent() {
 
   const currentMonth = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
   const entriesThisMonth = expenseEntries.filter((entry) => {
-    if (!entry?.date) return false;
-    try {
-      const entryDate = new Date(entry.date);
-      if (isNaN(entryDate.getTime())) return false;
-      const now = new Date();
-      return entryDate.getMonth() === now.getMonth() && entryDate.getFullYear() === now.getFullYear();
-    } catch {
-      return false;
-    }
+    const entryDate = new Date(entry.date);
+    const now = new Date();
+    return entryDate.getMonth() === now.getMonth() && entryDate.getFullYear() === now.getFullYear();
   }).length;
 
   const topCategory = getTopCategory();
-  
-  // Calculate current month total
-  const now = new Date();
-  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const currentMonthTotal = (expenseEntries || [])
-    .filter((entry) => {
-      if (!entry?.date) return false;
-      const entryDate = new Date(entry.date);
-      if (isNaN(entryDate.getTime())) return false;
-      return entryDate >= currentMonthStart && entryDate.getMonth() === now.getMonth() && entryDate.getFullYear() === now.getFullYear();
-    })
-    .reduce((sum, entry) => sum + (entry?.amount || 0), 0);
-  
-  // Calculate previous month total
-  const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-  const previousMonthTotal = (expenseEntries || [])
-    .filter((entry) => {
-      if (!entry?.date) return false;
-      const entryDate = new Date(entry.date);
-      if (isNaN(entryDate.getTime())) return false;
-      return entryDate >= previousMonthStart && entryDate <= previousMonthEnd;
-    })
-    .reduce((sum, entry) => sum + (entry?.amount || 0), 0);
-  
-  // Calculate trend percentage
-  const trendPercentage = previousMonthTotal > 0
-    ? ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100
-    : currentMonthTotal > 0 ? 100 : 0;
+  const previousMonthTotal = 0; // This would need to be calculated from previous month data
+  const trendPercentage = 5; // Placeholder - would calculate from previous month
 
   // Calculate dynamic chart dimensions based on number of categories
   const categoryBreakdown = getCategoryBreakdown();
@@ -526,7 +464,14 @@ function ExpensesPageContent() {
   return (
     <DashboardLayout user={user}>
       {/* Theme-aware Gradient Background */}
-        <div className={`min-h-screen lg:pb-8 ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-b from-slate-50 via-slate-100 to-slate-50'}`}>
+        <div 
+          className="min-h-screen lg:pb-8"
+          style={{
+            background: theme === 'dark'
+              ? 'linear-gradient(135deg, #1a1d2e 0%, #1e2139 100%)'
+              : 'linear-gradient(to bottom, #f8fafc, #e2e8f0, #f1f5f9)',
+          }}
+        >
         {/* Mobile Top Nav */}
         <div className="lg:hidden">
           <MobileTopNav onMenuClick={() => setMobileMenuOpen(true)} />
@@ -540,7 +485,10 @@ function ExpensesPageContent() {
             variants={prefersReducedMotion ? {} : getCardVariants(0)}
             initial="hidden"
             animate="visible"
-            className="bg-gradient-to-br from-red-200 to-orange-200 border border-red-200"
+            style={{
+              background: 'linear-gradient(135deg, #fecaca, #fed7aa)',
+              border: '1px solid #fecaca',
+            }}
           >
             <div className="relative z-10 flex flex-col justify-between items-start gap-4">
               <div>
@@ -550,7 +498,10 @@ function ExpensesPageContent() {
               <motion.button
                 onClick={() => setShowAddModal(true)}
                 className="iphone-button iphone-button-primary"
-                className="min-h-[48px] px-6 py-3 bg-red-400 hover:bg-red-500 active:scale-95"
+                style={{
+                  minHeight: '48px',
+                  padding: '0.75rem 1.5rem',
+                  background: '#f97373',
                   border: '1px solid #b91c1c',
                 }}
                 whileHover={prefersReducedMotion ? {} : { scale: 1.05 }}
@@ -578,7 +529,7 @@ function ExpensesPageContent() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex-1">
                 <p className={`text-xs uppercase tracking-wider mb-1 ${theme === 'dark' ? 'text-white/70' : 'text-slate-500'}`}>Total Expenses</p>
-                <p className={`text-[2.5rem] lg:text-5xl font-bold font-mono ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
+                <p className={`text-4xl lg:text-5xl font-bold font-mono ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} style={{ fontSize: '2.5rem' }}>
                   -{formatCurrency(calculateTotal())}
                 </p>
                 <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-white/80' : 'text-slate-600'}`}>{entriesThisMonth} entries this month</p>
@@ -586,7 +537,13 @@ function ExpensesPageContent() {
                   <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-white/80' : 'text-slate-600'}`}>Top category: {topCategory.category} ({formatCurrency(topCategory.amount)})</p>
                 )}
               </div>
-              <div className={`px-4 py-2 rounded-full flex items-center gap-2 ${trendPercentage >= 0 ? 'bg-red-100 border border-red-200' : 'bg-emerald-100 border border-emerald-200'}`}>
+              <div
+                className="px-4 py-2 rounded-full flex items-center gap-2"
+                style={{
+                  background: trendPercentage >= 0 ? '#fee2e2' : '#dcfce7',
+                  border: trendPercentage >= 0 ? '1px solid #fecaca' : '1px solid #bbf7d0',
+                }}
+              >
                 <svg 
                   className={`w-4 h-4 ${trendPercentage >= 0 ? 'text-red-400' : 'text-emerald-400'}`} 
                   fill="none" 
@@ -602,61 +559,14 @@ function ExpensesPageContent() {
             </div>
           </div>
 
-          {/* Precious Metals Converter Button */}
+          {/* Precious Metals Converter */}
           <motion.div
             className="mx-4 mt-4 lg:mx-0 lg:mt-6"
             variants={prefersReducedMotion ? {} : getCardVariants(1)}
             initial="hidden"
             animate="visible"
           >
-            <motion.button
-              onClick={() => setShowPreciousMetalsModal(true)}
-              className="w-full rounded-2xl px-6 py-4 font-semibold text-base transition-all duration-300 relative overflow-hidden"
-              style={{
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                background: theme === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.7)',
-                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.1)',
-                boxShadow: theme === 'dark' 
-                  ? '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-                  : '0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
-                color: theme === 'dark' ? 'white' : '#1e293b',
-              }}
-              whileHover={prefersReducedMotion ? {} : { 
-                translateY: -4,
-                scale: 1.02,
-                boxShadow: theme === 'dark'
-                  ? '0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
-                  : '0 12px 40px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
-              }}
-              whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
-            >
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                <motion.span
-                  animate={{ 
-                    y: [0, -2, 0],
-                  }}
-                  transition={{ 
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                >
-                  🥇
-                </motion.span>
-                Precious Metals Converter
-              </span>
-              {/* Ripple effect on click */}
-              <motion.div
-                className="absolute inset-0 rounded-2xl"
-                style={{
-                  background: 'radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%)',
-                }}
-                initial={{ scale: 0, opacity: 0 }}
-                whileTap={{ scale: 2, opacity: [0, 0.5, 0] }}
-                transition={{ duration: 0.6 }}
-              />
-            </motion.button>
+            <PreciousMetalsConverter />
           </motion.div>
 
           {/* Time Period Tabs */}
@@ -671,7 +581,12 @@ function ExpensesPageContent() {
                       ? 'text-white'
                       : 'text-slate-800 hover:text-slate-900'
                   }`}
-                  className={timePeriod === period ? 'bg-red-400 border border-red-700' : 'bg-slate-50 border border-slate-300/50'}
+                  style={{
+                    background: timePeriod === period ? '#f97373' : '#f9fafb',
+                    border: timePeriod === period
+                      ? '1px solid #b91c1c'
+                      : '1px solid rgba(148, 163, 184, 0.5)',
+                  }}
                 >
                   {period}
                 </button>
@@ -1046,10 +961,6 @@ function ExpensesPageContent() {
               setShowDeleteModal(false);
               setSelectedExpense(null);
             }}
-          />
-          <PreciousMetalsModal
-            isOpen={showPreciousMetalsModal}
-            onClose={() => setShowPreciousMetalsModal(false)}
           />
     </DashboardLayout>
   );

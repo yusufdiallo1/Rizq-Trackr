@@ -29,12 +29,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       {/* Overlay for mobile */}
       {isOpen && onClose && (
         <div
-          className="fixed inset-0 z-40 lg:hidden"
-          style={{
-            background: 'transparent',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-          }}
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={onClose}
         />
       )}

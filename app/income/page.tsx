@@ -21,7 +21,7 @@ import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { MobileTopNav } from '@/components/layout/MobileTopNav';
 import { useTheme } from '@/lib/contexts/ThemeContext';
-import { PreciousMetalsModal } from '@/components/PreciousMetalsModal';
+import { PreciousMetalsConverter } from '@/components/precious-metals-converter';
 
 // Inner component that uses searchParams
 function IncomePageContent() {
@@ -36,7 +36,6 @@ function IncomePageContent() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showPreciousMetalsModal, setShowPreciousMetalsModal] = useState(false);
   const [selectedIncome, setSelectedIncome] = useState<IncomeEntry | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -58,19 +57,27 @@ function IncomePageContent() {
     { key: 'all' as const, label: 'All' },
   ];
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'add') {
+      setShowAddModal(true);
+      // Remove query param from URL
+      router.replace('/income', { scroll: false });
+    }
+  }, [searchParams, router]);
+
   const loadData = async () => {
     setLoading(true);
 
-    try {
     const currentUser = await getCurrentUser();
-      
     if (!currentUser) {
       // Don't bounce the user away if auth check is slow; middleware already protects routes.
-        // If middleware didn't redirect, user is likely authenticated but check was slow
       setLoading(false);
       return;
     }
-      
     setUser(currentUser);
 
     // Show page immediately - don't wait for data
@@ -79,39 +86,7 @@ function IncomePageContent() {
     // Load data in background (non-blocking)
     loadIncomeEntries(currentUser.id, {});
     loadExpenseEntries(currentUser.id);
-    } catch (error) {
-      // Silent error - will show empty state
-      setLoading(false);
-    }
   };
-
-  useEffect(() => {
-    let mounted = true;
-    
-    const initData = async () => {
-      if (!mounted) return;
-      await loadData();
-    };
-
-    initData();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (searchParams.get('action') === 'add') {
-      setShowAddModal(true);
-      // Remove query param from URL without causing a refresh
-      // Use replaceState to avoid triggering a navigation
-      if (typeof window !== 'undefined') {
-        const url = new URL(window.location.href);
-        url.searchParams.delete('action');
-        window.history.replaceState({}, '', url.pathname + url.search);
-      }
-    }
-  }, [searchParams]);
 
   const loadExpenseEntries = async (userId: string) => {
     const { data, error } = await getExpenseEntries(userId, {});
@@ -142,7 +117,7 @@ function IncomePageContent() {
     });
     if (error) {
       setError(error);
-      // Silent error - user will see toast notification
+      console.error('Error adding income:', error);
     } else {
       setShowAddModal(false);
       setError(null);
@@ -189,7 +164,7 @@ function IncomePageContent() {
     if (!user) return;
     const filters: IncomeFilters = {};
     if (filterMonth) {
-      const [year, month] = filterMonth && typeof filterMonth === 'string' ? filterMonth.split('-') : ['', ''];
+      const [year, month] = filterMonth.split('-');
       filters.month = parseInt(month);
       filters.year = parseInt(year);
     }
@@ -270,9 +245,7 @@ function IncomePageContent() {
   };
 
   const filteredEntries = getFilteredEntriesByPeriod();
-  const periodTotal = filteredEntries && filteredEntries.length > 0
-    ? filteredEntries.reduce((sum, entry) => sum + (entry?.amount || 0), 0)
-    : 0;
+  const periodTotal = filteredEntries.reduce((sum, entry) => sum + entry.amount, 0);
 
   // Filter expenses by same period for comparison
   const getFilteredExpensesByPeriod = () => {
@@ -300,9 +273,7 @@ function IncomePageContent() {
   };
 
   const filteredExpenses = getFilteredExpensesByPeriod();
-  const expensesTotal = filteredExpenses && filteredExpenses.length > 0
-    ? filteredExpenses.reduce((sum, entry) => sum + (entry?.amount || 0), 0)
-    : 0;
+  const expensesTotal = filteredExpenses.reduce((sum, entry) => sum + entry.amount, 0);
   const netSavings = periodTotal - expensesTotal;
   const savingsPercentage = periodTotal > 0 ? Math.round((netSavings / periodTotal) * 100) : 0;
 
@@ -568,6 +539,15 @@ function IncomePageContent() {
             </div>
           </motion.div>
 
+          {/* Precious Metals Converter */}
+          <motion.div
+            variants={prefersReducedMotion ? {} : getCardVariants(3)}
+            initial="hidden"
+            animate="visible"
+          >
+            <PreciousMetalsConverter />
+          </motion.div>
+
           {/* Income vs Expenses Comparison Card - iPhone Native */}
           <motion.div
             className="rounded-3xl p-5 lg:p-6"
@@ -578,7 +558,7 @@ function IncomePageContent() {
               border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.06)',
               borderRadius: '20px',
             }}
-            variants={prefersReducedMotion ? {} : getCardVariants(3)}
+            variants={prefersReducedMotion ? {} : getCardVariants(4)}
             initial="hidden"
             animate="visible"
           >
@@ -675,64 +655,6 @@ function IncomePageContent() {
                 {netSavings >= 0 ? '+' : ''}{formatCurrency(netSavings)}
               </p>
             </div>
-          </motion.div>
-
-          {/* Precious Metals Converter Button */}
-          <motion.div
-            variants={prefersReducedMotion ? {} : getCardVariants(4)}
-            initial="hidden"
-            animate="visible"
-          >
-            <motion.button
-              onClick={(e) => {
-                setShowPreciousMetalsModal(true);
-              }}
-              className="w-full rounded-2xl px-6 py-4 font-semibold text-base transition-all duration-300 relative overflow-hidden"
-              style={{
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                background: theme === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.7)',
-                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.1)',
-                boxShadow: theme === 'dark' 
-                  ? '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-                  : '0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
-                color: theme === 'dark' ? 'white' : '#1e293b',
-              }}
-              whileHover={prefersReducedMotion ? {} : { 
-                translateY: -4,
-                scale: 1.02,
-                boxShadow: theme === 'dark'
-                  ? '0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
-                  : '0 12px 40px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
-              }}
-              whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
-            >
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                <motion.span
-                  animate={{ 
-                    y: [0, -2, 0],
-                  }}
-                  transition={{ 
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                >
-                  🥇
-                </motion.span>
-                Precious Metals Converter
-              </span>
-              {/* Ripple effect on click */}
-              <motion.div
-                className="absolute inset-0 rounded-2xl"
-                style={{
-                  background: 'radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%)',
-                }}
-                initial={{ scale: 0, opacity: 0 }}
-                whileTap={{ scale: 2, opacity: [0, 0.5, 0] }}
-                transition={{ duration: 0.6 }}
-              />
-            </motion.button>
           </motion.div>
 
           {/* Filter Section - iPhone Native */}
@@ -1010,10 +932,6 @@ function IncomePageContent() {
               setShowDeleteModal(false);
               setSelectedIncome(null);
             }}
-          />
-          <PreciousMetalsModal
-            isOpen={showPreciousMetalsModal}
-            onClose={() => setShowPreciousMetalsModal(false)}
           />
     </DashboardLayout>
   );

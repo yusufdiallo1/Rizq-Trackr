@@ -148,11 +148,7 @@ export function DualDateDisplay({
       </Component>
 
       {showPicker && (
-        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4" style={{
-          background: 'transparent',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-        }}>
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <DualCalendarPicker
             value={dualDate.gregorian}
             onChange={handleDateChange}

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOut, getCurrentUser } from '@/lib/auth';
-import { logError } from '@/lib/logger';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { useLanguage, Language } from '@/lib/contexts/LanguageContext';
 import { Logo } from '@/components/Logo';
@@ -105,11 +104,41 @@ export function MobileHamburgerNav({ user, isOpen, onClose }: MobileHamburgerNav
     setMounted(true);
   }, []);
 
-  // Update authentication status based on user prop
-  // Don't do automatic auth checks - rely on user prop from parent
+  // Check authentication status - if user logs out, close menu and redirect
   useEffect(() => {
-    setIsAuthenticated(!!user);
-  }, [user]);
+    if (!isOpen) return;
+    
+    let isMounted = true;
+    
+    const checkAuth = async () => {
+      if (!isMounted) return;
+      
+      const currentUser = await getCurrentUser();
+      const authenticated = !!currentUser;
+      
+      if (!isMounted) return;
+      setIsAuthenticated(authenticated);
+      
+      // If user is not authenticated, close menu and redirect to login
+      if (!authenticated && isOpen) {
+        onClose();
+        router.replace('/login');
+      }
+    };
+    
+    checkAuth();
+    // Check periodically when menu is open to catch logout from other devices
+    const interval = setInterval(() => {
+      if (isMounted && isOpen) {
+        checkAuth();
+      }
+    }, 3000); // Check every 3 seconds
+    
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [isOpen, user, onClose, router]);
 
   useEffect(() => {
     // Prevent body scroll when sidebar is open
@@ -141,29 +170,16 @@ export function MobileHamburgerNav({ user, isOpen, onClose }: MobileHamburgerNav
       if (userId) localStorage.setItem('finance_tracker_user_id', userId);
       if (biometricEnabled) localStorage.setItem('finance_tracker_biometric_enabled', biometricEnabled);
       if (credentialId) localStorage.setItem('finance_tracker_credential_id', credentialId);
+      
+      window.location.href = '/login';
     }
-    // Sign out and redirect
-    signOut()
-      .then((result) => {
-        if (result.error) {
-          logError(result.error, 'Logout error');
-        }
-        // Redirect after sign out
-        router.push('/login');
-        // Fallback redirect
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 100);
-      })
-      .catch((error) => {
-        logError(error, 'Logout error');
-        // Still redirect even if there's an error
-        router.push('/login');
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 100);
-      });
-    // NO router.refresh() - no auto-refresh!
+    // Sign out in background (non-blocking)
+    signOut().catch((error) => {
+      console.error('Logout error:', error);
+    });
+    onClose();
+    router.push('/login');
+    router.refresh();
   };
 
   // Menu items for authenticated users - All navigation items
@@ -211,14 +227,9 @@ export function MobileHamburgerNav({ user, isOpen, onClose }: MobileHamburgerNav
     <>
       {/* Backdrop Overlay - Dark overlay on content, Tap overlay to close */}
       <div
-        className={`fixed inset-0 z-[9998] transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 bg-black/60 z-[9998] transition-opacity duration-300 lg:hidden ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
-        style={{
-          background: 'transparent',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-        }}
         onClick={onClose}
         style={{
           top: 0,
@@ -361,7 +372,13 @@ export function MobileHamburgerNav({ user, isOpen, onClose }: MobileHamburgerNav
                   e.preventDefault();
                   e.stopPropagation();
                   onClose();
-                  router.push(item.href);
+                  const targetUrl = item.href;
+                  console.log('Hamburger menu button clicked! Navigating to:', targetUrl);
+                  if (typeof window !== 'undefined') {
+                    window.location.href = targetUrl;
+                  } else {
+                    router.push(targetUrl);
+                  }
                 }}
                 className={`flex items-center gap-3 px-4 py-3 mb-3 rounded-2xl transition-all duration-300 group mobile-tap-target active:scale-95 ${
                   isActive(item.href)

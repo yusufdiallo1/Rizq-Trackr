@@ -5,8 +5,6 @@
  * Auto-detect user location using GPS/IP, save with transactions
  */
 
-import { logError } from './logger';
-
 export interface UserLocation {
   latitude: number;
   longitude: number;
@@ -55,7 +53,7 @@ function getCachedLocation(): UserLocation | null {
     localStorage.removeItem(LOCATION_CACHE_KEY);
     return null;
   } catch (error) {
-    logError(error, 'Error reading location cache');
+    console.error('Error reading location cache:', error);
     return null;
   }
 }
@@ -73,7 +71,7 @@ function setCachedLocation(location: UserLocation): void {
     };
     localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(cache));
   } catch (error) {
-    logError(error, 'Error caching location');
+    console.error('Error caching location:', error);
   }
 }
 
@@ -93,7 +91,7 @@ export async function checkLocationPermission(): Promise<LocationPermissionState
       prompt: result.state === 'prompt',
     };
   } catch (error) {
-    logError(error, 'Error checking location permission');
+    console.error('Error checking location permission:', error);
     return { granted: false, denied: false, prompt: true };
   }
 }
@@ -153,7 +151,7 @@ export async function reverseGeocode(
       formattedAddress: data.display_name,
     };
   } catch (error) {
-    logError(error, 'Reverse geocoding error');
+    console.error('Reverse geocoding error:', error);
     return {};
   }
 }
@@ -167,16 +165,10 @@ export async function getLocationByIP(): Promise<UserLocation | null> {
     const response = await fetch('https://ipapi.co/json/');
 
     if (!response.ok) {
-      return null; // Silent failure
+      throw new Error('IP geolocation failed');
     }
 
-    let data;
-    try {
-      data = await response.json();
-    } catch (parseError) {
-      logError(parseError, 'Failed to parse IP geolocation response');
-      return null;
-    }
+    const data = await response.json();
 
     return {
       latitude: data.latitude,
@@ -191,7 +183,7 @@ export async function getLocationByIP(): Promise<UserLocation | null> {
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    logError(error, 'IP geolocation error');
+    console.error('IP geolocation error:', error);
     return null;
   }
 }
@@ -316,11 +308,16 @@ export async function saveUserLocation(
     const { createClientComponentClient } = await import('@supabase/auth-helpers-nextjs');
     const supabase = createClientComponentClient();
 
-    // Note: customers table doesn't have location fields
-    // This function may need to be updated to use a user_profile table
-    // For now, we'll skip the database update to avoid errors
-    console.warn('Location update skipped - customers table does not have location fields');
-    return { error: null };
+    const { error } = await supabase
+      .from('users')
+      .update({
+        location_latitude: location.latitude,
+        location_longitude: location.longitude,
+        location_address: location.formattedAddress || null,
+        location_city: location.city || null,
+        location_country: location.country || null,
+      })
+      .eq('id', userId);
 
     return { error };
   } catch (error) {
@@ -338,9 +335,11 @@ export async function getUserLocationFromDB(
     const { createClientComponentClient } = await import('@supabase/auth-helpers-nextjs');
     const supabase = createClientComponentClient();
 
-    // Note: customers table doesn't have location fields
-    // Return null to indicate location is not stored
-    return null;
+    const { data, error } = await supabase
+      .from('users')
+      .select('location_latitude, location_longitude, location_address, location_city, location_country')
+      .eq('id', userId)
+      .single();
 
     if (error || !data) return null;
 
@@ -375,7 +374,7 @@ export async function requestLocationPermission(): Promise<boolean> {
     const location = await getUserLocation(true);
     return location !== null;
   } catch (error) {
-    logError(error, 'Error requesting location permission');
+    console.error('Error requesting location permission:', error);
     return false;
   }
 }
