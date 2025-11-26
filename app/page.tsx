@@ -66,6 +66,7 @@ export default function Home() {
       } else if (event === 'SIGNED_OUT') {
         if (mounted) {
         setUser(null); // Clear user on logout
+        setShowDashboardButton(false); // Hide button on logout
         }
       } else if (event === 'TOKEN_REFRESHED' && session) {
         // Don't update user on token refresh - it's the same user
@@ -90,8 +91,8 @@ export default function Home() {
       {/* Homepage Navbar */}
       <HomepageNavbar />
 
-      {/* Back to Dashboard Button - Show when logged in */}
-      {user && (
+      {/* Back to Dashboard Button - Show only when user clicked "Back to Home" from user menu */}
+      {user && showDashboardButton && (
         <Link
           href="/dashboard"
           className="fixed top-20 right-4 sm:right-6 z-50 group"

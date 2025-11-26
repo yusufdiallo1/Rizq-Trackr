@@ -464,6 +464,10 @@ export function Navbar({ user }: NavbarProps) {
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowUserMenu(false);
+                      // Set flag to show Dashboard button on homepage
+                      if (typeof window !== 'undefined') {
+                        sessionStorage.setItem('showDashboardButton', 'true');
+                      }
                     }}
                     onMouseDown={(e) => {
                       e.stopPropagation();
