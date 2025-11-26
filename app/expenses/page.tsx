@@ -464,7 +464,7 @@ function ExpensesPageContent() {
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
             <div className="w-16 h-16 border-4 border-red-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-white font-body">Loading...</p>
+            <p className={`font-body ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Loading...</p>
           </div>
         </div>
       </DashboardLayout>
