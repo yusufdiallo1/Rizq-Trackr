@@ -88,7 +88,7 @@ export function HomepageCTA() {
 
             {/* Subtitle */}
             <p className="text-white/80 text-lg sm:text-xl mb-8 max-w-2xl mx-auto">
-              Join thousands of Muslims managing their money wisely with FinanceTracker
+              Join thousands of Muslims managing their money wisely with Rizq Trackr
             </p>
 
             {/* CTA Button */}

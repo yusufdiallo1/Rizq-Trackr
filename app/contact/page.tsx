@@ -265,7 +265,7 @@ export default function ContactUsPage() {
                     </div>
                     <div>
                       <h3 className={`font-semibold ${getTextColor(theme)} mb-1`}>Email</h3>
-                      <p className={getMutedTextColor(theme)}>support@financetracker.com</p>
+                      <p className={getMutedTextColor(theme)}>support@rizqtrackr.com</p>
                       <p className={`text-sm ${getMutedTextColor(theme)} opacity-60`}>We reply within 24-48 hours</p>
                     </div>
                   </div>
@@ -278,7 +278,7 @@ export default function ContactUsPage() {
                     </div>
                     <div>
                       <h3 className={`font-semibold ${getTextColor(theme)} mb-1`}>Website</h3>
-                      <p className={getMutedTextColor(theme)}>www.financetracker.com</p>
+                      <p className={getMutedTextColor(theme)}>www.rizqtrackr.com</p>
                       <p className={`text-sm ${getMutedTextColor(theme)} opacity-60`}>Visit our knowledge base</p>
                     </div>
                   </div>

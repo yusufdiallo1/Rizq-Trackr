@@ -12,7 +12,7 @@ interface Testimonial {
 
 const testimonials: Testimonial[] = [
   {
-    quote: 'FinanceTracker has transformed how I manage my finances. The Zakat calculator is incredibly accurate and saves me hours of work.',
+    quote: 'Rizq Trackr has transformed how I manage my finances. The Zakat calculator is incredibly accurate and saves me hours of work.',
     name: 'Ahmed Al-Rashid',
     role: 'Business Owner',
     avatar: '👨‍💼',

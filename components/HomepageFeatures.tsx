@@ -77,7 +77,7 @@ export function HomepageFeatures() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Title */}
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-white text-center mb-16 scroll-fade-in visible">
-          Why Choose FinanceTracker?
+          Why Choose Rizq Trackr?
         </h2>
 
         {/* Features Grid */}

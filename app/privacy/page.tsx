@@ -185,7 +185,7 @@ export default function PrivacyPolicyPage() {
                     <h2 className={`text-3xl font-bold ${getTextColor(theme)}`}>Introduction</h2>
                   </div>
                   <p className={`${getMutedTextColor(theme)} leading-relaxed text-lg`}>
-                Welcome to FinanceTracker. We are committed to protecting your personal information and your right to privacy.
+                Welcome to Rizq Trackr. We are committed to protecting your personal information and your right to privacy.
                 This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our
                 Islamic finance tracking application.
               </p>

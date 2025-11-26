@@ -149,7 +149,7 @@ export default function HelpPage() {
   const quickHelpCards = [
     {
       title: 'Getting Started',
-      description: 'New to FinanceTracker? Learn the basics',
+      description: 'New to Rizq Trackr? Learn the basics',
       icon: '🚀',
       href: '#getting-started',
       color: 'emerald',
@@ -229,7 +229,7 @@ export default function HelpPage() {
                     Help & Support Center
                   </h1>
                   <p className={`${getMutedTextColor(theme)} text-lg`}>
-                    Find answers, get support, and learn how to make the most of FinanceTracker
+                    Find answers, get support, and learn how to make the most of Rizq Trackr
                   </p>
                 </div>
               </div>

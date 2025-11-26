@@ -163,7 +163,7 @@ export default function TermsOfServicePage() {
                     }}
                   >
                     <p className={`${getMutedTextColor(theme)} leading-relaxed`}>
-                      Please read these Terms of Service carefully before using FinanceTracker. By accessing or using our service, you agree to be bound by these terms.
+                      Please read these Terms of Service carefully before using Rizq Trackr. By accessing or using our service, you agree to be bound by these terms.
                     </p>
                   </div>
                 </div>
@@ -187,7 +187,7 @@ export default function TermsOfServicePage() {
                     <h2 className={`text-3xl font-bold ${getTextColor(theme)}`}>Agreement to Terms</h2>
                   </div>
                   <p className={`${getMutedTextColor(theme)} leading-relaxed text-lg`}>
-                    By accessing or using FinanceTracker, you agree to be bound by these Terms of Service. If you disagree
+                    By accessing or using Rizq Trackr, you agree to be bound by these Terms of Service. If you disagree
                     with any part of these terms, you may not access the service. These terms apply to all visitors, users,
                     and others who access or use the service.
                   </p>
@@ -211,7 +211,7 @@ export default function TermsOfServicePage() {
                     </div>
                     <h2 className={`text-3xl font-bold ${getTextColor(theme)}`}>Description of Services</h2>
                   </div>
-                  <p className={`${getMutedTextColor(theme)} mb-4`}>FinanceTracker provides:</p>
+                  <p className={`${getMutedTextColor(theme)} mb-4`}>Rizq Trackr provides:</p>
                   <div className="grid md:grid-cols-2 gap-4">
                     {[
                       'Personal finance tracking and management tools',
@@ -404,7 +404,7 @@ export default function TermsOfServicePage() {
                     <h2 className={`text-3xl font-bold ${getTextColor(theme)}`}>Intellectual Property</h2>
                   </div>
                   <p className={`${getMutedTextColor(theme)} leading-relaxed mb-4`}>
-                    The service and its original content, features, and functionality are owned by FinanceTracker and are
+                    The service and its original content, features, and functionality are owned by Rizq Trackr and are
                     protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.
                   </p>
                   <p className={getMutedTextColor(theme)}>
@@ -431,7 +431,7 @@ export default function TermsOfServicePage() {
                     <h2 className={`text-3xl font-bold ${getTextColor(theme)}`}>Limitation of Liability</h2>
                   </div>
                   <p className={`${getMutedTextColor(theme)} leading-relaxed mb-4`}>
-                    FinanceTracker and its affiliates shall not be liable for:
+                    Rizq Trackr and its affiliates shall not be liable for:
                   </p>
                   <ul className={`list-disc list-inside ${getMutedTextColor(theme)} space-y-3 ml-4`}>
                     <li>Any indirect, incidental, special, consequential, or punitive damages</li>
@@ -463,7 +463,7 @@ export default function TermsOfServicePage() {
                   </div>
                   <div className="space-y-4">
                     {[
-                      { title: 'Financial Advice', text: 'FinanceTracker is a tool for tracking finances. It does not provide financial, tax, or investment advice.' },
+                      { title: 'Financial Advice', text: 'Rizq Trackr is a tool for tracking finances. It does not provide financial, tax, or investment advice.' },
                       { title: 'Religious Guidance', text: 'Zakat calculations are provided as a convenience. Always consult with qualified Islamic scholars for religious matters.' },
                       { title: 'Accuracy', text: 'While we strive for accuracy, we do not guarantee that all information is error-free or up-to-date.' },
                       { title: 'Service Availability', text: 'We do not guarantee uninterrupted or error-free service.' },

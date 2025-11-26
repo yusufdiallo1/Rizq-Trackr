@@ -18,7 +18,7 @@ export function IPhoneMockup({ className = '' }: IPhoneMockupProps) {
             <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
               <span className="text-white text-sm">🕌</span>
             </div>
-            <div className="text-white text-xs font-semibold">FinanceTracker</div>
+            <div className="text-white text-xs font-semibold">Rizq Trackr</div>
             <div className="w-8 h-8"></div>
           </div>
           <div className="flex-1 space-y-3">
