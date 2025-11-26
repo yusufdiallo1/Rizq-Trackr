@@ -19,10 +19,21 @@ const HomepageCTA = lazy(() => import('@/components/HomepageCTA').then(m => ({ d
 export default function Home() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [showDashboardButton, setShowDashboardButton] = useState(false);
   const supabase = createClientComponentClient<Database>();
 
   useEffect(() => {
     let mounted = true;
+    
+    // Check if user came from "Back to Home" link (stored in sessionStorage)
+    if (typeof window !== 'undefined') {
+      const shouldShow = sessionStorage.getItem('showDashboardButton') === 'true';
+      if (shouldShow) {
+        setShowDashboardButton(true);
+        // Clear the flag after using it
+        sessionStorage.removeItem('showDashboardButton');
+      }
+    }
     
     // Initial auth check - show page immediately, check in background
     const checkAuth = async () => {
@@ -38,12 +49,14 @@ export default function Home() {
         } else {
           if (mounted) {
           setUser(null); // Clear user if not authenticated
+          setShowDashboardButton(false); // Hide button if not authenticated
           }
         }
       } catch (error) {
         // Silently fail - user can still view homepage
         if (mounted) {
         setUser(null);
+        setShowDashboardButton(false);
         }
       }
     };
