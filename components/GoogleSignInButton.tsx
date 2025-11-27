@@ -23,6 +23,8 @@ export function GoogleSignInButton({ mode = 'signin', theme = 'dark' }: GoogleSi
         ? `${window.location.origin}/auth/callback`
         : '/auth/callback';
 
+      console.log('Initiating Google OAuth with redirect URL:', redirectUrl);
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -36,11 +38,19 @@ export function GoogleSignInButton({ mode = 'signin', theme = 'dark' }: GoogleSi
 
       if (error) {
         console.error('Google sign-in error:', error);
-        setError(error.message);
+
+        // Check if it's a provider not enabled error
+        if (error.message?.includes('provider') || error.message?.includes('not enabled')) {
+          setError('Google Sign-In is not configured. Please check the setup guide in GOOGLE_AUTH_SETUP.md');
+        } else {
+          setError(error.message);
+        }
+
         setLoading(false);
         return;
       }
 
+      console.log('Google OAuth initiated successfully, redirecting to Google...');
       // The user will be redirected to Google for authentication
       // After successful auth, they'll be redirected back to /auth/callback
     } catch (err) {

@@ -27,6 +27,17 @@ function LoginPageContent() {
     setMounted(true);
     setIsMobile(window.innerWidth < 1024);
 
+    // Check for OAuth error in URL params
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const oauthError = urlParams.get('error');
+      if (oauthError) {
+        setError(oauthError);
+        // Clean up URL
+        window.history.replaceState({}, '', '/login');
+      }
+    }
+
     // Check if user is already logged in
     const checkUser = async () => {
       try {
