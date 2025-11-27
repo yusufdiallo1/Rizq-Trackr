@@ -8,7 +8,10 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 import { fetchMetalPrices, calculateNisab } from './nisab-api';
 
-const supabase = createClientComponentClient<Database>();
+// Lazy initialization to avoid build-time errors
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 export interface NisabPriceUpdate {
   date: string;
@@ -24,6 +27,7 @@ export interface NisabPriceUpdate {
  */
 export async function checkPricesExist(date: string, currency: string = 'USD'): Promise<boolean> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('nisab_prices')
       .select('id')
@@ -80,6 +84,7 @@ export async function updateTodayNisabPrices(currency: string = 'USD'): Promise<
       currency,
     };
 
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('nisab_prices')
       .upsert(priceData, {
@@ -123,6 +128,7 @@ export async function getNisabPricesForDate(
   error: string | null;
 }> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('nisab_prices')
       .select('*')
@@ -151,6 +157,7 @@ export async function getLatestNisabPrices(currency: string = 'USD'): Promise<{
   error: string | null;
 }> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('nisab_prices')
       .select('*')
