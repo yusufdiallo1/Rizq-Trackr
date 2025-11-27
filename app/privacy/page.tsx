@@ -72,7 +72,7 @@ export default function PrivacyPolicyPage() {
         </Link>
       </div>
       <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="grid lg:grid-cols-4 gap-8">
+        <div className="grid lg:grid-cols-4 gap-8">
             {/* Table of Contents - Sticky Sidebar */}
             <div className="lg:col-span-1">
               <div 
@@ -164,8 +164,8 @@ export default function PrivacyPolicyPage() {
                       Your privacy is important to us. This policy explains how we collect, use, and protect your personal information in accordance with Islamic principles of trust and integrity.
                     </p>
                   </div>
-            </div>
-          </div>
+                </div>
+              </div>
 
             {/* Introduction */}
               <section id="introduction" className="scroll-mt-24">
@@ -521,7 +521,6 @@ export default function PrivacyPolicyPage() {
               </section>
             </div>
           </div>
-        </div>
       </div>
     </div>
   );

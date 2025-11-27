@@ -68,8 +68,7 @@ export default function ContactUsPage() {
         </Link>
       </div>
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="max-w-5xl mx-auto px-4 py-8">
-          {/* Hero Header */}
+        {/* Hero Header */}
           <div 
             className="rounded-[32px] p-8 md:p-12 mb-8 relative overflow-hidden"
             style={glassStyle}
@@ -84,13 +83,12 @@ export default function ContactUsPage() {
             />
             <div className="relative z-10">
               <div className="flex-1">
-                  <h1 className={`text-4xl md:text-5xl font-bold ${getTextColor(theme)} mb-3`}>
-                    Contact Us
-                  </h1>
-                  <p className={`${getMutedTextColor(theme)} text-lg`}>
-                    We&apos;d love to hear from you! Get in touch with our team.
-                  </p>
-                </div>
+                <h1 className={`text-4xl md:text-5xl font-bold ${getTextColor(theme)} mb-3`}>
+                  Contact Us
+                </h1>
+                <p className={`${getMutedTextColor(theme)} text-lg`}>
+                  We&apos;d love to hear from you! Get in touch with our team.
+                </p>
               </div>
             </div>
           </div>
@@ -398,7 +396,6 @@ export default function ContactUsPage() {
               </div>
             </div>
           </div>
-        </div>
       </div>
     </div>
   );

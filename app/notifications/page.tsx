@@ -37,10 +37,9 @@ export default function NotificationsPage() {
         setLoading(false);
         return;
       }
-        setUser(currentUser);
-        loadNotifications(currentUser);
-        setLoading(false); // Set loading false immediately after getting user
-      }
+      setUser(currentUser);
+      loadNotifications(currentUser);
+      setLoading(false); // Set loading false immediately after getting user
     };
     init();
   }, [router]);

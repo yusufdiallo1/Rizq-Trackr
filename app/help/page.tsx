@@ -199,7 +199,7 @@ export default function HelpPage() {
         </Link>
       </div>
       <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Hero Header Section */}
+        {/* Hero Header Section */}
           <div 
             className="rounded-[32px] p-8 md:p-12 mb-8 relative overflow-hidden"
             style={glassStyle}
@@ -224,14 +224,13 @@ export default function HelpPage() {
             />
 
             <div className="relative z-10">
-                <div className="flex-1">
-                  <h1 className={`text-4xl md:text-5xl font-bold ${getTextColor(theme)} mb-3`}>
-                    Help & Support Center
-                  </h1>
-                  <p className={`${getMutedTextColor(theme)} text-lg`}>
-                    Find answers, get support, and learn how to make the most of Rizq Trackr
-                  </p>
-                </div>
+              <div className="flex-1">
+                <h1 className={`text-4xl md:text-5xl font-bold ${getTextColor(theme)} mb-3`}>
+                  Help & Support Center
+                </h1>
+                <p className={`${getMutedTextColor(theme)} text-lg`}>
+                  Find answers, get support, and learn how to make the most of Rizq Trackr
+                </p>
               </div>
 
               {/* Search Bar */}
@@ -463,7 +462,6 @@ export default function HelpPage() {
               </div>
             </div>
           </div>
-        </div>
       </div>
     </div>
   );

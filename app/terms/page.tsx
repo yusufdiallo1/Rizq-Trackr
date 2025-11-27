@@ -74,7 +74,7 @@ export default function TermsOfServicePage() {
         </Link>
       </div>
       <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="grid lg:grid-cols-4 gap-8">
+        <div className="grid lg:grid-cols-4 gap-8">
             {/* Table of Contents - Sticky Sidebar */}
             <div className="lg:col-span-1">
               <div 
@@ -166,7 +166,6 @@ export default function TermsOfServicePage() {
                       Please read these Terms of Service carefully before using Rizq Trackr. By accessing or using our service, you agree to be bound by these terms.
                     </p>
                   </div>
-                </div>
               </div>
 
               {/* Agreement */}
@@ -586,7 +585,6 @@ export default function TermsOfServicePage() {
               </section>
             </div>
           </div>
-        </div>
       </div>
     </div>
   );
