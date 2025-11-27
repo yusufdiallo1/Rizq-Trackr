@@ -57,16 +57,28 @@ export async function GET(request: NextRequest) {
         const nisab = await calculateNisab(currency);
 
         // Store in database
-        const { error } = await supabase
-          .from('nisab_prices')
-          .upsert({
-            date: today,
-            gold_price_per_gram: prices.goldPerGram,
-            silver_price_per_gram: prices.silverPerGram,
-            nisab_gold_value: nisab.goldBased,
-            nisab_silver_value: nisab.silverBased,
-            currency,
-          }, {
+        // Type assertion needed because TypeScript can't infer the table type correctly during build
+        type NisabPriceInsert = {
+          date: string;
+          gold_price_per_gram: number;
+          silver_price_per_gram: number;
+          nisab_gold_value: number;
+          nisab_silver_value: number;
+          currency: string;
+        };
+        
+        const nisabData: NisabPriceInsert = {
+          date: today,
+          gold_price_per_gram: prices.goldPerGram,
+          silver_price_per_gram: prices.silverPerGram,
+          nisab_gold_value: nisab.goldBased,
+          nisab_silver_value: nisab.silverBased,
+          currency,
+        };
+        
+        const { error } = await (supabase
+          .from('nisab_prices') as any)
+          .upsert(nisabData, {
             onConflict: 'date,currency'
           });
 
