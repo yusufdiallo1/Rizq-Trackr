@@ -66,13 +66,21 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/logo.svg', sizes: 'any' },
-      { url: '/logo.svg', type: 'image/svg+xml' },
+      { url: '/icon.svg', sizes: 'any', type: 'image/svg+xml' },
+      { url: '/icon.svg', sizes: '32x32', type: 'image/svg+xml' },
+      { url: '/icon.svg', sizes: '16x16', type: 'image/svg+xml' },
     ],
     apple: [
-      { url: '/logo.svg', sizes: '180x180' },
+      { url: '/icon.svg', sizes: '180x180', type: 'image/svg+xml' },
     ],
-    shortcut: '/logo.svg',
+    shortcut: '/icon.svg',
+    other: [
+      {
+        rel: 'mask-icon',
+        url: '/icon.svg',
+        color: '#f59e0b',
+      },
+    ],
   },
   verification: {
     google: 'NOXx0Bcdcbro2-S6Tioxt1HMwszoVG4DPCzx4oR-4lY',
@@ -117,6 +125,23 @@ export default function RootLayout({
         <meta name="og:url" content="https://rizqtrackr.com" />
         <link rel="image_src" href="https://rizqtrackr.com/opengraph-image" />
         
+        {/* Comprehensive Favicon Links for Maximum Compatibility */}
+        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+        <link rel="icon" type="image/svg+xml" href="https://rizqtrackr.com/icon.svg" />
+        <link rel="shortcut icon" href="/icon.svg" />
+        <link rel="apple-touch-icon" href="/icon.svg" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icon.svg" />
+        <link rel="mask-icon" href="/icon.svg" color="#f59e0b" />
+        
+        {/* Additional meta for search engines */}
+        <meta name="application-name" content="Rizq Trackr" />
+        <meta name="msapplication-TileColor" content="#f59e0b" />
+        <meta name="msapplication-TileImage" content="/icon.svg" />
+        <meta name="theme-color" content="#f59e0b" />
+        
+        {/* Site verification and branding */}
+        <link rel="canonical" href="https://rizqtrackr.com" />
+        
         {/* Structured Data for Rich Search Results */}
         <script
           type="application/ld+json"
@@ -139,7 +164,7 @@ export default function RootLayout({
                 "ratingValue": "5",
                 "ratingCount": "1"
               },
-              "logo": "https://rizqtrackr.com/logo.svg",
+              "logo": "https://rizqtrackr.com/icon.svg",
               "image": "https://rizqtrackr.com/opengraph-image",
               "screenshot": "https://rizqtrackr.com/opengraph-image",
               "thumbnailUrl": "https://rizqtrackr.com/opengraph-image",
