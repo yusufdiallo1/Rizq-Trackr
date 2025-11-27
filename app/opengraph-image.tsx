@@ -107,9 +107,7 @@ export default async function Image() {
             fontWeight: 'bold',
             marginBottom: 20,
             textAlign: 'center',
-            background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: '#10b981',
           }}
         >
           Rizq Trackr

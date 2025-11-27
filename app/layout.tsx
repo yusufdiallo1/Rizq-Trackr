@@ -39,10 +39,11 @@ export const metadata: Metadata = {
     description: 'Track your income, expenses, and zakat payments with Rizq Trackr. The comprehensive Islamic finance management app for Muslims.',
     images: [
       {
-        url: '/opengraph-image',
+        url: 'https://rizqtrackr.com/opengraph-image',
         width: 1200,
         height: 630,
         alt: 'Rizq Trackr - Islamic Finance Tracker',
+        type: 'image/png',
       },
     ],
   },
@@ -50,7 +51,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Rizq Trackr - Islamic Finance Tracker',
     description: 'Track your income, expenses, and zakat payments with Rizq Trackr.',
-    images: ['/opengraph-image'],
+    images: ['https://rizqtrackr.com/opengraph-image'],
   },
   robots: {
     index: true,
@@ -100,6 +101,22 @@ export default function RootLayout({
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
         
+        {/* Additional Open Graph meta tags for better compatibility */}
+        <meta property="og:image" content="https://rizqtrackr.com/opengraph-image" />
+        <meta property="og:image:secure_url" content="https://rizqtrackr.com/opengraph-image" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Rizq Trackr - Islamic Finance Tracker" />
+        
+        {/* Twitter Card meta tags */}
+        <meta name="twitter:image" content="https://rizqtrackr.com/opengraph-image" />
+        <meta name="twitter:image:alt" content="Rizq Trackr - Islamic Finance Tracker" />
+        
+        {/* Additional meta tags for link previews */}
+        <meta name="og:url" content="https://rizqtrackr.com" />
+        <link rel="image_src" href="https://rizqtrackr.com/opengraph-image" />
+        
         {/* Structured Data for Rich Search Results */}
         <script
           type="application/ld+json"
@@ -125,6 +142,7 @@ export default function RootLayout({
               "logo": "https://rizqtrackr.com/logo.svg",
               "image": "https://rizqtrackr.com/opengraph-image",
               "screenshot": "https://rizqtrackr.com/opengraph-image",
+              "thumbnailUrl": "https://rizqtrackr.com/opengraph-image",
               "featureList": [
                 "Income Tracking",
                 "Expense Management",

@@ -126,13 +126,17 @@ export function HomepageHero() {
             <div
               className="absolute w-32 h-32 rounded-full"
               style={{
-                background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 70%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                background: theme === 'dark'
+                  ? 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 70%)'
+                  : 'radial-gradient(circle at 30% 30%, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.02) 50%, transparent 70%)',
+                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
                 backdropFilter: 'blur(8px)',
                 top: '8%',
                 left: '-5%',
                 animation: 'floatBubble1 8s ease-in-out infinite',
-                boxShadow: 'inset 0 0 30px rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.2)',
+                boxShadow: theme === 'dark'
+                  ? 'inset 0 0 30px rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.2)'
+                  : 'inset 0 0 30px rgba(0, 0, 0, 0.05), 0 8px 32px rgba(0, 0, 0, 0.1)',
               }}
             />
             {/* Medium glass bubble - top right */}
@@ -193,13 +197,17 @@ export function HomepageHero() {
             <div
               className="absolute w-10 h-10 rounded-full"
               style={{
-                background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 70%)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
+                background: theme === 'dark'
+                  ? 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 70%)'
+                  : 'radial-gradient(circle at 30% 30%, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.02) 50%, transparent 70%)',
+                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
                 backdropFilter: 'blur(8px)',
                 bottom: '30%',
                 right: '20%',
                 animation: 'floatBubble3 4s ease-in-out infinite',
-                boxShadow: 'inset 0 0 8px rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.2)',
+                boxShadow: theme === 'dark'
+                  ? 'inset 0 0 8px rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.2)'
+                  : 'inset 0 0 8px rgba(0, 0, 0, 0.05), 0 8px 32px rgba(0, 0, 0, 0.1)',
               }}
             />
           </>
@@ -215,7 +223,7 @@ export function HomepageHero() {
           >
             {/* Heading */}
             <h1
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-white leading-tight"
+              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-bold leading-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}
             >
               Take Control of Your{' '}
               <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
@@ -224,7 +232,7 @@ export function HomepageHero() {
             </h1>
 
             {/* Subheading */}
-            <p className="text-lg sm:text-xl text-white/80 max-w-xl">
+            <p className={`text-lg sm:text-xl max-w-xl ${theme === 'dark' ? 'text-white/80' : 'text-slate-700'}`}>
               Track, Save, and Calculate Zakat with Confidence
             </p>
 
@@ -232,15 +240,25 @@ export function HomepageHero() {
             <div className={`relative h-32 overflow-hidden transition-all duration-500 ${isMobile ? 'rounded-3xl' : 'rounded-2xl'}`}
               style={{
                 background: isMobile
+                  ? theme === 'dark'
                   ? 'rgba(255, 255, 255, 0.08)'
-                  : 'rgba(255, 255, 255, 0.05)',
+                    : 'rgba(0, 0, 0, 0.03)'
+                  : theme === 'dark'
+                    ? 'rgba(255, 255, 255, 0.05)'
+                    : 'rgba(0, 0, 0, 0.02)',
                 backdropFilter: isMobile ? 'blur(30px)' : 'blur(20px)',
                 WebkitBackdropFilter: isMobile ? 'blur(30px)' : 'blur(20px)',
                 border: isMobile
+                  ? theme === 'dark'
                   ? '1px solid rgba(255, 255, 255, 0.15)'
-                  : '1px solid rgba(255, 255, 255, 0.1)',
+                    : '1px solid rgba(0, 0, 0, 0.1)'
+                  : theme === 'dark'
+                    ? '1px solid rgba(255, 255, 255, 0.1)'
+                    : '1px solid rgba(0, 0, 0, 0.08)',
                 boxShadow: isMobile
+                  ? theme === 'dark'
                   ? `0 8px 32px rgba(0, 0, 0, 0.3), 0 0 60px ${features[currentFeature].color}15, inset 0 1px 0 rgba(255, 255, 255, 0.1)`
+                    : `0 8px 32px rgba(0, 0, 0, 0.1), 0 0 60px ${features[currentFeature].color}10, inset 0 1px 0 rgba(255, 255, 255, 0.5)`
                   : 'none',
               }}
             >
@@ -264,12 +282,12 @@ export function HomepageHero() {
                   </div>
                   <div className="flex-1">
                     <h3 
-                      className="text-xl font-bold text-white mb-1"
+                      className={`text-xl font-bold mb-1 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}
                       style={{ color: feature.color }}
                     >
                       {feature.title}
                     </h3>
-                    <p className="text-white/70 text-sm">
+                    <p className={`text-sm ${theme === 'dark' ? 'text-white/70' : 'text-slate-700'}`}>
                       {feature.description}
                     </p>
                   </div>
@@ -331,18 +349,28 @@ export function HomepageHero() {
 
               <button
                 onClick={() => router.push('/login')}
-                className={`font-semibold text-lg text-white transition-all duration-300 hover:scale-105 ${isMobile ? 'px-10 py-5 rounded-2xl' : 'px-8 py-4 rounded-full'}`}
+                className={`font-semibold text-lg transition-all duration-300 hover:scale-105 ${isMobile ? 'px-10 py-5 rounded-2xl' : 'px-8 py-4 rounded-full'} ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}
                 style={{
                   background: isMobile
+                    ? theme === 'dark' 
                     ? 'rgba(255, 255, 255, 0.12)'
-                    : 'rgba(255, 255, 255, 0.1)',
+                      : 'rgba(0, 0, 0, 0.05)'
+                    : theme === 'dark'
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : 'rgba(0, 0, 0, 0.05)',
                   backdropFilter: isMobile ? 'blur(30px)' : 'blur(20px)',
                   WebkitBackdropFilter: isMobile ? 'blur(30px)' : 'blur(20px)',
                   border: isMobile
+                    ? theme === 'dark'
+                      ? '1px solid rgba(255, 255, 255, 0.2)'
+                      : '1px solid rgba(0, 0, 0, 0.1)'
+                    : theme === 'dark'
                     ? '1px solid rgba(255, 255, 255, 0.2)'
-                    : '1px solid rgba(255, 255, 255, 0.2)',
+                      : '1px solid rgba(0, 0, 0, 0.1)',
                   boxShadow: isMobile
+                    ? theme === 'dark'
                     ? '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                      : '0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5)'
                     : 'none',
                 }}
               >
@@ -362,16 +390,22 @@ export function HomepageHero() {
                         ? `${feature.color}25`
                         : `${feature.color}20`
                       : isMobile
+                        ? theme === 'dark'
                         ? 'rgba(255, 255, 255, 0.08)'
-                        : 'rgba(255, 255, 255, 0.05)',
-                    border: `1px solid ${currentFeature === index ? feature.color : isMobile ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.1)'}`,
+                          : 'rgba(0, 0, 0, 0.03)'
+                        : theme === 'dark'
+                          ? 'rgba(255, 255, 255, 0.05)'
+                          : 'rgba(0, 0, 0, 0.02)',
+                    border: `1px solid ${currentFeature === index ? feature.color : isMobile ? (theme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)') : (theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)')}`,
                     transform: currentFeature === index ? 'scale(1.05)' : 'scale(1)',
                     boxShadow: currentFeature === index
                       ? isMobile
-                        ? `0 0 30px ${feature.color}50, inset 0 1px 0 rgba(255, 255, 255, 0.1)`
+                        ? `0 0 30px ${feature.color}50, inset 0 1px 0 ${theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.5)'}`
                         : `0 0 20px ${feature.color}40`
                       : isMobile
+                        ? theme === 'dark'
                         ? 'inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+                          : 'inset 0 1px 0 rgba(255, 255, 255, 0.3)'
                         : 'none',
                     backdropFilter: isMobile ? 'blur(20px)' : 'none',
                     WebkitBackdropFilter: isMobile ? 'blur(20px)' : 'none',
@@ -387,7 +421,7 @@ export function HomepageHero() {
                   >
                     {feature.icon}
                   </div>
-                  <div className={`text-white/60 ${isMobile ? 'text-xs font-medium' : 'text-xs'}`}>{feature.title.split(' ')[0]}</div>
+                  <div className={`${isMobile ? 'text-xs font-medium' : 'text-xs'} ${theme === 'dark' ? 'text-white/60' : 'text-slate-600'}`}>{feature.title.split(' ')[0]}</div>
                 </div>
               ))}
             </div>
