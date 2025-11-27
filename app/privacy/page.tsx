@@ -63,6 +63,7 @@ export default function PrivacyPolicyPage() {
         ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
         : 'linear-gradient(to bottom, #f8fafc, #e2e8f0, #f1f5f9)',
     }}>
+
       {/* Back to Home Link */}
       <div className="pt-6 px-4">
         <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium hover:underline" style={{
