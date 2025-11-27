@@ -40,10 +40,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all active users (you might want to filter by last activity)
+    // Note: Using type assertion since users table may not be in Database type
     const { data: users, error: usersError } = await supabase
       .from('users')
       .select('id')
-      .limit(100); // Process in batches
+      .limit(100) as { data: Array<{ id: string }> | null; error: any };
 
     if (usersError) {
       return NextResponse.json(
@@ -52,8 +53,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (!users || users.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'No users found to backup',
+        successful: 0,
+        failed: 0,
+      });
+    }
+
     const results = await Promise.allSettled(
-      (users || []).map((user) => createBackup(user.id))
+      users.map((user) => createBackup(user.id))
     );
 
     const successful = results.filter((r) => r.status === 'fulfilled' && r.value.success).length;
