@@ -7,8 +7,9 @@ import { getCurrentUser, signIn } from '@/lib/auth';
 import { isPasswordLocked, getPasswordLockoutRemainingSeconds, recordFailedPasswordAttempt, clearPasswordAttempts } from '@/lib/auth-lockout';
 import { AuthLayout } from '@/components/layout';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
+import { AuthErrorBoundary } from '@/components/AuthErrorBoundary';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -367,5 +368,14 @@ export default function LoginPage() {
         </form>
       </div>
     </AuthLayout>
+  );
+}
+
+// Wrap with Error Boundary for complete error protection
+export default function LoginPage() {
+  return (
+    <AuthErrorBoundary>
+      <LoginPageContent />
+    </AuthErrorBoundary>
   );
 }

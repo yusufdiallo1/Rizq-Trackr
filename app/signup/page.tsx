@@ -7,6 +7,7 @@ import { signUp, validateEmail, checkPasswordStrength } from '@/lib/auth';
 import { AuthLayout } from '@/components/layout';
 import { countryCities, countryNames } from '@/lib/utils/countries';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
+import { AuthErrorBoundary } from '@/components/AuthErrorBoundary';
 
 // Glass Input Component - moved outside to prevent re-creation on each render
 const GlassInput = ({ 
@@ -82,7 +83,7 @@ const GlassInput = ({
   </div>
 );
 
-export default function SignUpPage() {
+function SignUpPageContent() {
   const router = useRouter();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -456,5 +457,14 @@ export default function SignUpPage() {
         </form>
       </div>
     </AuthLayout>
+  );
+}
+
+// Wrap with Error Boundary for complete error protection
+export default function SignUpPage() {
+  return (
+    <AuthErrorBoundary>
+      <SignUpPageContent />
+    </AuthErrorBoundary>
   );
 }

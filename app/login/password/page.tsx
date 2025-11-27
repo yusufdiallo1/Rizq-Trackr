@@ -7,8 +7,9 @@ import { signIn } from '@/lib/auth';
 import { isPasswordLocked, getPasswordLockoutRemainingSeconds, recordFailedPasswordAttempt, clearPasswordAttempts } from '@/lib/auth-lockout';
 import { AuthLayout } from '@/components/layout';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
+import { AuthErrorBoundary } from '@/components/AuthErrorBoundary';
 
-export default function PasswordPage() {
+function PasswordPageContent() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -215,5 +216,14 @@ export default function PasswordPage() {
         </div>
       </div>
     </AuthLayout>
+  );
+}
+
+// Wrap with Error Boundary for complete error protection
+export default function PasswordPage() {
+  return (
+    <AuthErrorBoundary>
+      <PasswordPageContent />
+    </AuthErrorBoundary>
   );
 }

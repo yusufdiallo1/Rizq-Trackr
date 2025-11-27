@@ -26,9 +26,15 @@ export interface ZakatReminder {
 
 /**
  * Check if reminder should be sent (30 days before Zakat date)
+ * NOTE: Disabled - customers table does not exist in current schema
  */
 export async function checkZakatReminders(): Promise<ZakatReminder[]> {
   try {
+    // DISABLED: customers table does not exist
+    // TODO: Implement using proper user profile table when available
+    return [];
+
+    /* COMMENTED OUT - customers table doesn't exist
     // Get all users with Zakat dates set from customers table
     // Note: currency is not stored in customers, will default to USD
     const { data: customers, error } = await supabase
