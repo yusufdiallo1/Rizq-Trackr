@@ -71,6 +71,7 @@ export default function DashboardPage() {
   const [previousMonth, setPreviousMonth] = useState({ income: 0, expenses: 0 });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [zakatEligibility, setZakatEligibility] = useState<ZakatEligibilityResult | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -158,6 +159,18 @@ export default function DashboardPage() {
       };
     }
   }, [loadData]);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const formatCurrency = useCallback((amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -1309,7 +1322,7 @@ export default function DashboardPage() {
                 variants={prefersReducedMotion ? {} : { ...chartVariants, ...getCardVariants(0) }}
               >
                 <div
-                  className="rounded-3xl p-6 transition-all duration-300 hover:translate-y-[-4px] animate-scale-in animate-delay-200 bg-white lg:bg-transparent chart-card card-hover"
+                  className="rounded-3xl p-4 sm:p-6 transition-all duration-300 hover:translate-y-[-4px] animate-scale-in animate-delay-200 bg-white lg:bg-transparent chart-card card-hover overflow-hidden"
                   style={{
                     backdropFilter: 'blur(20px)',
                     background: theme === 'dark' ? 'rgba(42, 45, 61, 0.95)' : 'rgba(255, 255, 255, 0.95)',
@@ -1354,9 +1367,9 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="h-[280px] lg:h-[280px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={monthlyData}>
+                  <div className="h-[280px] lg:h-[280px] w-full">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={280}>
+                    <AreaChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="incomeAreaGradient" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
@@ -1368,11 +1381,13 @@ export default function DashboardPage() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke={theme === 'light' ? '#e2e8f0' : '#475569'} vertical={false} />
-                      <XAxis 
-                        dataKey="month" 
-                        stroke={theme === 'light' ? '#64748b' : '#94a3b8'} 
-                        tick={{ fontSize: 12, fill: theme === 'light' ? '#475569' : '#cbd5e1', fontWeight: 500 }}
+                      <XAxis
+                        dataKey="month"
+                        stroke={theme === 'light' ? '#64748b' : '#94a3b8'}
+                        tick={{ fontSize: 11, fill: theme === 'light' ? '#475569' : '#cbd5e1', fontWeight: 500 }}
                         axisLine={false}
+                        interval="preserveStartEnd"
+                        minTickGap={20}
                       />
                       <YAxis 
                         stroke={theme === 'light' ? '#64748b' : '#94a3b8'} 
@@ -1424,7 +1439,7 @@ export default function DashboardPage() {
                 variants={prefersReducedMotion ? {} : { ...chartVariants, ...getCardVariants(1) }}
               >
               <div
-                className="rounded-3xl p-6 transition-all duration-300 hover:translate-y-[-4px] animate-scale-in animate-delay-300 bg-white lg:bg-transparent chart-card card-hover relative"
+                className="rounded-3xl p-4 sm:p-6 transition-all duration-300 hover:translate-y-[-4px] animate-scale-in animate-delay-300 bg-white lg:bg-transparent chart-card card-hover relative overflow-hidden"
                 style={{
                   backdropFilter: 'blur(20px)',
                   background: theme === 'dark' ? 'rgba(42, 45, 61, 0.95)' : 'rgba(255, 255, 255, 0.95)',
@@ -1456,17 +1471,17 @@ export default function DashboardPage() {
 
                   {expenseBreakdown.length > 0 ? (
                     <>
-                    <div className="relative h-[200px] lg:h-[220px] flex items-center justify-center" style={{ zIndex: 1 }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart style={{ position: 'relative', zIndex: 1 }}>
+                    <div className="relative h-[200px] lg:h-[220px] w-full flex items-center justify-center" style={{ zIndex: 1 }}>
+                      <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+                        <PieChart style={{ position: 'relative', zIndex: 1 }} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                           <Pie
                             data={expenseBreakdown}
                             cx="50%"
                             cy="50%"
                             labelLine={false}
                             label={false}
-                            outerRadius={70}
-                            innerRadius={35}
+                            outerRadius={isMobile ? 60 : 70}
+                            innerRadius={isMobile ? 30 : 35}
                             fill="#8884d8"
                             dataKey="amount"
                             paddingAngle={3}
