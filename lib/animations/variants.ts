@@ -844,3 +844,84 @@ export const springScaleVariants: Variants = {
   },
 };
 
+/**
+ * Shimmer animation for loading states
+ */
+export const shimmerVariants: Variants = {
+  hidden: {
+    opacity: 0.5,
+    x: '-100%',
+  },
+  visible: {
+    opacity: 1,
+    x: '100%',
+    transition: {
+      duration: 1.5,
+      repeat: Infinity,
+      ease: 'linear',
+    },
+  },
+};
+
+/**
+ * Ripple animation for interactive elements
+ */
+export const rippleVariants: Variants = {
+  hidden: {
+    scale: 0,
+    opacity: 0.5,
+  },
+  visible: {
+    scale: 2,
+    opacity: 0,
+    transition: {
+      duration: 0.6,
+      ease: EASING.EASE_OUT,
+    },
+  },
+};
+
+/**
+ * Pulse animation for attention-grabbing elements
+ */
+export const pulseVariants: Variants = {
+  hidden: {
+    scale: 1,
+  },
+  visible: {
+    scale: [1, 1.05, 1],
+    transition: {
+      duration: 0.6,
+      repeat: Infinity,
+      repeatType: 'reverse',
+      ease: EASING.EASE_OUT,
+    },
+  },
+};
+
+/**
+ * Bounce in animation for modals and pop-ups
+ */
+export const bounceInVariants: Variants = {
+  hidden: {
+    scale: 0,
+    opacity: 0,
+  },
+  visible: {
+    scale: [0, 1.1, 0.9, 1],
+    opacity: 1,
+    transition: {
+      duration: 0.5,
+      ease: EASING.SPRING,
+    },
+  },
+  exit: {
+    scale: 0,
+    opacity: 0,
+    transition: {
+      duration: 0.2,
+      ease: EASING.EASE_OUT,
+    },
+  },
+};
+
