@@ -109,13 +109,13 @@ export default function AnalyticsPage() {
       { data: zakatData },
     ] = await Promise.all([
       supabase
-        .from('income')
+        .from('income_entries')
         .select('*')
         .eq('user_id', currentUser.id)
         .gte('created_at', startDate.toISOString())
         .order('created_at', { ascending: true }),
       supabase
-        .from('transactions')
+        .from('expense_entries')
         .select('*')
         .eq('user_id', currentUser.id)
         .gte('created_at', startDate.toISOString())
