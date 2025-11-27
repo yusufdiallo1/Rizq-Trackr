@@ -8,6 +8,7 @@ import { Database } from '@/types/database';
 import { HomepageHero } from '@/components/HomepageHero';
 import { HomepageNavbar } from '@/components/layout/HomepageNavbar';
 import { Footer } from '@/components/layout/Footer';
+import { useTheme } from '@/lib/contexts/ThemeContext';
 import Link from 'next/link';
 
 // Lazy load below-the-fold components
@@ -18,6 +19,7 @@ const HomepageCTA = lazy(() => import('@/components/HomepageCTA').then(m => ({ d
 
 export default function Home() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [showDashboardButton, setShowDashboardButton] = useState(false);
   const supabase = createClientComponentClient<Database>();
@@ -96,11 +98,13 @@ export default function Home() {
 
   return (
     <main
-      className="min-h-screen"
-          style={{
-        background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)',
-          }}
-        >
+      className="min-h-screen transition-colors duration-300"
+      style={{
+        background: theme === 'dark'
+          ? 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)'
+          : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+      }}
+    >
       {/* Homepage Navbar */}
       <HomepageNavbar />
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { useTheme } from '@/lib/contexts/ThemeContext';
 
 interface Testimonial {
   quote: string;
@@ -42,6 +43,7 @@ const testimonials: Testimonial[] = [
 ];
 
 export function HomepageTestimonials() {
+  const { theme } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleStars, setVisibleStars] = useState<boolean[]>([]);
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -87,12 +89,14 @@ export function HomepageTestimonials() {
       ref={sectionRef}
       className="py-20 sm:py-24 lg:py-32 relative"
       style={{
-        background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)',
+        background: theme === 'dark'
+          ? 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)'
+          : 'linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%)',
       }}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Title */}
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-white text-center mb-16 scroll-fade-in visible">
+        <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-center mb-16 scroll-fade-in visible ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
           What Our Users Say
         </h2>
 
@@ -103,22 +107,22 @@ export function HomepageTestimonials() {
             key={currentIndex}
             className="relative p-8 sm:p-12 rounded-2xl transition-all duration-500 hover:scale-105"
             style={{
-              background: 'rgba(255, 255, 255, 0.05)',
+              background: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)',
               backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+              border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
+              boxShadow: theme === 'dark' ? '0 20px 40px rgba(0, 0, 0, 0.3)' : '0 20px 40px rgba(0, 0, 0, 0.1)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.boxShadow = '0 25px 50px rgba(16, 185, 129, 0.3)';
               e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.5)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.3)';
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.boxShadow = theme === 'dark' ? '0 20px 40px rgba(0, 0, 0, 0.3)' : '0 20px 40px rgba(0, 0, 0, 0.1)';
+              e.currentTarget.style.borderColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
             }}
           >
             {/* Quote */}
-            <p className="text-white/90 text-lg sm:text-xl italic mb-8 leading-relaxed">
+            <p className={`text-lg sm:text-xl italic mb-8 leading-relaxed ${theme === 'dark' ? 'text-white/90' : 'text-slate-800'}`}>
               &ldquo;{currentTestimonial.quote}&rdquo;
             </p>
 
@@ -137,8 +141,8 @@ export function HomepageTestimonials() {
 
               {/* Name & Role */}
               <div className="flex-1">
-                <h4 className="text-white font-semibold text-lg mb-1">{currentTestimonial.name}</h4>
-                <p className="text-white/60 text-sm">{currentTestimonial.role}</p>
+                <h4 className={`font-semibold text-lg mb-1 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{currentTestimonial.name}</h4>
+                <p className={`text-sm ${theme === 'dark' ? 'text-white/60' : 'text-slate-600'}`}>{currentTestimonial.role}</p>
               </div>
 
               {/* Star Rating */}
@@ -165,13 +169,13 @@ export function HomepageTestimonials() {
             onClick={goToPrevious}
             className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 sm:-translate-x-12 w-12 h-12 rounded-full items-center justify-center transition-all duration-300 hover:scale-110"
             style={{
-              background: 'rgba(255, 255, 255, 0.1)',
+              background: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.9)',
               backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.1)',
             }}
             aria-label="Previous testimonial"
           >
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-6 h-6 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
@@ -180,13 +184,13 @@ export function HomepageTestimonials() {
             onClick={goToNext}
             className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 sm:translate-x-12 w-12 h-12 rounded-full items-center justify-center transition-all duration-300 hover:scale-110"
             style={{
-              background: 'rgba(255, 255, 255, 0.1)',
+              background: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.9)',
               backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.1)',
             }}
             aria-label="Next testimonial"
           >
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-6 h-6 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>

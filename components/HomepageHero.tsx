@@ -3,9 +3,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTheme } from '@/lib/contexts/ThemeContext';
 
 export function HomepageHero() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [isVisible, setIsVisible] = useState(true); // Start visible for instant display
   const [currentFeature, setCurrentFeature] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -62,10 +64,12 @@ export function HomepageHero() {
   return (
     <section
       ref={heroRef}
-      className="homepage-hero relative flex items-center justify-center overflow-hidden"
+      className="homepage-hero relative flex items-center justify-center overflow-hidden transition-colors duration-300"
       style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
+        background: theme === 'dark'
+          ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)'
+          : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%)',
         backgroundSize: '200% 200%',
         animation: 'gradientShift 15s ease infinite',
       }}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useTheme } from '@/lib/contexts/ThemeContext';
 
 interface Feature {
   icon: string;
@@ -27,6 +28,7 @@ const features: Feature[] = [
 ];
 
 export function HomepageFeatures() {
+  const { theme } = useTheme();
   const [visibleCards, setVisibleCards] = useState<boolean[]>([]);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -71,12 +73,14 @@ export function HomepageFeatures() {
       ref={sectionRef}
       className="py-20 sm:py-24 lg:py-32 relative"
       style={{
-        background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)',
+        background: theme === 'dark'
+          ? 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)'
+          : 'linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%)',
       }}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Title */}
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-white text-center mb-16 scroll-fade-in visible">
+        <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-center mb-16 scroll-fade-in visible ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
           Why Choose Rizq Trackr?
         </h2>
 
@@ -90,9 +94,9 @@ export function HomepageFeatures() {
                 visibleCards[index] ? 'visible' : ''
               }`}
               style={{
-                background: 'rgba(255, 255, 255, 0.05)',
+                background: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)',
                 backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
                 transitionDelay: `${index * 0.1}s`,
               }}
               onMouseEnter={(e) => {
@@ -103,7 +107,7 @@ export function HomepageFeatures() {
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.borderColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
               }}
             >
               {/* Icon */}
@@ -118,10 +122,10 @@ export function HomepageFeatures() {
               </div>
 
               {/* Title */}
-              <h3 className="text-xl sm:text-2xl font-heading font-bold text-white mb-4">{feature.title}</h3>
+              <h3 className={`text-xl sm:text-2xl font-heading font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{feature.title}</h3>
 
               {/* Description */}
-              <p className="text-white/80 text-sm sm:text-base leading-relaxed">{feature.description}</p>
+              <p className={`text-sm sm:text-base leading-relaxed ${theme === 'dark' ? 'text-white/80' : 'text-slate-700'}`}>{feature.description}</p>
 
               {/* Hover Glow Effect */}
               <div

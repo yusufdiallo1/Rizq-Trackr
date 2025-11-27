@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { useTheme } from '@/lib/contexts/ThemeContext';
 
 export function HomepageCTA() {
+  const { theme } = useTheme();
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -37,7 +39,9 @@ export function HomepageCTA() {
       ref={sectionRef}
       className="py-20 sm:py-24 lg:py-32 relative overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
+        background: theme === 'dark'
+          ? 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)'
+          : 'linear-gradient(180deg, #e2e8f0 0%, #f8fafc 100%)',
       }}
     >
       {/* Floating Icons */}
@@ -72,14 +76,16 @@ export function HomepageCTA() {
           <div
             className="relative p-8 sm:p-12 rounded-3xl"
             style={{
-              background: 'rgba(255, 255, 255, 0.05)',
+              background: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)',
               backdropFilter: 'blur(30px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(16, 185, 129, 0.2)',
+              border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
+              boxShadow: theme === 'dark'
+                ? '0 25px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(16, 185, 129, 0.2)'
+                : '0 25px 50px rgba(0, 0, 0, 0.15), 0 0 40px rgba(16, 185, 129, 0.2)',
             }}
           >
             {/* Title */}
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-white mb-6">
+            <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-heading font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
               Ready to Transform Your{' '}
               <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
                 Finances?
@@ -87,7 +93,7 @@ export function HomepageCTA() {
             </h2>
 
             {/* Subtitle */}
-            <p className="text-white/80 text-lg sm:text-xl mb-8 max-w-2xl mx-auto">
+            <p className={`text-lg sm:text-xl mb-8 max-w-2xl mx-auto ${theme === 'dark' ? 'text-white/80' : 'text-slate-700'}`}>
               Join thousands of Muslims managing their money wisely with Rizq Trackr
             </p>
 

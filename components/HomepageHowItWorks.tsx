@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useTheme } from '@/lib/contexts/ThemeContext';
 
 interface Step {
   number: number;
@@ -31,6 +32,7 @@ const steps: Step[] = [
 ];
 
 export function HomepageHowItWorks() {
+  const { theme } = useTheme();
   const [visibleSteps, setVisibleSteps] = useState<boolean[]>([]);
   const [lineProgress, setLineProgress] = useState<number[]>([]);
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -90,15 +92,17 @@ export function HomepageHowItWorks() {
       ref={sectionRef}
       className="py-20 sm:py-24 lg:py-32 relative"
       style={{
-        background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
+        background: theme === 'dark'
+          ? 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)'
+          : 'linear-gradient(180deg, #e2e8f0 0%, #f8fafc 100%)',
       }}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Title */}
         <h2
-          className={`text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-white text-center mb-16 scroll-fade-in ${
+          className={`text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-center mb-16 scroll-fade-in ${
             visibleSteps.length > 0 ? 'visible' : ''
-          }`}
+          } ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}
         >
           Get Started in 3 Steps
         </h2>
@@ -170,8 +174,8 @@ export function HomepageHowItWorks() {
                 )}
 
                 {/* Content */}
-                <h3 className="text-xl font-heading font-bold text-white mb-3">{step.title}</h3>
-                <p className="text-white/80 text-sm leading-relaxed max-w-xs">{step.description}</p>
+                <h3 className={`text-xl font-heading font-bold mb-3 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{step.title}</h3>
+                <p className={`text-sm leading-relaxed max-w-xs ${theme === 'dark' ? 'text-white/80' : 'text-slate-700'}`}>{step.description}</p>
               </div>
             ))}
           </div>
@@ -233,8 +237,8 @@ export function HomepageHowItWorks() {
 
               {/* Content */}
               <div className="flex-1 pt-2">
-                <h3 className="text-lg font-heading font-bold text-white mb-2">{step.title}</h3>
-                <p className="text-white/80 text-sm leading-relaxed">{step.description}</p>
+                <h3 className={`text-lg font-heading font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{step.title}</h3>
+                <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-white/80' : 'text-slate-700'}`}>{step.description}</p>
               </div>
             </div>
           ))}
