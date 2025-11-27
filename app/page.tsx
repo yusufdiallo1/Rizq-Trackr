@@ -22,13 +22,48 @@ export default function Home() {
   const { theme } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [showDashboardButton, setShowDashboardButton] = useState(false);
-  const supabase = createClientComponentClient<Database>();
+  const [supabaseInitialized, setSupabaseInitialized] = useState(false);
 
   useEffect(() => {
     let mounted = true;
+    let subscription: { unsubscribe: () => void } | null = null;
+
+    // Initialize Supabase client with error handling
+    const initializeSupabase = () => {
+      try {
+        // Check if environment variables are available
+        if (typeof window === 'undefined') return null;
+        
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        
+        if (!supabaseUrl || !supabaseKey) {
+          console.warn('Supabase environment variables not configured');
+          return null;
+        }
+
+        const supabase = createClientComponentClient<Database>();
+        setSupabaseInitialized(true);
+        return supabase;
+      } catch (error) {
+        console.error('Failed to initialize Supabase client:', error);
+        return null;
+      }
+    };
+
+    const supabase = initializeSupabase();
 
     // Initial auth check - show page immediately, check in background
     const checkAuth = async () => {
+      if (!supabase) {
+        // Supabase not available - page can still render
+        if (mounted) {
+          setUser(null);
+          setShowDashboardButton(false);
+        }
+        return;
+      }
+
       try {
         const authenticated = await isAuthenticated();
         if (!mounted) return;
@@ -36,28 +71,28 @@ export default function Home() {
         if (authenticated) {
           const currentUser = await getCurrentUser();
           if (mounted) {
-            setUser(currentUser);
-            // Only check sessionStorage AFTER confirming user is authenticated
-            if (typeof window !== 'undefined') {
-              const shouldShow = sessionStorage.getItem('showDashboardButton') === 'true';
-              if (shouldShow) {
-                setShowDashboardButton(true);
-                // Clear the flag after using it
-                sessionStorage.removeItem('showDashboardButton');
-              }
+          setUser(currentUser);
+          // Only check sessionStorage AFTER confirming user is authenticated
+          if (typeof window !== 'undefined') {
+            const shouldShow = sessionStorage.getItem('showDashboardButton') === 'true';
+            if (shouldShow) {
+              setShowDashboardButton(true);
+              // Clear the flag after using it
+              sessionStorage.removeItem('showDashboardButton');
             }
+          }
           }
         } else {
           if (mounted) {
-            setUser(null); // Clear user if not authenticated
-            setShowDashboardButton(false); // Hide button if not authenticated
+          setUser(null); // Clear user if not authenticated
+          setShowDashboardButton(false); // Hide button if not authenticated
           }
         }
       } catch (error) {
         // Silently fail - user can still view homepage
         if (mounted) {
-          setUser(null);
-          setShowDashboardButton(false);
+        setUser(null);
+        setShowDashboardButton(false);
         }
       }
     };
@@ -66,35 +101,51 @@ export default function Home() {
     checkAuth();
 
     // Listen for auth state changes (login/logout) - only on actual auth events
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-      
-      // Only update state on actual auth events, not on every state change
-      if (event === 'SIGNED_IN' && session) {
-        const currentUser = await getCurrentUser();
-        if (mounted) {
-        setUser(currentUser);
-        }
-      } else if (event === 'SIGNED_OUT') {
-        if (mounted) {
-        setUser(null); // Clear user on logout
-        setShowDashboardButton(false); // Hide button on logout
-        }
-      } else if (event === 'TOKEN_REFRESHED' && session) {
-        // Don't update user on token refresh - it's the same user
-        // This prevents unnecessary re-renders
+    if (supabase) {
+      try {
+        const {
+          data: { subscription: authSubscription },
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
+          if (!mounted) return;
+          
+          // Only update state on actual auth events, not on every state change
+          if (event === 'SIGNED_IN' && session) {
+            try {
+              const currentUser = await getCurrentUser();
+              if (mounted) {
+              setUser(currentUser);
+              }
+            } catch (error) {
+              // Silently fail
+            }
+          } else if (event === 'SIGNED_OUT') {
+            if (mounted) {
+            setUser(null); // Clear user on logout
+            setShowDashboardButton(false); // Hide button on logout
+            }
+          } else if (event === 'TOKEN_REFRESHED' && session) {
+            // Don't update user on token refresh - it's the same user
+            // This prevents unnecessary re-renders
+          }
+          // Don't clear user on other events - let the initial check handle it
+        });
+        subscription = authSubscription;
+      } catch (error) {
+        // Supabase auth listener failed - page can still render
+        console.error('Failed to set up auth state listener:', error);
       }
-      // Don't clear user on other events - let the initial check handle it
-    });
+    }
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, []); // Empty deps - only run once on mount
 
+  // Always render the page, even if Supabase isn't initialized
+  // This prevents blank pages
   return (
     <main
       className="min-h-screen transition-colors duration-300"
