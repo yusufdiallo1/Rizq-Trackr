@@ -26,39 +26,38 @@ export default function Home() {
 
   useEffect(() => {
     let mounted = true;
-    
-    // Check if user came from "Back to Home" link (stored in sessionStorage)
-    if (typeof window !== 'undefined') {
-      const shouldShow = sessionStorage.getItem('showDashboardButton') === 'true';
-      if (shouldShow) {
-        setShowDashboardButton(true);
-        // Clear the flag after using it
-        sessionStorage.removeItem('showDashboardButton');
-      }
-    }
-    
+
     // Initial auth check - show page immediately, check in background
     const checkAuth = async () => {
       try {
         const authenticated = await isAuthenticated();
         if (!mounted) return;
-        
+
         if (authenticated) {
           const currentUser = await getCurrentUser();
           if (mounted) {
-          setUser(currentUser);
+            setUser(currentUser);
+            // Only check sessionStorage AFTER confirming user is authenticated
+            if (typeof window !== 'undefined') {
+              const shouldShow = sessionStorage.getItem('showDashboardButton') === 'true';
+              if (shouldShow) {
+                setShowDashboardButton(true);
+                // Clear the flag after using it
+                sessionStorage.removeItem('showDashboardButton');
+              }
+            }
           }
         } else {
           if (mounted) {
-          setUser(null); // Clear user if not authenticated
-          setShowDashboardButton(false); // Hide button if not authenticated
+            setUser(null); // Clear user if not authenticated
+            setShowDashboardButton(false); // Hide button if not authenticated
           }
         }
       } catch (error) {
         // Silently fail - user can still view homepage
         if (mounted) {
-        setUser(null);
-        setShowDashboardButton(false);
+          setUser(null);
+          setShowDashboardButton(false);
         }
       }
     };
