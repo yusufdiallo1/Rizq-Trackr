@@ -150,14 +150,14 @@ export default function PrivacyPolicyPage() {
                       </p>
                     </div>
                   </div>
-                  <div 
+                  <div
                     className="mt-6 p-4 rounded-xl backdrop-blur-md border"
                     style={{
-                      background: theme === 'dark' 
-                        ? 'rgba(16, 185, 129, 0.1)' 
+                      background: theme === 'dark'
+                        ? 'rgba(16, 185, 129, 0.1)'
                         : 'rgba(16, 185, 129, 0.08)',
-                      border: theme === 'dark' 
-                        ? '1px solid rgba(16, 185, 129, 0.2)' 
+                      border: theme === 'dark'
+                        ? '1px solid rgba(16, 185, 129, 0.2)'
                         : '1px solid rgba(16, 185, 129, 0.15)',
                     }}
                   >
@@ -166,7 +166,6 @@ export default function PrivacyPolicyPage() {
                     </p>
                   </div>
                 </div>
-              </div>
 
             {/* Introduction */}
               <section id="introduction" className="scroll-mt-24">
@@ -522,7 +521,9 @@ export default function PrivacyPolicyPage() {
               </section>
             </div>
           </div>
+        </div>
       </div>
+    </div>
     </div>
   );
 }
