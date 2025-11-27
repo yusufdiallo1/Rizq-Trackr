@@ -158,7 +158,7 @@ Finance Tracker/
 
 ### Prerequisites
 
-- **Node.js** 18.0 or higher
+- **Node.js** 18.0 or higher.
 - **npm** or **yarn** package manager
 - **Supabase account** and project
 - **Git** (for cloning)
