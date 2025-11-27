@@ -26,6 +26,7 @@ import {
 } from '@/lib/precious-metals-notifications';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { getCurrentUser, User } from '@/lib/auth';
+import { logError } from '@/lib/logger';
 import {
   shimmerVariants,
   rippleVariants,
