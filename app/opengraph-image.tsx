@@ -25,35 +25,77 @@ export default async function Image() {
           position: 'relative',
         }}
       >
-        {/* Logo/Icon */}
+        {/* Logo - Full SVG Recreation */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 40,
+            position: 'relative',
           }}
         >
+          {/* Outer gold circle */}
           <div
             style={{
-              width: 200,
-              height: 200,
+              width: 240,
+              height: 240,
               borderRadius: '50%',
               background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: '8px solid #0891b2',
+              border: '4px solid #d97706',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
             }}
           >
+            {/* Inner gradient circle */}
             <div
               style={{
-                fontSize: 100,
-                fontWeight: 'bold',
-                color: '#1e3a8a',
+                width: 210,
+                height: 210,
+                borderRadius: '50%',
+                background: 'linear-gradient(180deg, #0891b2 0%, #1e3a8a 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
               }}
             >
-              R
+              {/* Chart bars */}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', marginTop: 20 }}>
+                <div style={{ width: 16, height: 30, background: '#1e3a8a', borderRadius: 4 }} />
+                <div style={{ width: 16, height: 40, background: '#3b82f6', borderRadius: 4 }} />
+                <div style={{ width: 16, height: 60, background: '#10b981', borderRadius: 4 }} />
+              </div>
+
+              {/* Crescent moon (bottom-left) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 30,
+                  left: 15,
+                  width: 25,
+                  height: 35,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                  boxShadow: 'inset 8px 0px 0px #0891b2',
+                }}
+              />
+
+              {/* Star (bottom-right) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 25,
+                  right: 25,
+                  fontSize: 28,
+                  color: '#fbbf24',
+                  textShadow: '0 2px 8px rgba(251, 191, 36, 0.6)',
+                }}
+              >
+                ✦
+              </div>
             </div>
           </div>
         </div>

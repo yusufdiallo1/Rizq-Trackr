@@ -65,13 +65,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/icon.svg', sizes: 'any' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/logo.svg', sizes: 'any' },
+      { url: '/logo.svg', type: 'image/svg+xml' },
     ],
     apple: [
-      { url: '/icon.svg', sizes: '180x180' },
+      { url: '/logo.svg', sizes: '180x180' },
     ],
-    shortcut: '/icon.svg',
+    shortcut: '/logo.svg',
   },
   verification: {
     google: 'NOXx0Bcdcbro2-S6Tioxt1HMwszoVG4DPCzx4oR-4lY',
@@ -122,7 +122,7 @@ export default function RootLayout({
                 "ratingValue": "5",
                 "ratingCount": "1"
               },
-              "logo": "https://rizqtrackr.com/icon.svg",
+              "logo": "https://rizqtrackr.com/logo.svg",
               "image": "https://rizqtrackr.com/opengraph-image",
               "screenshot": "https://rizqtrackr.com/opengraph-image",
               "featureList": [
