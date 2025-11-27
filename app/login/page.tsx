@@ -8,6 +8,7 @@ import { isPasswordLocked, getPasswordLockoutRemainingSeconds, recordFailedPassw
 import { AuthLayout } from '@/components/layout';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { AuthErrorBoundary } from '@/components/AuthErrorBoundary';
+import { GoogleSignInButton } from '@/components/GoogleSignInButton';
 
 function LoginPageContent() {
   const router = useRouter();
@@ -357,7 +358,17 @@ function LoginPageContent() {
             )}
           </button>
 
-          <div className="text-center">
+          {/* Divider */}
+          <div className="relative flex items-center justify-center my-6">
+            <div className="border-t border-white/20 flex-grow"></div>
+            <span className="px-4 text-white/60 text-sm">or</span>
+            <div className="border-t border-white/20 flex-grow"></div>
+          </div>
+
+          {/* Google Sign In */}
+          <GoogleSignInButton mode="signin" theme="dark" />
+
+          <div className="text-center mt-6">
             <p className="text-sm text-white/80">
               Don&apos;t have an account?{' '}
               <Link href="/signup" className="text-emerald-400 hover:text-emerald-300 font-bold transition-colors">

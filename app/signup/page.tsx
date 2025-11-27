@@ -8,6 +8,7 @@ import { AuthLayout } from '@/components/layout';
 import { countryCities, countryNames } from '@/lib/utils/countries';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { AuthErrorBoundary } from '@/components/AuthErrorBoundary';
+import { GoogleSignInButton } from '@/components/GoogleSignInButton';
 
 // Glass Input Component - moved outside to prevent re-creation on each render
 const GlassInput = ({ 
@@ -442,8 +443,11 @@ function SignUpPageContent() {
             </div>
           </div>
 
+          {/* Google Sign Up */}
+          <GoogleSignInButton mode="signup" theme="dark" />
+
           {/* Sign In Link */}
-          <div className="text-center">
+          <div className="text-center mt-6">
             <p className="text-sm text-white/80">
               Already have an account?{' '}
               <Link
