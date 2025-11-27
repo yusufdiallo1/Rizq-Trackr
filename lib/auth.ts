@@ -1,7 +1,9 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 
-const supabase = createClientComponentClient<Database>();
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 export interface AuthResponse {
   error: string | null;
@@ -32,6 +34,7 @@ export async function signUp(
   }
 ): Promise<AuthResponse> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -70,6 +73,7 @@ export async function signUp(
 // Sign in existing user
 export async function signIn(email: string, password: string): Promise<AuthResponse> {
   try {
+    const supabase = getSupabaseClient();
     // No timeout - let it complete naturally
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -99,6 +103,7 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
 // Sign out current user
 export async function signOut(): Promise<AuthResponse> {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase.auth.signOut();
 
     if (error) {
@@ -114,6 +119,7 @@ export async function signOut(): Promise<AuthResponse> {
 // Change password for authenticated user
 export async function changePassword(currentPassword: string, newPassword: string): Promise<AuthResponse> {
   try {
+    const supabase = getSupabaseClient();
     // First verify the current password by attempting to sign in
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user?.email) {
@@ -148,6 +154,7 @@ export async function changePassword(currentPassword: string, newPassword: strin
 // Delete user account
 export async function deleteAccount(): Promise<AuthResponse> {
   try {
+    const supabase = getSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
       return { error: 'No active session found. Please sign in again.', success: false };
@@ -172,6 +179,7 @@ export async function deleteAccount(): Promise<AuthResponse> {
 // Reset password - send email
 export async function resetPassword(email: string): Promise<AuthResponse> {
   try {
+    const supabase = getSupabaseClient();
     const redirectUrl = typeof window !== 'undefined'
       ? `${window.location.origin}/auth/reset-password`
       : '/auth/reset-password';
@@ -204,6 +212,7 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
 // Get current user - FAST version with minimal wait
 export async function getCurrentUser(): Promise<User | null> {
   try {
+    const supabase = getSupabaseClient();
     // ONLY use getSession - it's instant and doesn't make network calls
     // getUser() makes network calls which can be slow
     const { data: { session } } = await supabase.auth.getSession();
@@ -231,6 +240,7 @@ export async function getCurrentUser(): Promise<User | null> {
 // Check if user is authenticated
 export async function isAuthenticated(): Promise<boolean> {
   try {
+    const supabase = getSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
     return !!session;
   } catch (err) {

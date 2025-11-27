@@ -9,7 +9,9 @@ import { ExpenseEntry } from './expenses';
 import { IncomeEntry } from './income';
 import { formatHijriDate, getHijriMonthName } from './hijri-calendar';
 
-const supabase = createClientComponentClient<Database>();
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 export interface ReportFilters {
   startDate?: string;
@@ -46,6 +48,7 @@ export async function generateReportData(
   filters: ReportFilters
 ): Promise<{ data: ReportData | null; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     let incomeQuery = supabase
       .from('income_entries')
       .select('*')

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateNisab, fetchMetalPrices } from '@/lib/nisab-api';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/database';
 
-const supabase = createClientComponentClient<Database>();
+// Mark this route as dynamic to prevent build-time execution
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 // Supported currencies
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'PKR', 'INR', 'MYR', 'IDR'];
@@ -18,6 +20,19 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'SAR', 'EGP', 'PKR', 'INR', 'MYR
  */
 export async function GET(request: NextRequest) {
   try {
+    // Create Supabase client inside the function to avoid build-time execution
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { error: 'Supabase configuration missing' },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+
     // Optional: Add authentication/authorization check for cron jobs
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;

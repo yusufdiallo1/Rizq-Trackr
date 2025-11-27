@@ -1,7 +1,9 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 
-const supabase = createClientComponentClient<Database>();
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 export type Budget = Database['public']['Tables']['budgets']['Row'];
 export type BudgetInsert = Database['public']['Tables']['budgets']['Insert'];
@@ -13,6 +15,7 @@ export async function createBudget(
   data: Omit<BudgetInsert, 'user_id' | 'id' | 'created_at' | 'updated_at'>
 ): Promise<{ data: Budget | null; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { data: budget, error } = await supabase
       .from('budgets')
       .insert({
@@ -47,6 +50,7 @@ export async function getBudgets(
   activeOnly?: boolean
 ): Promise<{ data: Budget[]; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from('budgets')
       .select('*')
@@ -77,6 +81,7 @@ export async function updateBudget(
   data: Partial<Omit<BudgetUpdate, 'user_id' | 'id' | 'created_at' | 'updated_at'>>
 ): Promise<{ data: Budget | null; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { data: budget, error } = await supabase
       .from('budgets')
       .update({
@@ -106,6 +111,7 @@ export async function deleteBudget(
   userId: string
 ): Promise<{ success: boolean; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('budgets')
       .delete()

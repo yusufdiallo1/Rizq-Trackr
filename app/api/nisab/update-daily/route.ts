@@ -7,6 +7,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateTodayNisabPrices } from '@/lib/nisab-prices-service';
 
+// Mark this route as dynamic to prevent build-time execution
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(request: NextRequest) {
   try {
     // Optional: Add authentication/authorization check here

@@ -1,7 +1,9 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 
-const supabase = createClientComponentClient<Database>();
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 export interface DashboardData {
   currentMonthIncome: number;
@@ -48,6 +50,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
   };
 
   try {
+    const supabase = getSupabaseClient();
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
     const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
@@ -116,6 +119,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
 // Get all income entries for a user - with limit for performance
 export async function getIncomeEntries(userId: string, limit?: number): Promise<IncomeEntry[]> {
   try {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from('income_entries')
       .select('*')
@@ -142,6 +146,7 @@ export async function getIncomeEntries(userId: string, limit?: number): Promise<
 // Get all expense entries for a user - with limit for performance
 export async function getExpenseEntries(userId: string, limit?: number): Promise<ExpenseEntry[]> {
   try {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from('expense_entries')
       .select('*')
@@ -168,6 +173,7 @@ export async function getExpenseEntries(userId: string, limit?: number): Promise
 // Get all zakat payments for a user
 export async function getZakatPayments(userId: string): Promise<ZakatPayment[]> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('zakat_payments')
       .select('*')
@@ -186,11 +192,12 @@ export async function getZakatPayments(userId: string): Promise<ZakatPayment[]> 
 // Get last 6 months income and expenses for chart - OPTIMIZED: Single query instead of 12
 export async function getLast6MonthsData(userId: string) {
   try {
+    const supabase = getSupabaseClient();
     const now = new Date();
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
     const firstDay = sixMonthsAgo.toISOString().split('T')[0];
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-      
+
     // Fetch all data in 2 queries instead of 12 - with limits for performance
     const [incomeResult, expenseResult] = await Promise.all([
       supabase
@@ -253,6 +260,7 @@ export async function getLast6MonthsData(userId: string) {
 // Get expense breakdown by category
 export async function getExpenseBreakdown(userId: string) {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('expense_entries')
       .select('amount, category')
@@ -285,6 +293,7 @@ export async function getExpenseBreakdown(userId: string) {
 // Get recent transactions (last 5 income + expenses + zakat payments combined)
 export async function getRecentTransactions(userId: string, limit: number = 5) {
   try {
+    const supabase = getSupabaseClient();
     const [incomeData, expenseData, zakatData] = await Promise.all([
       supabase
         .from('income_entries')
@@ -361,6 +370,7 @@ export async function getRecentTransactions(userId: string, limit: number = 5) {
 // Get previous month data for comparison
 export async function getPreviousMonthData(userId: string) {
   try {
+    const supabase = getSupabaseClient();
     const now = new Date();
     const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const firstDay = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1).toISOString().split('T')[0];
@@ -394,6 +404,7 @@ export async function getPreviousMonthData(userId: string) {
 // Get total income for a user
 export async function getTotalIncome(userId: string): Promise<number> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('income_entries')
       .select('amount')
@@ -411,6 +422,7 @@ export async function getTotalIncome(userId: string): Promise<number> {
 // Get total expenses for a user
 export async function getTotalExpenses(userId: string): Promise<number> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('expense_entries')
       .select('amount')

@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createBackup } from '@/lib/backup';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/database';
 
 // Mark this route as dynamic to prevent build-time execution
@@ -15,7 +15,17 @@ export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   // Create Supabase client inside the function to avoid build-time execution
-  const supabase = createClientComponentClient<Database>();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return NextResponse.json(
+      { error: 'Supabase configuration missing' },
+      { status: 500 }
+    );
+  }
+
+  const supabase = createClient<Database>(supabaseUrl, supabaseKey);
 
   try {
     // Optional: Add authentication/authorization check

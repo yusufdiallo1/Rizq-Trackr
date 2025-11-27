@@ -1,7 +1,9 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 
-const supabase = createClientComponentClient<Database>();
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 /**
  * Upload a file to Supabase Storage
@@ -16,6 +18,7 @@ export async function uploadFile(
   folder: string = 'receipts'
 ): Promise<{ url: string | null; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}/${folder}/${Date.now()}.${fileExt}`;
 
@@ -52,6 +55,7 @@ export async function deleteFile(
   fileUrl: string
 ): Promise<{ success: boolean; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     // Extract file path from URL
     const url = new URL(fileUrl);
     const pathParts = url.pathname.split('/');
@@ -95,6 +99,7 @@ export async function createAttachment(
   mimeType?: string
 ): Promise<{ data: any | null; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('attachments')
       .insert({

@@ -1,7 +1,9 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 
-const supabase = createClientComponentClient<Database>();
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 export type Account = Database['public']['Tables']['accounts']['Row'];
 export type AccountInsert = Database['public']['Tables']['accounts']['Insert'];
@@ -13,6 +15,7 @@ export async function createAccount(
   data: Omit<AccountInsert, 'user_id' | 'id' | 'created_at' | 'updated_at'>
 ): Promise<{ data: Account | null; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { data: account, error } = await supabase
       .from('accounts')
       .insert({
@@ -47,6 +50,7 @@ export async function getAccounts(
   activeOnly?: boolean
 ): Promise<{ data: Account[]; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from('accounts')
       .select('*')
@@ -77,6 +81,7 @@ export async function updateAccount(
   data: Partial<Omit<AccountUpdate, 'user_id' | 'id' | 'created_at' | 'updated_at'>>
 ): Promise<{ data: Account | null; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { data: account, error } = await supabase
       .from('accounts')
       .update({
@@ -106,6 +111,7 @@ export async function deleteAccount(
   userId: string
 ): Promise<{ success: boolean; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('accounts')
       .delete()

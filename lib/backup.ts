@@ -10,7 +10,9 @@ import { ExpenseEntry } from './expenses';
 import { IncomeEntry } from './income';
 import { ZakatPaymentRecord } from './zakat';
 
-const supabase = createClientComponentClient<Database>();
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 export interface BackupData {
   userId: string;
@@ -39,6 +41,7 @@ export async function createBackup(userId: string): Promise<{
   backupId: string | null;
 }> {
   try {
+    const supabase = getSupabaseClient();
     // Fetch all user data
     const [incomeResult, expenseResult, zakatResult, savingsResult] = await Promise.all([
       supabase
@@ -142,6 +145,7 @@ export async function restoreBackup(
   error: string | null;
 }> {
   try {
+    const supabase = getSupabaseClient();
     // Download backup from storage
     const fileName = `${userId}/backups/${backupId}.json`;
     const { data: downloadData, error: downloadError } = await supabase.storage
@@ -268,6 +272,7 @@ export async function listBackups(userId: string): Promise<{
   error: string | null;
 }> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase.storage
       .from('backups')
       .list(`${userId}/backups/`, {
@@ -309,6 +314,7 @@ export async function deleteBackup(
   error: string | null;
 }> {
   try {
+    const supabase = getSupabaseClient();
     const fileName = `${userId}/backups/${backupId}.json`;
     const { error } = await supabase.storage.from('backups').remove([fileName]);
 

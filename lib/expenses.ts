@@ -5,7 +5,9 @@ import { createSpendingLimitNotification, hasNotifiedToday, markLimitNotified } 
 import { gregorianToHijri } from './hijri-calendar';
 import { getCurrentTimeWithTimezone } from './hijri-calendar';
 
-const supabase = createClientComponentClient<Database>();
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 export type ExpenseEntry = Database['public']['Tables']['expense_entries']['Row'];
 export type ExpenseInsert = Database['public']['Tables']['expense_entries']['Insert'];
@@ -23,13 +25,14 @@ export async function createExpense(
   data: Omit<ExpenseInsert, 'user_id' | 'id' | 'created_at'>
 ): Promise<{ data: ExpenseEntry | null; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     // Convert date to Date object if it's a string
     const dateObj = typeof data.date === 'string' ? new Date(data.date) : data.date;
-    
+
     // Get Hijri date
     const hijriDate = gregorianToHijri(dateObj);
     const dateHijriString = `${hijriDate.year}-${String(hijriDate.month).padStart(2, '0')}-${String(hijriDate.day).padStart(2, '0')}`;
-    
+
     // Get current time and timezone
     const { time, timezone } = getCurrentTimeWithTimezone();
 
@@ -93,6 +96,7 @@ export async function getExpenseEntries(
   filters?: ExpenseFilters
 ): Promise<{ data: ExpenseEntry[]; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from('expense_entries')
       .select('*')
@@ -132,6 +136,7 @@ export async function updateExpense(
   data: Partial<Omit<ExpenseInsert, 'user_id' | 'id' | 'created_at'>>
 ): Promise<{ data: ExpenseEntry | null; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { data: expense, error } = await supabase
       .from('expense_entries')
       .update(data)
@@ -180,6 +185,7 @@ export async function deleteExpense(
   userId: string
 ): Promise<{ success: boolean; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('expense_entries')
       .update({ deleted_at: new Date().toISOString() })
@@ -204,6 +210,7 @@ export async function restoreExpense(
   userId: string
 ): Promise<{ success: boolean; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('expense_entries')
       .update({ deleted_at: null })

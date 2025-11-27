@@ -3,7 +3,9 @@ import { Database } from '@/types/database';
 import { fetchMetalPrices, calculateNisab, getNisabThreshold as getNisabFromAPI, convertNisabToCurrency } from './nisab-api';
 import { hijriToGregorian, gregorianToHijri, getCurrentTimeWithTimezone } from './hijri-calendar';
 
-const supabase = createClientComponentClient<Database>();
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 export interface ZakatableIncome {
   id: string;
@@ -46,6 +48,7 @@ export interface ZakatYearlyComparison {
 // Get current Nisab threshold from database or API
 export async function getNisabThreshold(currency: string = 'USD'): Promise<number> {
   try {
+    const supabase = getSupabaseClient();
     // First, try to get today's price from database
     const today = new Date().toISOString().split('T')[0];
     const { data, error } = await supabase
@@ -80,6 +83,7 @@ export async function getNisabThreshold(currency: string = 'USD'): Promise<numbe
 // Store Nisab price in database
 async function storeNisabPrice(nisab: { goldBased: number; silverBased: number; date: string }, currency: string): Promise<void> {
   try {
+    const supabase = getSupabaseClient();
     const prices = await fetchMetalPrices(currency);
     const { error } = await supabase
       .from('nisab_prices')
@@ -105,6 +109,7 @@ async function storeNisabPrice(nisab: { goldBased: number; silverBased: number; 
 // Get all income entries where is_zakatable = true
 export async function getZakatableIncome(userId: string): Promise<ZakatableIncome[]> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('income_entries')
       .select('id, amount, category, date, notes, is_zakatable')
@@ -124,6 +129,7 @@ export async function getZakatableIncome(userId: string): Promise<ZakatableIncom
 // Get all income entries (for toggling zakatable status)
 export async function getAllIncome(userId: string): Promise<ZakatableIncome[]> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('income_entries')
       .select('id, amount, category, date, notes, is_zakatable')
@@ -146,6 +152,7 @@ export async function toggleIncomeZakatable(
   isZakatable: boolean
 ): Promise<{ success: boolean; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('income_entries')
       .update({ is_zakatable: isZakatable })
@@ -164,6 +171,7 @@ export async function toggleIncomeZakatable(
 // Calculate total savings (income - expenses - zakat paid)
 export async function calculateCurrentSavings(userId: string): Promise<number> {
   try {
+    const supabase = getSupabaseClient();
     // Fetch all data in parallel for speed
     const [incomeResult, expenseResult, zakatResult] = await Promise.all([
       supabase.from('income_entries').select('amount').eq('user_id', userId),
@@ -258,6 +266,7 @@ export async function recordZakatPayment(
   }
 ): Promise<{ success: boolean; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     // Convert date string to Date object for Hijri conversion
     const dateObj = new Date(paidDate);
 
@@ -297,6 +306,7 @@ export async function recordZakatPayment(
 // Get zakat payment history with Hijri dates
 export async function getZakatHistory(userId: string): Promise<ZakatPaymentRecord[]> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('zakat_payments')
       .select('*')
@@ -326,6 +336,7 @@ export async function getZakatHistory(userId: string): Promise<ZakatPaymentRecor
 // Get yearly comparison data (Nisab vs savings over years)
 export async function getZakatYearlyComparison(userId: string, currency: string = 'USD'): Promise<ZakatYearlyComparison[]> {
   try {
+    const supabase = getSupabaseClient();
     // Get payment history grouped by year
     const history = await getZakatHistory(userId);
     
@@ -419,6 +430,7 @@ export async function calculateSavingsOverHijriYear(
   zakatDateHijri?: { year: number; month: number; day: number }
 ): Promise<number> {
   try {
+    const supabase = getSupabaseClient();
     // If no Zakat date provided, use current date minus 1 Hijri year
     let startHijri: { year: number; month: number; day: number };
     let endHijri: { year: number; month: number; day: number };
@@ -478,6 +490,7 @@ export async function calculateSavingsOverHijriYear(
 // Get user's Zakat date from database
 export async function getUserZakatDate(userId: string): Promise<{ year: number; month: number; day: number } | null> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('users')
       .select('zakat_date_hijri')
@@ -502,6 +515,7 @@ export async function setUserZakatDate(
   hijriDate: { year: number; month: number; day: number }
 ): Promise<{ success: boolean; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const dateString = `${hijriDate.year}-${String(hijriDate.month).padStart(2, '0')}-${String(hijriDate.day).padStart(2, '0')}`;
 
     const { error } = await supabase

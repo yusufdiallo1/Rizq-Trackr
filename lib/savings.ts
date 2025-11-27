@@ -2,7 +2,9 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 import { getTotalIncome, getTotalExpenses } from './database';
 
-const supabase = createClientComponentClient<Database>();
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 export type SavingsGoal = Database['public']['Tables']['savings_goals']['Row'];
 export type SavingsGoalInsert = Database['public']['Tables']['savings_goals']['Insert'];
@@ -63,6 +65,7 @@ export async function getSavingsHistory(
   };
 
   try {
+    const supabase = getSupabaseClient();
     const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - months, 1);
     const startDateStr = startDate.toISOString().split('T')[0];
 
@@ -147,6 +150,7 @@ export async function createSavingsGoal(
   notes?: string
 ): Promise<{ data: SavingsGoal | null; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('savings_goals')
       .insert({
@@ -215,6 +219,7 @@ export async function getSavingsGoals(
   userId: string
 ): Promise<{ data: SavingsGoal[]; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('savings_goals')
       .select('*')
@@ -240,6 +245,7 @@ export async function updateSavingsGoal(
   data: Partial<Omit<SavingsGoalInsert, 'user_id' | 'id' | 'created_at'>>
 ): Promise<{ data: SavingsGoal | null; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { data: goal, error } = await supabase
       .from('savings_goals')
       .update(data)
@@ -266,6 +272,7 @@ export async function deleteSavingsGoal(
   userId: string
 ): Promise<{ success: boolean; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('savings_goals')
       .delete()

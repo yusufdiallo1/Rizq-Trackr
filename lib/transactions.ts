@@ -1,7 +1,9 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 
-const supabase = createClientComponentClient<Database>();
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 export interface Transaction {
   id: string;
@@ -49,6 +51,7 @@ export async function getAllTransactions(
   limit?: number
 ): Promise<{ data: Transaction[]; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     // Fetch income entries - only select needed fields
     let incomeQuery = supabase
       .from('income_entries')
@@ -220,6 +223,7 @@ export async function getTransactionSummary(
   filters?: TransactionFilters
 ): Promise<TransactionSummary> {
   try {
+    const supabase = getSupabaseClient();
     // Use database aggregations instead of fetching all data
     let incomeQuery = supabase
       .from('income_entries')
@@ -289,6 +293,7 @@ export async function getTransactionSummary(
 // Get all unique categories (income + expense)
 export async function getAllCategories(userId: string): Promise<string[]> {
   try {
+    const supabase = getSupabaseClient();
     const [incomeResult, expenseResult] = await Promise.all([
       supabase
         .from('income_entries')

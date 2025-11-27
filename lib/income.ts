@@ -2,7 +2,9 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 import { gregorianToHijri, getCurrentTimeWithTimezone } from './hijri-calendar';
 
-const supabase = createClientComponentClient<Database>();
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 export type IncomeEntry = Database['public']['Tables']['income_entries']['Row'];
 export type IncomeInsert = Database['public']['Tables']['income_entries']['Insert'];
@@ -20,13 +22,14 @@ export async function createIncome(
   data: Omit<IncomeInsert, 'user_id' | 'id' | 'created_at'>
 ): Promise<{ data: IncomeEntry | null; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     // Convert date to Date object if it's a string
     const dateObj = typeof data.date === 'string' ? new Date(data.date) : data.date;
-    
+
     // Get Hijri date
     const hijriDate = gregorianToHijri(dateObj);
     const dateHijriString = `${hijriDate.year}-${String(hijriDate.month).padStart(2, '0')}-${String(hijriDate.day).padStart(2, '0')}`;
-    
+
     // Get current time and timezone
     const { time, timezone } = getCurrentTimeWithTimezone();
 
@@ -69,6 +72,7 @@ export async function getIncomeEntries(
   filters?: IncomeFilters
 ): Promise<{ data: IncomeEntry[]; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from('income_entries')
       .select('*')
@@ -108,6 +112,7 @@ export async function updateIncome(
   data: Partial<Omit<IncomeInsert, 'user_id' | 'id' | 'created_at'>>
 ): Promise<{ data: IncomeEntry | null; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { data: income, error } = await supabase
       .from('income_entries')
       .update(data)
@@ -134,6 +139,7 @@ export async function deleteIncome(
   userId: string
 ): Promise<{ success: boolean; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('income_entries')
       .update({ deleted_at: new Date().toISOString() })
@@ -158,6 +164,7 @@ export async function restoreIncome(
   userId: string
 ): Promise<{ success: boolean; error: string | null }> {
   try {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('income_entries')
       .update({ deleted_at: null })

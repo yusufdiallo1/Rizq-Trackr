@@ -8,7 +8,9 @@ import { Database } from '@/types/database';
 import { getUserZakatDate, calculateZakatEligibility } from './zakat';
 import { hijriToGregorian, gregorianToHijri } from './hijri-calendar';
 
-const supabase = createClientComponentClient<Database>();
+function getSupabaseClient() {
+  return createClientComponentClient<Database>();
+}
 
 export interface ZakatReminder {
   userId: string;
@@ -45,6 +47,7 @@ export async function checkZakatReminders(): Promise<ZakatReminder[]> {
  */
 export async function sendZakatReminder(reminder: ZakatReminder): Promise<{ success: boolean; error?: string }> {
   try {
+    const supabase = getSupabaseClient();
     // Check if we already sent a reminder today
     const today = new Date().toISOString().split('T')[0];
     const { data: existingReminder } = await supabase
