@@ -201,13 +201,14 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
   }
 }
 
-// Get current user with improved timeout handling to prevent redirect loops
+// Get current user - FAST version with minimal wait
 export async function getCurrentUser(): Promise<User | null> {
   try {
-    // First try to get session (faster than getUser)
+    // ONLY use getSession - it's instant and doesn't make network calls
+    // getUser() makes network calls which can be slow
     const { data: { session } } = await supabase.auth.getSession();
-    
-    // If we have a session, get the user from it (no need for getUser call)
+
+    // If we have a session, return user immediately
     if (session?.user) {
       return {
         id: session.user.id,
@@ -218,56 +219,11 @@ export async function getCurrentUser(): Promise<User | null> {
       };
     }
 
-    // If no session, try getUser with a longer timeout (5 seconds)
-    // This handles cases where session might not be immediately available
-    const userPromise = supabase.auth.getUser();
-    const timeoutPromise = new Promise<{ data: { user: null }; error: null }>((resolve) =>
-      setTimeout(() => resolve({ data: { user: null }, error: null }), 5000)
-    );
-
-    const result = await Promise.race([userPromise, timeoutPromise]);
-    
-    // If timeout occurred, check session one more time before giving up
-    if (!result.data?.user) {
-      const { data: { session: retrySession } } = await supabase.auth.getSession();
-      if (retrySession?.user) {
-        return {
-          id: retrySession.user.id,
-          email: retrySession.user.email || '',
-          firstName: retrySession.user.user_metadata?.first_name,
-          lastName: retrySession.user.user_metadata?.last_name,
-          fullName: retrySession.user.user_metadata?.full_name,
-        };
-      }
-      return null;
-    }
-
-    const user = result.data.user;
-    if (!user) return null;
-
-    return {
-      id: user.id,
-      email: user.email || '',
-      firstName: user.user_metadata?.first_name,
-      lastName: user.user_metadata?.last_name,
-      fullName: user.user_metadata?.full_name,
-    };
+    // No session = not logged in
+    // Don't waste time with additional checks
+    return null;
   } catch {
-    // On any error, try one more time with getSession before giving up
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        return {
-          id: session.user.id,
-          email: session.user.email || '',
-          firstName: session.user.user_metadata?.first_name,
-          lastName: session.user.user_metadata?.last_name,
-          fullName: session.user.user_metadata?.full_name,
-        };
-      }
-    } catch {
-      // Final fallback - return null
-    }
+    // On error, just return null - don't retry
     return null;
   }
 }

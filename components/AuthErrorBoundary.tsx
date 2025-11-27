@@ -46,13 +46,8 @@ export class AuthErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log error details for debugging (server-side only, not exposed to user)
-    console.error('Auth Error Boundary caught an error:', {
-      error: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-    });
-
+    // Silently catch errors - don't log to console
+    // ErrorFirewall handles all error suppression
     this.setState({
       error,
       errorInfo,

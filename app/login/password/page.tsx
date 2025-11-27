@@ -73,29 +73,9 @@ function PasswordPageContent() {
         sessionStorage.removeItem('loginEmail');
       }
 
-      // Wait for Supabase to establish the session and verify it's set
-      // Optimized for fast redirects (max 2 seconds)
-      let sessionEstablished = false;
-      let attempts = 0;
-      const maxAttempts = 8; // Reduced for faster login
-
-      while (!sessionEstablished && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 200)); // Faster polling
-
-        // Check if session exists
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          sessionEstablished = true;
-        }
-        attempts++;
-      }
-
-      // Minimal buffer - session is already verified
-      await new Promise(resolve => setTimeout(resolve, 100)); // Reduced buffer
-
-      // Now redirect to dashboard with established session
+      // Session is created synchronously by signIn
+      // Redirect immediately - no waiting needed
       router.push('/dashboard');
-      // NO router.refresh() - no auto-refresh!
     } catch (err) {
       setError('An unexpected error occurred');
       setLoading(false);

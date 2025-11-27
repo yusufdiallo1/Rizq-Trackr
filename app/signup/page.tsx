@@ -163,27 +163,8 @@ function SignUpPageContent() {
 
       setSuccess(true);
 
-      // Wait for Supabase to establish the session and verify it's set
-      // Optimized for fast redirects (max 2 seconds)
-      let sessionEstablished = false;
-      let attempts = 0;
-      const maxAttempts = 8; // Reduced from 10
-
-      while (!sessionEstablished && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 200)); // Reduced from 300ms
-
-        // Check if session exists
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          sessionEstablished = true;
-        }
-        attempts++;
-      }
-
-      // Minimal buffer - session is already verified
-      await new Promise(resolve => setTimeout(resolve, 100)); // Reduced from 500ms
-
-      // Now redirect to dashboard with established session
+      // Session is created synchronously by signUp
+      // Redirect immediately - no waiting needed
       router.push('/dashboard');
     } catch (err) {
       setError('An unexpected error occurred');
