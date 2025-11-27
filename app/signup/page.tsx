@@ -164,13 +164,13 @@ function SignUpPageContent() {
       setSuccess(true);
 
       // Wait for Supabase to establish the session and verify it's set
-      // This prevents redirect loops where dashboard checks auth before session is ready
+      // Optimized for fast redirects (max 2 seconds)
       let sessionEstablished = false;
       let attempts = 0;
-      const maxAttempts = 10;
+      const maxAttempts = 8; // Reduced from 10
 
       while (!sessionEstablished && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 200)); // Reduced from 300ms
 
         // Check if session exists
         const { data: { session } } = await supabase.auth.getSession();
@@ -180,8 +180,8 @@ function SignUpPageContent() {
         attempts++;
       }
 
-      // Additional buffer to ensure middleware processes the session
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Minimal buffer - session is already verified
+      await new Promise(resolve => setTimeout(resolve, 100)); // Reduced from 500ms
 
       // Now redirect to dashboard with established session
       router.push('/dashboard');

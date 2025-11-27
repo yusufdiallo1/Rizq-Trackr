@@ -117,12 +117,13 @@ function LoginPageContent() {
       clearPasswordAttempts();
 
       // Wait for Supabase to establish the session and verify it's set
+      // Optimized for fast redirects (max 2 seconds)
       let sessionEstablished = false;
       let attempts = 0;
-      const maxAttempts = 10;
+      const maxAttempts = 8; // Reduced for faster login
 
       while (!sessionEstablished && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 200)); // Faster polling
 
         // Check if session exists
         const { data: { session } } = await supabase.auth.getSession();
@@ -132,8 +133,8 @@ function LoginPageContent() {
         attempts++;
       }
 
-      // Additional buffer to ensure middleware processes the session
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Minimal buffer - session is already verified
+      await new Promise(resolve => setTimeout(resolve, 100)); // Reduced buffer
 
       // Now redirect to dashboard with established session
       router.push('/dashboard');

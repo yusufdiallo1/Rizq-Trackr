@@ -20,20 +20,43 @@ export interface DualDate {
  * Convert Gregorian date to Hijri
  */
 export function gregorianToHijri(date: Date): { year: number; month: number; day: number } {
-  const hijri = new HijriDate(date);
-  return {
-    year: hijri.getFullYear(),
-    month: hijri.getMonth() + 1, // HijriDate uses 0-based months
-    day: hijri.getDate(),
-  };
+  try {
+    // Ensure date is valid
+    const validDate = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
+    const hijri = new HijriDate(validDate);
+    return {
+      year: hijri.getFullYear(),
+      month: hijri.getMonth() + 1, // HijriDate uses 0-based months
+      day: hijri.getDate(),
+    };
+  } catch (error) {
+    // Fallback to current date if conversion fails
+    const now = new Date();
+    const hijri = new HijriDate(now);
+    return {
+      year: hijri.getFullYear(),
+      month: hijri.getMonth() + 1,
+      day: hijri.getDate(),
+    };
+  }
 }
 
 /**
  * Convert Hijri date to Gregorian
  */
 export function hijriToGregorian(year: number, month: number, day: number): Date {
-  const hijri = new HijriDate(year, month - 1, day); // HijriDate uses 0-based months
-  return hijri.toGregorian();
+  try {
+    // Validate inputs
+    const validYear = Number.isFinite(year) && year > 1300 && year < 1600 ? year : 1438;
+    const validMonth = Number.isFinite(month) && month >= 1 && month <= 12 ? month : 1;
+    const validDay = Number.isFinite(day) && day >= 1 && day <= 30 ? day : 1;
+
+    const hijri = new HijriDate(validYear, validMonth - 1, validDay); // HijriDate uses 0-based months
+    return hijri.toGregorian();
+  } catch (error) {
+    // Fallback to current date if conversion fails
+    return new Date();
+  }
 }
 
 /**

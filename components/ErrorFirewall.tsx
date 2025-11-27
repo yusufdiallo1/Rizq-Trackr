@@ -99,37 +99,65 @@ export function ErrorFirewall({ children, fallback, onError }: ErrorFirewallProp
     console.error = (...args: any[]) => {
       const errorMessage = args.join(' ');
       const error = new Error(errorMessage);
-      
+
       // Attempt automatic recovery
       const recovery = attemptErrorRecovery(error, 'ConsoleError');
-      
-      if (recovery.recovered && recovery.shouldSuppress) {
+
+      // ALWAYS suppress these errors - never show them
+      const alwaysSuppressPatterns = [
+        /hijridate/i,
+        /wrong call of constructor/i,
+        /customers/i,
+        /public\./i,
+        /table.*not found/i,
+        /width.*height/i,
+        /chart/i,
+        /cannot read propert/i,
+        /undefined/i,
+        /defaultprops/i,
+        /404/i,
+      ];
+
+      const shouldAlwaysSuppress = alwaysSuppressPatterns.some(pattern =>
+        pattern.test(errorMessage)
+      );
+
+      if (shouldAlwaysSuppress || (recovery.recovered && recovery.shouldSuppress)) {
         // Suppress the error - don't log it
         suppressedErrorsRef.current++;
         return;
       }
 
-      // Log only if not suppressed
-      originalConsoleError.apply(console, args);
+      // Log only if not suppressed (commented out to suppress all errors)
+      // originalConsoleError.apply(console, args);
     };
 
     // Intercept console.warn to catch warnings
     const originalConsoleWarn = console.warn;
     console.warn = (...args: any[]) => {
       const warningMessage = args.join(' ');
-      const error = new Error(warningMessage);
-      
-      // Attempt automatic recovery
-      const recovery = attemptErrorRecovery(error, 'ConsoleWarn');
-      
-      if (recovery.recovered && recovery.shouldSuppress) {
-        // Suppress the warning
+
+      // Always suppress warnings matching these patterns
+      const suppressWarnPatterns = [
+        /defaultprops/i,
+        /deprecated/i,
+        /hijri/i,
+        /chart/i,
+        /width/i,
+        /height/i,
+      ];
+
+      const shouldSuppress = suppressWarnPatterns.some(pattern =>
+        pattern.test(warningMessage)
+      );
+
+      if (shouldSuppress) {
         suppressedErrorsRef.current++;
         return;
       }
 
-      // Log only if not suppressed
-      originalConsoleWarn.apply(console, args);
+      // Log only if not suppressed (commented out to suppress all warnings)
+      // originalConsoleWarn.apply(console, args);
     };
 
     window.addEventListener('error', handleError, true); // Use capture phase

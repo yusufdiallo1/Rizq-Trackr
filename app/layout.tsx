@@ -7,6 +7,7 @@ import { LanguageProvider } from "@/lib/contexts/LanguageContext";
 import { LocationProvider } from "@/lib/contexts/LocationContext";
 import { PageTransition } from "@/components/PageTransition";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
+import { ErrorFirewall } from "@/components/ErrorFirewall";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -141,15 +142,17 @@ export default function RootLayout({
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
-        <ClientErrorBoundary>
-        <ThemeProvider>
-          <LanguageProvider>
-            <LocationProvider>
-              <PageTransition>{children}</PageTransition>
-            </LocationProvider>
-          </LanguageProvider>
-        </ThemeProvider>
-        </ClientErrorBoundary>
+        <ErrorFirewall>
+          <ClientErrorBoundary>
+            <ThemeProvider>
+              <LanguageProvider>
+                <LocationProvider>
+                  <PageTransition>{children}</PageTransition>
+                </LocationProvider>
+              </LanguageProvider>
+            </ThemeProvider>
+          </ClientErrorBoundary>
+        </ErrorFirewall>
       </body>
     </html>
   );
