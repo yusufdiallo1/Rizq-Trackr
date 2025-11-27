@@ -87,7 +87,7 @@ export function PreciousMetalsConverter({ className }: PreciousMetalsConverterPr
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
   const [ripplePosition, setRipplePosition] = useState<{ x: number; y: number } | null>(null);
   const [nisabMet, setNisabMet] = useState(false);
-  const [priceChangeIndicator, setPriceChangeIndicator] = useState<{ direction: 'up' | 'down' | null; percentage: number }>({ direction: null, percentage: 0 });
+  const [priceChangeIndicator, setPriceChangeIndicator] = useState<{ direction: 'up' | 'down' | 'neutral' | null; percentage: number }>({ direction: null, percentage: 0 });
   const currencyButtonRef = useRef<HTMLButtonElement>(null);
   const unitButtonRef = useRef<HTMLButtonElement>(null);
   const amountInputRef = useRef<HTMLInputElement>(null);
