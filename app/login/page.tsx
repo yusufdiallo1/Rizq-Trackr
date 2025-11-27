@@ -97,8 +97,14 @@ export default function LoginPage() {
         return;
       }
 
-      // Successful login - clear password attempts and go to dashboard
+      // Successful login - clear password attempts
       clearPasswordAttempts();
+
+      // Wait a brief moment for Supabase to establish the session
+      // This prevents redirect loops where dashboard checks auth before session is ready
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Now redirect to dashboard with established session
       router.push('/dashboard');
       // NO router.refresh() - no auto-refresh!
     } catch (err) {

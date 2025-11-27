@@ -157,10 +157,12 @@ export default function SignUpPage() {
       }
 
       setSuccess(true);
-      setLoading(false);
 
-      // After account creation, go DIRECTLY to dashboard
-      // No delays, no false reloads, just redirect immediately
+      // Wait a brief moment for Supabase to establish the session
+      // This prevents redirect loops where dashboard checks auth before session is ready
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Now redirect to dashboard with established session
       router.push('/dashboard');
     } catch (err) {
       setError('An unexpected error occurred');
