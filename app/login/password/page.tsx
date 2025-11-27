@@ -8,9 +8,12 @@ import { isPasswordLocked, getPasswordLockoutRemainingSeconds, recordFailedPassw
 import { AuthLayout } from '@/components/layout';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { AuthErrorBoundary } from '@/components/AuthErrorBoundary';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Database } from '@/types/database';
 
 function PasswordPageContent() {
   const router = useRouter();
+  const supabase = createClientComponentClient<Database>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -70,8 +73,23 @@ function PasswordPageContent() {
         sessionStorage.removeItem('loginEmail');
       }
 
-      // Wait a brief moment for Supabase to establish the session
-      // This prevents redirect loops where dashboard checks auth before session is ready
+      // Wait for Supabase to establish the session and verify it's set
+      let sessionEstablished = false;
+      let attempts = 0;
+      const maxAttempts = 10;
+
+      while (!sessionEstablished && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Check if session exists
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          sessionEstablished = true;
+        }
+        attempts++;
+      }
+
+      // Additional buffer to ensure middleware processes the session
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Now redirect to dashboard with established session

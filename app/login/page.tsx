@@ -9,9 +9,12 @@ import { AuthLayout } from '@/components/layout';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { AuthErrorBoundary } from '@/components/AuthErrorBoundary';
 import { GoogleSignInButton } from '@/components/GoogleSignInButton';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Database } from '@/types/database';
 
 function LoginPageContent() {
   const router = useRouter();
+  const supabase = createClientComponentClient<Database>();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -102,8 +105,23 @@ function LoginPageContent() {
       // Successful login - clear password attempts
       clearPasswordAttempts();
 
-      // Wait a brief moment for Supabase to establish the session
-      // This prevents redirect loops where dashboard checks auth before session is ready
+      // Wait for Supabase to establish the session and verify it's set
+      let sessionEstablished = false;
+      let attempts = 0;
+      const maxAttempts = 10;
+
+      while (!sessionEstablished && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Check if session exists
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          sessionEstablished = true;
+        }
+        attempts++;
+      }
+
+      // Additional buffer to ensure middleware processes the session
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Now redirect to dashboard with established session
