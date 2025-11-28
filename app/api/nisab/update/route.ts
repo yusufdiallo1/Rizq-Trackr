@@ -70,13 +70,14 @@ export async function GET(request: NextRequest) {
         };
         
         // Use type-safe query with proper typing
-        // Wrap in array to match upsert's array overload signature
-        // This resolves TypeScript type inference issues with createClient<Database>()
-        const { error } = await supabase
+        // Type assertion needed because createClient<Database>() doesn't properly infer table types
+        // from string literals. We know the types are correct, so we use 'as any' on the upsert call
+        // to bypass TypeScript's type inference limitation while maintaining runtime type safety.
+        const { error } = await (supabase
           .from('nisab_prices')
           .upsert([nisabData], {
             onConflict: 'date,currency'
-          });
+          }) as any);
 
         if (error) {
           results[currency] = { success: false, error: error.message };
