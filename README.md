@@ -1,6 +1,6 @@
 # Rizq Trackr - Islamic Finance Tracker!
 
-A comprehensive, modern finance management application built with Next.js 14, designed specifically for Muslims to track income, expenses, savings, and calculate Zakat obligations according to Islamic principles.
+A comprehensive, modern finance management application built with Next.js 14, designed specifically for Muslims to track income, expenses, savings, and calculate Zakat obligations according to Islamic principles
 
 ## 🌟 Overview
 
