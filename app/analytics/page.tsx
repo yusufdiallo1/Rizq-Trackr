@@ -259,7 +259,7 @@ export default function AnalyticsPage() {
   };
 
   // Shared tooltip for category pie charts (income & expenses) – matches dashboard style
-  const renderCategoryTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ value: number; payload: CategoryData }> }) => {
+  const renderCategoryTooltip = ({ active, payload }: { active?: boolean; payload?: readonly { value: number; payload: CategoryData }[] }) => {
     if (!active || !payload || !payload.length) return null;
     const dataPoint = payload[0];
     const name = dataPoint?.payload?.name ?? '';

@@ -1,0 +1,43 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  // Enable TypeScript validation
+  "typescript.validate.enable": true,
+  "javascript.validate.enable": true,
+
+  // Show errors inline as you type
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.suggest.autoImports": true,
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+
+  // Format on save
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+
+  // Highlight problems
+  "problems.decorations.enabled": true,
+
+  // TypeScript specific settings
+  "typescript.preferences.quoteStyle": "single",
+  "typescript.preferences.importModuleSpecifier": "relative",
+
+  // Next.js specific
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+
+  // Exclude from file watcher
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.next/**": true
+  },
+
+  // Recommended extensions prompt
+  "extensions.ignoreRecommendations": false
+}
