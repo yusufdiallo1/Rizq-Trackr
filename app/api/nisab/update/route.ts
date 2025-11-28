@@ -69,15 +69,13 @@ export async function GET(request: NextRequest) {
             currency,
         };
         
-        // Use type-safe query with proper typing
-        // Type assertion needed because createClient<Database>() doesn't properly infer table types
-        // from string literals. We know the types are correct, so we use 'as any' on the upsert call
-        // to bypass TypeScript's type inference limitation while maintaining runtime type safety.
+        // Upsert nisab data (upsert on conflict with date+currency)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase
-          .from('nisab_prices')
+          .from('nisab_prices') as any)
           .upsert([nisabData], {
             onConflict: 'date,currency'
-          }) as any);
+          });
 
         if (error) {
           results[currency] = { success: false, error: error.message };

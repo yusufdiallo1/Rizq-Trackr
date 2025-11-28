@@ -8,8 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "validate": "npm run type-check && npm run build",
-    "pre-deploy": "npm run type-check && echo '✅ Type check passed! Safe to deploy.'"
+    "check-types": "bash scripts/check-supabase-types.sh",
+    "validate": "npm run build",
+    "pre-deploy": "npm run check-types && echo '✅ Supabase type check passed! Safe to deploy.'"
   },
   "dependencies": {
     "@supabase/auth-helpers-nextjs": "^0.8.7",
