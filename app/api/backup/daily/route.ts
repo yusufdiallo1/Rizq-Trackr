@@ -44,7 +44,8 @@ export async function GET(request: NextRequest) {
     const { data: userData, error: usersError } = await supabase
       .from('income_entries')
       .select('user_id')
-      .limit(1000);
+      .limit(1000)
+      .returns<{ user_id: string }[]>();
 
     if (usersError) {
       return NextResponse.json(
