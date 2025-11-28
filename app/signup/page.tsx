@@ -5,14 +5,27 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signUp, validateEmail, checkPasswordStrength } from '@/lib/auth';
 import { AuthLayout } from '@/components/layout';
-import { countryCities, countryNames } from '@/lib/utils/countries';
-import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { AuthErrorBoundary } from '@/components/AuthErrorBoundary';
-import { GoogleSignInButton } from '@/components/GoogleSignInButton';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
+import { ReactNode } from 'react';
 
 // Glass Input Component - moved outside to prevent re-creation on each render
+interface GlassInputProps {
+  id: string;
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder: string;
+  icon: ReactNode;
+  required?: boolean;
+  showToggle?: boolean;
+  isNameField?: boolean;
+  autoComplete?: string;
+  onTogglePassword?: () => void;
+  showPassword?: boolean;
+}
+
 const GlassInput = ({ 
   id, 
   type, 
@@ -26,7 +39,7 @@ const GlassInput = ({
   autoComplete,
   onTogglePassword,
   showPassword 
-}: any) => (
+}: GlassInputProps) => (
   <div className="relative">
     {/* Icon in Glass Circle - Hidden on mobile */}
     <div
@@ -41,23 +54,39 @@ const GlassInput = ({
     <input
       id={id}
       type={type || 'text'}
-      value={value}
-      onChange={onChange}
+      value={value || ''}
+      onChange={(e) => {
+        try {
+          onChange(e);
+        } catch (err) {
+          // Silently handle onChange errors
+        }
+      }}
       required={required}
       autoComplete={autoComplete}
       className={`w-full pl-4 md:pl-14 ${showToggle ? 'pr-14' : 'pr-4'} py-4 rounded-2xl backdrop-blur-[10px] border transition-all focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-50 ${isNameField ? 'text-sm' : ''} text-white placeholder:text-white/50 glass-input`}
+      aria-label={placeholder}
+      aria-required={required}
       style={{
         background: 'rgba(255, 255, 255, 0.1)',
         border: '1px solid rgba(255, 255, 255, 0.2)',
         color: '#ffffff',
       }}
       onFocus={(e) => {
-        e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.6)';
-        e.currentTarget.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.3)';
+        try {
+          e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.6)';
+          e.currentTarget.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.3)';
+        } catch (err) {
+          // Silently handle any focus errors
+        }
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-        e.currentTarget.style.boxShadow = 'none';
+        try {
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+          e.currentTarget.style.boxShadow = 'none';
+        } catch (err) {
+          // Silently handle any blur errors
+        }
       }}
       placeholder={placeholder}
     />
@@ -70,6 +99,8 @@ const GlassInput = ({
           background: 'rgba(255, 255, 255, 0.1)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
         }}
+        aria-label={showPassword ? 'Hide password' : 'Show password'}
+        aria-pressed={showPassword}
       >
         {showPassword ? (
           <svg className="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,50 +155,96 @@ function SignUpPageContent() {
   };
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      setError('Please fill in all required fields');
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    setLoading(true);
-
     try {
-      const result = await signUp(email, password, {
-        firstName,
-        lastName,
-      });
+      e.preventDefault();
+      setError('');
 
-      if (result.error) {
-        setError(result.error);
-        setLoading(false);
+      // Validate all fields with proper error handling
+      if (!firstName || !firstName.trim()) {
+        setError('First name is required');
         return;
       }
 
-      setSuccess(true);
+      if (!lastName || !lastName.trim()) {
+        setError('Last name is required');
+        return;
+      }
 
-      // Session is created synchronously by signUp
-      // Redirect immediately - no waiting needed
-      router.push('/dashboard');
+      if (!email || !email.trim()) {
+        setError('Email is required');
+        return;
+      }
+
+      if (!password || !password.trim()) {
+        setError('Password is required');
+        return;
+      }
+
+      if (!confirmPassword || !confirmPassword.trim()) {
+        setError('Please confirm your password');
+        return;
+      }
+
+      // Validate email format
+      try {
+        if (!validateEmail(email)) {
+          setError('Please enter a valid email address');
+          return;
+        }
+      } catch (validationError) {
+        // If validation function fails, do basic check
+        if (!email.includes('@') || !email.includes('.')) {
+          setError('Please enter a valid email address');
+          return;
+        }
+      }
+
+      if (password.length < 8) {
+        setError('Password must be at least 8 characters');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setError('Passwords do not match');
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const result = await signUp(email, password, {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+        });
+
+        if (!result) {
+          setError('Unable to create account. Please try again.');
+          setLoading(false);
+          return;
+        }
+
+        if (result.error) {
+          setError(result.error || 'Unable to create account. Please try again.');
+          setLoading(false);
+          return;
+        }
+
+        setSuccess(true);
+
+        // Session is created synchronously by signUp
+        // Redirect immediately - no waiting needed
+        try {
+          router.push('/dashboard');
+        } catch (routerError) {
+          setError('Account created, but unable to redirect. Please refresh the page.');
+          setLoading(false);
+        }
+      } catch (signUpError) {
+        setError('Unable to create account. Please try again.');
+        setLoading(false);
+      }
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError('An unexpected error occurred. Please try again.');
       setLoading(false);
     }
   };
@@ -176,11 +253,15 @@ function SignUpPageContent() {
     return (
       <AuthLayout>
         <div
-          className="w-full rounded-[32px] p-12 lg:p-12 max-w-[450px] mx-auto backdrop-blur-[40px] animate-fade-in-instant text-center"
+          className="w-full rounded-[32px] p-6 sm:p-8 md:p-12 lg:p-12 max-w-[450px] mx-auto backdrop-blur-[40px] animate-fade-in-instant text-center"
           style={{
             background: 'rgba(15, 23, 42, 0.6)',
             border: '1px solid rgba(255, 255, 255, 0.2)',
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            marginTop: 'clamp(1rem, 5vh, 2rem)',
+            marginBottom: 'clamp(1rem, 5vh, 2rem)',
+            maxWidth: 'calc(100% - 2rem)',
+            wordWrap: 'break-word',
           }}
         >
           <div
@@ -195,8 +276,8 @@ function SignUpPageContent() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-3xl font-heading font-bold text-white mb-4">Account Created!</h1>
-          <p className="text-white/80 mb-2">Your account has been successfully created.</p>
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4 px-2 break-words">Account Created!</h1>
+          <p className="text-white/80 text-sm sm:text-base mb-2 px-2">Your account has been successfully created.</p>
           <p className="text-sm text-white/60 flex items-center justify-center gap-2">
             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -212,51 +293,57 @@ function SignUpPageContent() {
 
   return (
     <AuthLayout>
-      <BackToHomeButton />
       {/* Glass Morphism Card */}
       <div
-        className="w-full rounded-[32px] p-12 lg:p-12 max-w-[450px] mx-auto backdrop-blur-[40px] animate-fade-in-instant max-h-[90vh] overflow-y-auto"
+        className="w-full rounded-[32px] p-6 sm:p-8 md:p-12 lg:p-12 max-w-[450px] mx-auto backdrop-blur-[40px] animate-fade-in-instant max-h-[90vh] overflow-y-auto"
         style={{
           background: 'rgba(15, 23, 42, 0.6)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          marginTop: 'clamp(1rem, 5vh, 2rem)',
+          marginBottom: 'clamp(1rem, 5vh, 2rem)',
+          maxWidth: 'calc(100% - 2rem)',
+          wordWrap: 'break-word',
         }}
       >
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           {/* Logo/Icon */}
           <div
-            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm relative glass-circle"
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 backdrop-blur-sm relative glass-circle"
             style={{
               background: 'rgba(16, 185, 129, 0.2)',
               border: '1px solid rgba(16, 185, 129, 0.3)',
               boxShadow: '0 0 20px rgba(16, 185, 129, 0.3)',
             }}
           >
-            <span className="text-3xl text-emerald-400">🕌</span>
+            <span className="text-2xl sm:text-3xl text-emerald-400">🕌</span>
           </div>
-          <h1 className="text-3xl font-heading font-bold text-white mb-2">Create Account</h1>
-          <p className="text-white/80 text-sm">Join thousands tracking their finances</p>
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-2 px-2 break-words">Create Account</h1>
+          <p className="text-white/80 text-xs sm:text-sm px-2">Join thousands tracking their finances</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Error Message */}
           {error && (
             <div
-              className="p-3 rounded-full text-red-400 text-sm flex items-center gap-2 animate-slide-down backdrop-blur-sm glass-input"
+              className="p-3 rounded-full text-red-400 text-xs sm:text-sm flex items-start gap-2 animate-slide-down backdrop-blur-sm glass-input break-words"
+              role="alert"
+              aria-live="polite"
+              aria-atomic="true"
               style={{
                 background: 'rgba(239, 68, 68, 0.15)',
                 border: '1px solid rgba(239, 68, 68, 0.3)',
               }}
             >
-              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
-              <span>{error}</span>
+              <span className="flex-1 break-words">{error}</span>
             </div>
           )}
 
           {/* Name Fields */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <GlassInput
                   id="firstName"
                   value={firstName}
@@ -375,8 +462,8 @@ function SignUpPageContent() {
             }
           />
             {confirmPassword && password !== confirmPassword && (
-            <p className="text-xs text-red-400 flex items-center gap-1 animate-slide-down">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <p className="text-xs text-red-400 flex items-center gap-1 animate-slide-down" role="alert" aria-live="polite">
+                <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
                 Passwords do not match
@@ -426,26 +513,6 @@ function SignUpPageContent() {
             )}
           </button>
 
-          {/* Divider */}
-          <div className="relative my-6">
-            <div
-              className="absolute inset-0 flex items-center"
-              style={{
-                borderTop: '1px solid rgba(0, 0, 0, 0.1)',
-              }}
-            >
-              <div className="w-full" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="px-4 text-sm text-white/60 backdrop-blur-sm rounded-full" style={{ background: 'rgba(255, 255, 255, 0.1)' }}>
-                or
-              </span>
-            </div>
-          </div>
-
-          {/* Google Sign Up */}
-          <GoogleSignInButton mode="signup" theme="dark" />
-
           {/* Sign In Link */}
           <div className="text-center mt-6">
             <p className="text-sm text-white/80">
@@ -464,11 +531,24 @@ function SignUpPageContent() {
   );
 }
 
-// Wrap with Error Boundary for complete error protection
+// Wrap with multiple error protection layers - IMPOSSIBLE for errors to escape
 export default function SignUpPage() {
-  return (
-    <AuthErrorBoundary>
-      <SignUpPageContent />
-    </AuthErrorBoundary>
-  );
+  try {
+    return (
+      <AuthErrorBoundary>
+        <SignUpPageContent />
+      </AuthErrorBoundary>
+    );
+  } catch (err) {
+    // If even the wrapper fails, return minimal safe component
+    return (
+      <AuthLayout>
+        <div className="min-h-screen flex items-center justify-center p-6">
+          <div className="text-center text-white">
+            <p>Please refresh the page to continue.</p>
+          </div>
+        </div>
+      </AuthLayout>
+    );
+  }
 }

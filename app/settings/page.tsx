@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCurrentUser, User, signOut } from '@/lib/auth';
+import { getCurrentUser, User, signOut, changePassword, deleteAccount } from '@/lib/auth';
 import { DashboardLayout, PageContainer } from '@/components/layout';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { useLocation } from '@/lib/contexts/LocationContext';
@@ -78,8 +78,16 @@ export default function SettingsPage() {
   };
 
   const handleChangePassword = async (data: { currentPassword: string; newPassword: string }) => {
-    // TODO: Implement password change
-    showToast('Password updated successfully!', 'success');
+    try {
+      const result = await changePassword(data.currentPassword, data.newPassword);
+      if (result.success) {
+        showToast('Password updated successfully!', 'success');
+      } else {
+        showToast(result.error || 'Failed to update password', 'error');
+      }
+    } catch (error) {
+      showToast('An unexpected error occurred', 'error');
+    }
   };
 
   const handleCurrencySelect = (selectedCurrency: string) => {
@@ -93,8 +101,19 @@ export default function SettingsPage() {
   };
 
   const handleDeleteAccount = async () => {
-    // TODO: Implement account deletion
-    showToast('Account deletion initiated.', 'success');
+    try {
+      const result = await deleteAccount();
+      if (result.success) {
+        showToast('Account deletion initiated. You will be signed out.', 'success');
+        setTimeout(() => {
+          router.push('/login');
+        }, 2000);
+      } else {
+        showToast(result.error || 'Failed to delete account. Please contact support.', 'error');
+      }
+    } catch (error) {
+      showToast('An unexpected error occurred', 'error');
+    }
   };
 
   const handleLogout = async () => {

@@ -174,11 +174,11 @@ function ExpensesPageContent() {
     setError(null);
     const { data: expense, error } = await createExpense(user.id, {
       ...data,
-      category: data.category as any,
+      category: data.category as 'Housing' | 'Food' | 'Transport' | 'Healthcare' | 'Education' | 'Charity' | 'Entertainment' | 'Bills' | 'Other',
     });
     if (error) {
       setError(error);
-      console.error('Error adding expense:', error);
+      // Error is already set in state and will be displayed to user
     } else {
       // Create attachment record if receipt image URL is provided
       if (data.receiptImageUrl && expense) {
@@ -214,7 +214,7 @@ function ExpensesPageContent() {
     if (!user) return;
     const { error } = await updateExpense(id, user.id, {
       ...data,
-      category: data.category as any,
+      category: data.category as 'Housing' | 'Food' | 'Transport' | 'Healthcare' | 'Education' | 'Charity' | 'Entertainment' | 'Bills' | 'Other',
     });
     if (!error) {
       setShowEditModal(false);

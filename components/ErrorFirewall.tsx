@@ -123,13 +123,15 @@ export function ErrorFirewall({ children, fallback, onError }: ErrorFirewallProp
       );
 
       if (shouldAlwaysSuppress || (recovery.recovered && recovery.shouldSuppress)) {
-        // Suppress the error - don't log it
+        // Suppress known non-critical errors
         suppressedErrorsRef.current++;
         return;
       }
 
-      // Log only if not suppressed (commented out to suppress all errors)
-      // originalConsoleError.apply(console, args);
+      // Log errors that are not suppressed (only in development or for critical errors)
+      if (process.env.NODE_ENV === 'development' || errorCountRef.current < 3) {
+        originalConsoleError.apply(console, args);
+      }
     };
 
     // Intercept console.warn to catch warnings

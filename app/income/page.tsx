@@ -113,11 +113,11 @@ function IncomePageContent() {
     setError(null);
     const { data: income, error } = await createIncome(user.id, {
       ...data,
-      category: data.category as any,
+      category: data.category as 'Salary' | 'Business' | 'Freelance' | 'Gifts' | 'Investments' | 'Other',
     });
     if (error) {
       setError(error);
-      console.error('Error adding income:', error);
+      // Error is already set in state and will be displayed to user
     } else {
       setShowAddModal(false);
       setError(null);
@@ -141,7 +141,7 @@ function IncomePageContent() {
     if (!user) return;
     const { error } = await updateIncome(id, user.id, {
       ...data,
-      category: data.category as any,
+      category: data.category as 'Salary' | 'Business' | 'Freelance' | 'Gifts' | 'Investments' | 'Other',
     });
     if (!error) {
       setShowEditModal(false);

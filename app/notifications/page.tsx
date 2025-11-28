@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { getCurrentUser, User } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
 import LoadingScreen from '@/components/LoadingScreen';
 
 interface Notification {

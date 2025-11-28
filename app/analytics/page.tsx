@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { getCurrentUser, User } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseAuthClient } from '@/lib/supabase';
 import LoadingScreen from '@/components/LoadingScreen';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { getTextColor, getMutedTextColor, getCardTextColor } from '@/lib/utils';
@@ -103,6 +103,7 @@ export default function AnalyticsPage() {
     const startDate = new Date(now.getFullYear(), now.getMonth() - monthsBack, 1);
 
     // Fetch income, expenses, and zakat in parallel for faster load
+    const supabase = getSupabaseAuthClient();
     const [
       { data: incomeData },
       { data: expensesData },
@@ -257,7 +258,7 @@ export default function AnalyticsPage() {
   };
 
   // Shared tooltip for category pie charts (income & expenses) – matches dashboard style
-  const renderCategoryTooltip = ({ active, payload }: any) => {
+  const renderCategoryTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ value: number; payload: CategoryData }> }) => {
     if (!active || !payload || !payload.length) return null;
     const dataPoint = payload[0];
     const name = dataPoint?.payload?.name ?? '';
@@ -629,7 +630,7 @@ export default function AnalyticsPage() {
                 <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                     <Pie
-                      data={incomeByCategory as any}
+                      data={incomeByCategory}
                       cx="50%"
                       cy="50%"
                       innerRadius={60}
@@ -691,7 +692,7 @@ export default function AnalyticsPage() {
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
-                      data={expensesByCategory as any}
+                      data={expensesByCategory}
                       cx="50%"
                       cy="50%"
                       innerRadius={60}

@@ -39,12 +39,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get all active users (you might want to filter by last activity)
-    // Note: Using type assertion since users table may not be in Database type
-    const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('id')
-      .limit(100) as { data: Array<{ id: string }> | null; error: any };
+    // Get all unique user IDs from income_entries table
+    // This ensures we only backup users who have actual data
+    const { data: userData, error: usersError } = await supabase
+      .from('income_entries')
+      .select('user_id')
+      .limit(1000);
 
     if (usersError) {
       return NextResponse.json(
@@ -53,7 +53,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (!users || users.length === 0) {
+    // Extract unique user IDs
+    const uniqueUserIds = userData 
+      ? Array.from(new Set(userData.map(entry => entry.user_id)))
+      : [];
+
+    if (uniqueUserIds.length === 0) {
       return NextResponse.json({
         success: true,
         message: 'No users found to backup',
@@ -63,7 +68,7 @@ export async function GET(request: NextRequest) {
     }
 
     const results = await Promise.allSettled(
-      users.map((user) => createBackup(user.id))
+      uniqueUserIds.map((userId) => createBackup(userId))
     );
 
     const successful = results.filter((r) => r.status === 'fulfilled' && r.value.success).length;
@@ -76,7 +81,10 @@ export async function GET(request: NextRequest) {
       failed,
     });
   } catch (error) {
-    console.error('Error in daily backup:', error);
+    // Log error (in production, this should go to error tracking service)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error in daily backup:', error);
+    }
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

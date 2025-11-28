@@ -605,7 +605,7 @@ export function ZakatTutorial({ isOpen, onClose }: ZakatTutorialProps) {
         <div className="flex-1 overflow-hidden px-6 py-6 relative">
           <div className="relative h-full overflow-y-auto" style={{ scrollBehavior: 'smooth' }}>
             <div 
-              className={`${getTextColor(theme)} transition-all duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] ${
+              className={`${getTextColor(theme)} transition-all duration-700 ease-in-out ${
                 isAnimating 
                   ? slideDirection === 'right' 
                     ? 'translate-x-full opacity-0 scale-95' 

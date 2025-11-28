@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "./globals-mobile.css";
+import "./globals-liquid-glass.css";
 import { ThemeProvider } from "@/lib/contexts/ThemeContext";
 import { LanguageProvider } from "@/lib/contexts/LanguageContext";
 import { LocationProvider } from "@/lib/contexts/LocationContext";
 import { PageTransition } from "@/components/PageTransition";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { ErrorFirewall } from "@/components/ErrorFirewall";
+import { SafeWrapper } from "@/components/SafeWrapper";
+import { LiquidGlassProvider } from "@/components/LiquidGlassProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,20 +29,20 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://rizqtrackr.com'),
+  metadataBase: new URL('https://www.rizqtrackr.com'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://rizqtrackr.com',
+    url: 'https://www.rizqtrackr.com',
     siteName: 'Rizq Trackr',
     title: 'Rizq Trackr - Islamic Finance Tracker',
     description: 'Track your income, expenses, and zakat payments with Rizq Trackr. The comprehensive Islamic finance management app for Muslims.',
     images: [
       {
-        url: 'https://rizqtrackr.com/opengraph-image',
+        url: 'https://www.rizqtrackr.com/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Rizq Trackr - Islamic Finance Tracker',
@@ -51,7 +54,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Rizq Trackr - Islamic Finance Tracker',
     description: 'Track your income, expenses, and zakat payments with Rizq Trackr.',
-    images: ['https://rizqtrackr.com/opengraph-image'],
+    images: ['https://www.rizqtrackr.com/og-image.png'],
   },
   robots: {
     index: true,
@@ -108,23 +111,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
-        
-        {/* Additional Open Graph meta tags for better compatibility */}
-        <meta property="og:image" content="https://rizqtrackr.com/opengraph-image" />
-        <meta property="og:image:secure_url" content="https://rizqtrackr.com/opengraph-image" />
-        <meta property="og:image:type" content="image/png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="Rizq Trackr - Islamic Finance Tracker" />
-        
-        {/* Twitter Card meta tags */}
-        <meta name="twitter:image" content="https://rizqtrackr.com/opengraph-image" />
-        <meta name="twitter:image:alt" content="Rizq Trackr - Islamic Finance Tracker" />
-        
-        {/* Additional meta tags for link previews */}
-        <meta name="og:url" content="https://rizqtrackr.com" />
-        <link rel="image_src" href="https://rizqtrackr.com/opengraph-image" />
-        
+
         {/* Comprehensive Favicon Links for Maximum Compatibility */}
         <link rel="icon" type="image/svg+xml" href="/icon.svg" />
         <link rel="icon" type="image/svg+xml" href="https://rizqtrackr.com/icon.svg" />
@@ -140,7 +127,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#f59e0b" />
         
         {/* Site verification and branding */}
-        <link rel="canonical" href="https://rizqtrackr.com" />
+        <link rel="canonical" href="https://www.rizqtrackr.com" />
         
         {/* Structured Data for Rich Search Results */}
         <script
@@ -151,7 +138,7 @@ export default function RootLayout({
               "@type": "WebApplication",
               "name": "Rizq Trackr",
               "description": "Track your income, expenses, and zakat payments with Rizq Trackr. The comprehensive Islamic finance management app for Muslims.",
-              "url": "https://rizqtrackr.com",
+              "url": "https://www.rizqtrackr.com",
               "applicationCategory": "FinanceApplication",
               "operatingSystem": "Web",
               "offers": {
@@ -164,10 +151,10 @@ export default function RootLayout({
                 "ratingValue": "5",
                 "ratingCount": "1"
               },
-              "logo": "https://rizqtrackr.com/icon.svg",
-              "image": "https://rizqtrackr.com/opengraph-image",
-              "screenshot": "https://rizqtrackr.com/opengraph-image",
-              "thumbnailUrl": "https://rizqtrackr.com/opengraph-image",
+              "logo": "https://www.rizqtrackr.com/icon.svg",
+              "image": "https://www.rizqtrackr.com/og-image.png",
+              "screenshot": "https://www.rizqtrackr.com/og-image.png",
+              "thumbnailUrl": "https://www.rizqtrackr.com/og-image.png",
               "featureList": [
                 "Income Tracking",
                 "Expense Management",
@@ -185,17 +172,21 @@ export default function RootLayout({
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
-        <ErrorFirewall>
-          <ClientErrorBoundary>
-            <ThemeProvider>
-              <LanguageProvider>
-                <LocationProvider>
-                  <PageTransition>{children}</PageTransition>
-                </LocationProvider>
-              </LanguageProvider>
-            </ThemeProvider>
-          </ClientErrorBoundary>
-        </ErrorFirewall>
+        <SafeWrapper>
+          <ErrorFirewall>
+            <ClientErrorBoundary>
+              <ThemeProvider>
+                <LanguageProvider>
+                  <LocationProvider>
+                    <LiquidGlassProvider>
+                      <PageTransition>{children}</PageTransition>
+                    </LiquidGlassProvider>
+                  </LocationProvider>
+                </LanguageProvider>
+              </ThemeProvider>
+            </ClientErrorBoundary>
+          </ErrorFirewall>
+        </SafeWrapper>
       </body>
     </html>
   );

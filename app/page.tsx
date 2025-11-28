@@ -20,7 +20,7 @@ const HomepageCTA = lazy(() => import('@/components/HomepageCTA').then(m => ({ d
 export default function Home() {
   const router = useRouter();
   const { theme } = useTheme();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email: string; firstName?: string; lastName?: string; fullName?: string } | null>(null);
   const [showDashboardButton, setShowDashboardButton] = useState(false);
   const [supabaseInitialized, setSupabaseInitialized] = useState(false);
 
