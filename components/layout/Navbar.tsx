@@ -194,7 +194,7 @@ export function Navbar({ user }: NavbarProps) {
         className="w-full max-w-6xl px-4 tablet:px-6 rounded-full py-3 tablet:py-4 flex justify-between items-center backdrop-blur-md transition-all duration-300 relative pointer-events-auto"
         style={{
           background: navBackground,
-          border: `1px solid ${navBorder}`,
+          border: 'none',
           boxShadow: isScrolled 
             ? theme === 'dark'
               ? '0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(16, 185, 129, 0.2), 0 0 30px rgba(245, 158, 11, 0.15)' 
