@@ -70,11 +70,11 @@ export async function GET(request: NextRequest) {
         };
         
         // Use type-safe query with proper typing
-        // Use table name as const to help TypeScript infer the type
-        const tableName = 'nisab_prices' as const;
+        // Wrap in array to match upsert's array overload signature
+        // This resolves TypeScript type inference issues with createClient<Database>()
         const { error } = await supabase
-          .from(tableName)
-          .upsert(nisabData, {
+          .from('nisab_prices')
+          .upsert([nisabData], {
             onConflict: 'date,currency'
           });
 
