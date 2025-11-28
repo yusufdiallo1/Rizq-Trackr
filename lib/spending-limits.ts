@@ -161,7 +161,7 @@ export async function checkSpendingLimits(userId: string): Promise<SpendingAlert
       query = query.eq('category', limit.category);
     }
 
-    const { data: expenses, error } = await query;
+    const { data: expenses, error } = await query.returns<{ amount: number }[]>();
 
     if (error) {
       console.error('Error checking spending limits:', error);
@@ -228,7 +228,7 @@ export async function getSpendingProgress(userId: string): Promise<Array<{
       query = query.eq('category', limit.category);
     }
 
-    const { data: expenses } = await query;
+    const { data: expenses } = await query.returns<{ amount: number }[]>();
 
     const currentSpending = expenses?.reduce((sum, e) => sum + (e.amount || 0), 0) || 0;
     const percentage = Math.min((currentSpending / limit.limit_amount) * 100, 100);
