@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     description: 'Track your income, expenses, and zakat payments with Rizq Trackr. The comprehensive Islamic finance management app for Muslims.',
     images: [
       {
-        url: 'https://www.rizqtrackr.com/og-image.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Rizq Trackr - Islamic Finance Tracker',
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Rizq Trackr - Islamic Finance Tracker',
     description: 'Track your income, expenses, and zakat payments with Rizq Trackr.',
-    images: ['https://www.rizqtrackr.com/og-image.png'],
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
