@@ -3,7 +3,7 @@
  * Allows users to set spending limits and receive notifications when exceeded
  */
 
-import { supabase } from './supabase';
+import { createSupabaseClient } from './supabase';
 
 export interface SpendingLimit {
   id: string;
@@ -148,6 +148,7 @@ export async function checkSpendingLimits(userId: string): Promise<SpendingAlert
     const { start, end } = getDateRangeForPeriod(limit.period);
 
     // Query expenses for this period
+    const supabase = createSupabaseClient();
     let query = supabase
       .from('expense_entries')
       .select('amount')
@@ -215,6 +216,7 @@ export async function getSpendingProgress(userId: string): Promise<Array<{
   for (const limit of limits) {
     const { start, end } = getDateRangeForPeriod(limit.period);
 
+    const supabase = createSupabaseClient();
     let query = supabase
       .from('expense_entries')
       .select('amount')

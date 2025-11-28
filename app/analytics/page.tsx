@@ -39,6 +39,7 @@ interface CategoryData {
   name: string;
   value: number;
   percentage: number;
+  [key: string]: any; // Index signature required by recharts
 }
 
 interface QuickStats {
