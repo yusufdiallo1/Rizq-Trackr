@@ -61,12 +61,12 @@ export async function GET(request: NextRequest) {
         type NisabPriceInsert = Database['public']['Tables']['nisab_prices']['Insert'];
         
         const nisabData: NisabPriceInsert = {
-          date: today,
-          gold_price_per_gram: prices.goldPerGram,
-          silver_price_per_gram: prices.silverPerGram,
-          nisab_gold_value: nisab.goldBased,
-          nisab_silver_value: nisab.silverBased,
-          currency,
+            date: today,
+            gold_price_per_gram: prices.goldPerGram,
+            silver_price_per_gram: prices.silverPerGram,
+            nisab_gold_value: nisab.goldBased,
+            nisab_silver_value: nisab.silverBased,
+            currency,
         };
         
         // Use type-safe query with proper typing

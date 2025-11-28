@@ -81,7 +81,7 @@ export default function SettingsPage() {
     try {
       const result = await changePassword(data.currentPassword, data.newPassword);
       if (result.success) {
-        showToast('Password updated successfully!', 'success');
+    showToast('Password updated successfully!', 'success');
       } else {
         showToast(result.error || 'Failed to update password', 'error');
       }

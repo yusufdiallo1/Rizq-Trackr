@@ -30,15 +30,31 @@ export function Navbar({ user }: NavbarProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(!!user);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Check authentication status
+  // Check authentication status - NON-BLOCKING, deferred
   useEffect(() => {
+    // Use user prop if available, otherwise check in background
+    if (user) {
+      setIsAuthenticated(true);
+      return;
+    }
+
+    // Defer auth check to avoid blocking render
     const checkAuth = async () => {
-      const currentUser = await getCurrentUser();
-      setIsAuthenticated(!!currentUser);
+      try {
+        const currentUser = await getCurrentUser();
+        setIsAuthenticated(!!currentUser);
+      } catch (error) {
+        setIsAuthenticated(false);
+      }
     };
-    checkAuth();
-    const interval = setInterval(checkAuth, 3000);
-    return () => clearInterval(interval);
+
+    // Use requestIdleCallback or setTimeout to defer
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      requestIdleCallback(checkAuth, { timeout: 500 });
+    } else {
+      setTimeout(checkAuth, 0);
+    }
+    // Removed interval - unnecessary polling
   }, [user]);
 
   useEffect(() => {
@@ -57,6 +73,13 @@ export function Navbar({ user }: NavbarProps) {
     const handleClickOutside = (event: Event) => {
       const target = event.target as Node | null;
       if (!target) return;
+
+      // Check if click is inside the language menu - don't close if it is
+      const clickedElement = target as HTMLElement;
+      const isLanguageMenu = clickedElement.closest('[data-language-menu="true"]') !== null;
+      if (isLanguageMenu) {
+        return; // Don't close if clicking language menu
+      }
 
       // Check if click is inside the user menu container or any interactive element within it
       if (userMenuRef.current && userMenuRef.current.contains(target)) {
@@ -458,28 +481,6 @@ export function Navbar({ user }: NavbarProps) {
                     {t('nav.settings')}
                   </Link>
 
-                  {/* Back to Home Link */}
-                  <Link
-                    href="/"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowUserMenu(false);
-                      // Set flag to show Dashboard button on homepage
-                      if (typeof window !== 'undefined') {
-                        sessionStorage.setItem('showDashboardButton', 'true');
-                      }
-                    }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                    }}
-                    className={`w-full text-left px-4 py-2 text-sm font-body ${textColor} hover:${theme === 'dark' ? 'bg-slate-700' : 'bg-gray-50'} transition-colors flex items-center gap-2`}
-                    style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    Back to Home
-                  </Link>
 
                   {/* Change Language Button */}
                   <button
@@ -511,7 +512,20 @@ export function Navbar({ user }: NavbarProps) {
 
                   {/* Language Submenu */}
                   {showLanguageSubmenu && (
-                    <div className="pl-4 pr-2 py-1" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+                    <div 
+                      className="pl-4 pr-2 py-1"
+                      data-language-menu="true"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }} 
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                      }}
+                      onMouseUp={(e) => {
+                        e.stopPropagation();
+                      }}
+                      style={{ pointerEvents: 'auto' }}
+                    >
                       {languages.map((lang) => (
                         <button
                           key={lang.code}
@@ -520,8 +534,12 @@ export function Navbar({ user }: NavbarProps) {
                             e.stopPropagation();
                             setLanguage(lang.code);
                             setShowLanguageSubmenu(false);
+                            // Don't close the parent menu - keep it open
                           }}
                           onMouseDown={(e) => {
+                            e.stopPropagation();
+                          }}
+                          onMouseUp={(e) => {
                             e.stopPropagation();
                           }}
                           className={`w-full text-left px-4 py-2 text-sm font-body ${textColor} hover:${theme === 'dark' ? 'bg-slate-700' : 'bg-gray-50'} transition-colors flex items-center gap-2 rounded-lg ${

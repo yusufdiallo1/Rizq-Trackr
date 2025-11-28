@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     // Log error (in production, this should go to error tracking service)
     if (process.env.NODE_ENV === 'development') {
-      console.error('Error in daily backup:', error);
+    console.error('Error in daily backup:', error);
     }
     return NextResponse.json(
       { success: false, error: 'Internal server error' },

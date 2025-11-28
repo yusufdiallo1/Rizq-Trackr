@@ -5,16 +5,21 @@ import type { NextRequest } from 'next/server';
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
-  // Create Supabase client to refresh session
+  // NON-BLOCKING: Create Supabase client and refresh session in background
+  // Don't await - let it happen asynchronously to avoid blocking requests
+  try {
   const supabase = createMiddlewareClient({ req, res });
 
-  // Refresh session if expired - this is important for maintaining auth state
-  await supabase.auth.getSession();
+    // Fire and forget - don't block the request
+    supabase.auth.getSession().catch(() => {
+      // Silently handle session refresh errors - don't block request
+    });
+  } catch (error) {
+    // If Supabase initialization fails, continue anyway
+  }
 
-  // NO REDIRECTS - Let pages handle their own auth
-  // This prevents automatic refreshing and unwanted redirects
-  // Pages will show their own loading states while checking auth
-
+  // Return immediately - don't wait for session refresh
+  // Pages will handle their own auth checks asynchronously
   return res;
 }
 
@@ -33,5 +38,7 @@ export const config = {
     '/login',
     '/signup',
     '/forgot-password'
+    // NOTE: Public pages (help, contact, privacy, terms) are NOT in matcher
+    // This makes them accessible without authentication
   ],
 };

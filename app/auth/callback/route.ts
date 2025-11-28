@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
+  try {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
   const error = requestUrl.searchParams.get('error');
@@ -11,9 +12,9 @@ export async function GET(request: NextRequest) {
 
   // If there's an OAuth error, redirect to login with error message
   if (error) {
-    console.error('OAuth error:', error, error_description);
     const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('error', error_description || error);
+      const errorMessage = error_description || error || 'Authentication failed';
+      loginUrl.searchParams.set('error', encodeURIComponent(errorMessage));
     return NextResponse.redirect(loginUrl);
   }
 
@@ -23,23 +24,27 @@ export async function GET(request: NextRequest) {
       const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
       if (exchangeError) {
-        console.error('Error exchanging code for session:', exchangeError);
         const loginUrl = new URL('/login', request.url);
-        loginUrl.searchParams.set('error', 'Authentication failed. Please try again.');
+          loginUrl.searchParams.set('error', encodeURIComponent('Authentication failed. Please try again.'));
         return NextResponse.redirect(loginUrl);
       }
 
       // Session established successfully, redirect to dashboard
       return NextResponse.redirect(new URL('/dashboard', request.url));
     } catch (err) {
-      console.error('Unexpected error in OAuth callback:', err);
       const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('error', 'An unexpected error occurred.');
+        loginUrl.searchParams.set('error', encodeURIComponent('An unexpected error occurred. Please try again.'));
       return NextResponse.redirect(loginUrl);
     }
   }
 
   // No code provided, redirect to login
   return NextResponse.redirect(new URL('/login', request.url));
+  } catch (err) {
+    // If everything fails, redirect to login
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('error', encodeURIComponent('An unexpected error occurred. Please try again.'));
+    return NextResponse.redirect(loginUrl);
+  }
 }
 

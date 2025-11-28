@@ -496,13 +496,21 @@ function ExpensesPageContent() {
                 <p className="iphone-summary-date">Monitor your spending</p>
               </div>
               <motion.button
-                onClick={() => setShowAddModal(true)}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowAddModal(true);
+                }}
                 className="iphone-button iphone-button-primary"
                 style={{
                   minHeight: '48px',
                   padding: '0.75rem 1.5rem',
                   background: '#f97373',
                   border: '1px solid #b91c1c',
+                  cursor: 'pointer',
+                  zIndex: 10,
+                  position: 'relative',
                 }}
                 whileHover={prefersReducedMotion ? {} : { scale: 1.05 }}
                 whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
@@ -831,13 +839,23 @@ function ExpensesPageContent() {
                 <h3 className={`font-bold text-2xl mb-2 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>No expenses yet</h3>
                 <p className={`mb-6 max-w-md mx-auto ${theme === 'dark' ? 'text-white/80' : 'text-slate-600'}`}>Add your first expense entry</p>
               <button
-                onClick={() => setShowAddModal(true)}
-                  className="px-8 py-3 rounded-2xl font-bold text-white inline-flex items-center gap-2 transition-all active:scale-95 bg-rose-400 border border-rose-500"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowAddModal(true);
+                }}
+                className="px-8 py-3 rounded-2xl font-bold text-white inline-flex items-center gap-2 transition-all active:scale-95 bg-rose-400 border border-rose-500"
+                style={{
+                  cursor: 'pointer',
+                  zIndex: 10,
+                  position: 'relative',
+                }}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                  Add Expense
+                Add Expense
               </button>
             </div>
           ) : (

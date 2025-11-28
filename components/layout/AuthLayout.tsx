@@ -84,12 +84,13 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
       {/* Right Side - Form Area (Full width on mobile, half on desktop) */}
       <div 
-        className="flex-1 flex items-center justify-center p-6 lg:p-12 relative"
+        className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-12 relative pt-16 sm:pt-6"
         style={{ 
           background: 'linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%)',
+          paddingTop: 'clamp(4rem, 10vh, 6rem)',
         }}
       >
-        <div className="w-full max-w-md relative z-10">
+        <div className="w-full max-w-md relative z-10" style={{ maxWidth: 'calc(100% - 1rem)' }}>
           {children}
         </div>
       </div>

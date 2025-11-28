@@ -13,12 +13,17 @@ export function HomepageHero() {
   const [isMobile, setIsMobile] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
-  // Detect mobile
+  // Detect mobile and tablet (straight phone) vs desktop (tilted phone)
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const checkDevice = () => {
+      const width = window.innerWidth;
+      // Mobile (< 768px) and Tablet (768px - 1024px) = straight
+      // Desktop (>= 1024px) = tilted
+      setIsMobile(width < 1024);
+    };
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
   }, []);
 
   const features = [
@@ -429,23 +434,23 @@ export function HomepageHero() {
 
           {/* Right Side - Animated App Demo */}
           <div className="flex justify-center lg:justify-end mt-12 lg:mt-0 opacity-100 translate-y-0">
-            <div className="relative w-full max-w-[380px]">
+            <div className="relative w-full" style={{ maxWidth: isMobile ? '280px' : '380px' }}>
               {/* iPhone 17 Pro Max Frame - Realistic Design */}
               <div 
                 className="relative mx-auto transition-all duration-700"
                 style={{
                   background: '#000000',
-                  borderRadius: '47px',
+                  borderRadius: isMobile ? '35px' : '47px',
                   boxShadow: `
                     0 0 0 1px rgba(255, 255, 255, 0.05),
                     0 25px 70px rgba(0, 0, 0, 0.7),
                     inset 0 0 0 1px rgba(255, 255, 255, 0.03)
                   `,
                   animation: 'floatPhone 3s ease-in-out infinite',
-                  transform: 'rotate(-2deg)',
-                  padding: '8px',
+                  transform: isMobile ? 'rotate(0deg) scale(0.75)' : 'rotate(-2deg)',
+                  padding: isMobile ? '6px' : '8px',
                   width: '100%',
-                  maxWidth: '380px',
+                  maxWidth: isMobile ? '280px' : '380px',
                 }}
               >
                 {/* Screen Content */}
@@ -453,8 +458,8 @@ export function HomepageHero() {
                   className="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800"
                   style={{ 
                     aspectRatio: '430/932',
-                    minHeight: '600px',
-                    borderRadius: '39px',
+                    minHeight: isMobile ? '450px' : '600px',
+                    borderRadius: isMobile ? '29px' : '39px',
                     border: '1px solid rgba(0, 0, 0, 0.8)',
                   }}
                 >
@@ -462,10 +467,10 @@ export function HomepageHero() {
                   <div 
                     className="absolute top-3 left-1/2 transform -translate-x-1/2 z-30"
                     style={{
-                      width: '126px',
-                      height: '37px',
+                      width: isMobile ? '94px' : '126px',
+                      height: isMobile ? '28px' : '37px',
                       background: '#000000',
-                      borderRadius: '19px',
+                      borderRadius: isMobile ? '14px' : '19px',
                       border: '1px solid rgba(255, 255, 255, 0.08)',
                       boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.5), 0 1px 1px rgba(0, 0, 0, 0.3)',
                     }}
@@ -563,8 +568,8 @@ export function HomepageHero() {
                   <div 
                     className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10"
                     style={{
-                      width: '134px',
-                      height: '5px',
+                      width: isMobile ? '100px' : '134px',
+                      height: isMobile ? '4px' : '5px',
                       background: 'rgba(255, 255, 255, 0.4)',
                       borderRadius: '3px',
                       boxShadow: '0 0 8px rgba(255, 255, 255, 0.15)',
@@ -584,19 +589,19 @@ export function HomepageHero() {
                     top: `${18 + index * 22}%`,
                     left: index % 2 === 0 ? '-12%' : '102%',
                     opacity: currentFeature === index ? 1 : 0.25,
-                    transform: `translateY(${currentFeature === index ? '-15px' : '0'}) scale(${currentFeature === index ? 1.2 : 0.85})`,
+                    transform: `translateY(${currentFeature === index ? '-15px' : '0'}) scale(${currentFeature === index ? (isMobile ? 0.9 : 1.2) : (isMobile ? 0.65 : 0.85)})`,
                     animation: currentFeature === index ? 'floatPhone 2s ease-in-out infinite' : 'none',
                     animationDelay: `${index * 0.2}s`,
                     boxShadow: currentFeature === index ? `0 0 30px ${feature.color}80` : 'none',
-                    width: '56px',
-                    height: '56px',
+                    width: isMobile ? '42px' : '56px',
+                    height: isMobile ? '42px' : '56px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
                   <span 
-                    className="text-2xl"
+                    className={isMobile ? 'text-xl' : 'text-2xl'}
                     style={{
                       filter: currentFeature === index ? `drop-shadow(0 0 10px ${feature.color}80)` : 'none',
                       animation: currentFeature === index ? 'pulse 2s ease-in-out infinite' : 'none',

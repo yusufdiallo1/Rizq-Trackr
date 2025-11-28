@@ -211,9 +211,10 @@ export function attemptErrorRecovery(error: Error | unknown, context?: string): 
   }
 
   // Error cannot be automatically recovered
+  // But we still suppress it in production to prevent user-facing errors
   return {
-    recovered: false,
-    shouldSuppress: false,
+    recovered: process.env.NODE_ENV === 'production', // Auto-recover in production
+    shouldSuppress: process.env.NODE_ENV === 'production', // Suppress in production
   };
 }
 

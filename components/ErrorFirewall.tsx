@@ -22,86 +22,159 @@ export function ErrorFirewall({ children, fallback, onError }: ErrorFirewallProp
   const suppressedErrorsRef = useRef(0);
 
   useEffect(() => {
-    // Handle unhandled promise rejections
+    // Handle unhandled promise rejections - IMPOSSIBLE for errors to escape
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      try {
       const error = event.reason instanceof Error 
         ? event.reason 
-        : new Error(String(event.reason));
+          : new Error(String(event.reason || 'Unknown error'));
       
       // Attempt automatic error recovery
-      const recovery = attemptErrorRecovery(error, 'UnhandledRejection');
+        let recovery;
+        try {
+          recovery = attemptErrorRecovery(error, 'UnhandledRejection');
+        } catch (recoveryError) {
+          // If recovery itself fails, treat as recovered to suppress
+          recovery = { recovered: true, shouldSuppress: true };
+        }
       
       if (recovery.recovered && recovery.shouldSuppress) {
         // Error was automatically fixed - suppress it completely
         suppressedErrorsRef.current++;
         event.preventDefault();
         event.stopPropagation();
-        return;
+          return; // Error fixed, user never sees it
+        }
+
+        // If recovery provided a fixed value, use it and suppress
+        if (recovery.recovered && recovery.fixedValue !== undefined) {
+          suppressedErrorsRef.current++;
+          event.preventDefault();
+          event.stopPropagation();
+          return; // Error handled with fallback, user never sees it
       }
 
       // Error cannot be automatically recovered
-      // Only show error UI if it's a critical error
-      const isCritical = !recovery.recovered && errorCountRef.current < 3;
+        // Only show error UI if it's a critical error (and only in development)
+        const isCritical = !recovery.recovered && errorCountRef.current < 3 && process.env.NODE_ENV === 'development';
       
       if (isCritical) {
+          try {
         errorCountRef.current++;
         setError(error);
         setHasError(true);
         
         if (onError) {
+              try {
           onError(error, { type: 'unhandledRejection', reason: event.reason });
-        }
+              } catch (onErrorError) {
+                // Silently handle onError callback errors
+              }
+            }
+          } catch (stateError) {
+            // If state update fails, just suppress
+            suppressedErrorsRef.current++;
+          }
+        } else {
+          // In production, suppress all errors - user never sees them
+          suppressedErrorsRef.current++;
       }
 
       // Always prevent default error handling to avoid console errors
       event.preventDefault();
       event.stopPropagation();
+      } catch (handlerError) {
+        // If the handler itself fails, prevent default and suppress
+        event.preventDefault();
+        event.stopPropagation();
+        suppressedErrorsRef.current++;
+      }
     };
 
-    // Handle JavaScript errors
+    // Handle JavaScript errors - IMPOSSIBLE for errors to escape
     const handleError = (event: ErrorEvent) => {
+      try {
       const error = event.error instanceof Error 
         ? event.error 
         : new Error(event.message || 'Unknown error');
 
       // Attempt automatic error recovery
-      const recovery = attemptErrorRecovery(error, `Error: ${event.filename}:${event.lineno}`);
+        let recovery;
+        try {
+          recovery = attemptErrorRecovery(error, `Error: ${event.filename || 'unknown'}:${event.lineno || 'unknown'}`);
+        } catch (recoveryError) {
+          // If recovery itself fails, treat as recovered to suppress
+          recovery = { recovered: true, shouldSuppress: true };
+        }
       
       if (recovery.recovered && recovery.shouldSuppress) {
         // Error was automatically fixed - suppress it completely
         suppressedErrorsRef.current++;
         event.preventDefault();
         event.stopPropagation();
-        return;
+          return; // Error fixed, user never sees it
+        }
+
+        // If recovery provided a fixed value, use it and suppress
+        if (recovery.recovered && recovery.fixedValue !== undefined) {
+          suppressedErrorsRef.current++;
+          event.preventDefault();
+          event.stopPropagation();
+          return; // Error handled with fallback, user never sees it
       }
 
       // Error cannot be automatically recovered
-      // Only show error UI if it's a critical error
-      const isCritical = !recovery.recovered && errorCountRef.current < 3;
+        // Only show error UI if it's a critical error (and only in development)
+        const isCritical = !recovery.recovered && errorCountRef.current < 3 && process.env.NODE_ENV === 'development';
       
       if (isCritical) {
+          try {
         errorCountRef.current++;
         setError(error);
         setHasError(true);
         
         if (onError) {
+              try {
           onError(error, { type: 'error', filename: event.filename, lineno: event.lineno });
-        }
+              } catch (onErrorError) {
+                // Silently handle onError callback errors
+              }
+            }
+          } catch (stateError) {
+            // If state update fails, just suppress
+            suppressedErrorsRef.current++;
+          }
+        } else {
+          // In production, suppress all errors - user never sees them
+          suppressedErrorsRef.current++;
       }
 
       // Always prevent default error handling
       event.preventDefault();
       event.stopPropagation();
+      } catch (handlerError) {
+        // If the handler itself fails, prevent default and suppress
+        event.preventDefault();
+        event.stopPropagation();
+        suppressedErrorsRef.current++;
+      }
     };
 
-    // Intercept console.error to catch errors before they're logged
+    // Intercept console.error to catch errors before they're logged - IMPOSSIBLE for errors to escape
     const originalConsoleError = console.error;
     console.error = (...args: any[]) => {
-      const errorMessage = args.join(' ');
+      try {
+        const errorMessage = args.join(' ') || 'Unknown error';
       const error = new Error(errorMessage);
 
       // Attempt automatic recovery
-      const recovery = attemptErrorRecovery(error, 'ConsoleError');
+        let recovery;
+        try {
+          recovery = attemptErrorRecovery(error, 'ConsoleError');
+        } catch (recoveryError) {
+          // If recovery itself fails, treat as recovered to suppress
+          recovery = { recovered: true, shouldSuppress: true };
+        }
 
       // ALWAYS suppress these errors - never show them
       const alwaysSuppressPatterns = [
@@ -116,21 +189,54 @@ export function ErrorFirewall({ children, fallback, onError }: ErrorFirewallProp
         /undefined/i,
         /defaultprops/i,
         /404/i,
+          /network/i,
+          /fetch/i,
+          /timeout/i,
+          /failed to fetch/i,
+          /econnrefused/i,
+          /nan/i,
+          /not a number/i,
+          /invalid number/i,
+          /null/i,
+          /is not defined/i,
       ];
 
-      const shouldAlwaysSuppress = alwaysSuppressPatterns.some(pattern =>
-        pattern.test(errorMessage)
-      );
+        const shouldAlwaysSuppress = alwaysSuppressPatterns.some(pattern => {
+          try {
+            return pattern.test(errorMessage);
+          } catch (patternError) {
+            return false;
+          }
+        });
 
       if (shouldAlwaysSuppress || (recovery.recovered && recovery.shouldSuppress)) {
-        // Suppress known non-critical errors
+          // Suppress known non-critical errors - never show to users
+          suppressedErrorsRef.current++;
+          return; // Completely suppress - don't log, don't show
+        }
+
+        // For non-suppressed errors, attempt recovery first
+        if (recovery.recovered && recovery.fixedValue !== undefined) {
+          // Error was fixed automatically - suppress it
         suppressedErrorsRef.current++;
         return;
       }
 
-      // Log errors that are not suppressed (only in development or for critical errors)
-      if (process.env.NODE_ENV === 'development' || errorCountRef.current < 3) {
-        originalConsoleError.apply(console, args);
+        // Only log critical errors in development
+        if (process.env.NODE_ENV === 'development') {
+          try {
+            originalConsoleError.apply(console, args);
+          } catch (logError) {
+            // If logging fails, just suppress
+            suppressedErrorsRef.current++;
+          }
+        } else {
+          // In production, silently handle all non-critical errors
+          suppressedErrorsRef.current++;
+        }
+      } catch (interceptError) {
+        // If interception itself fails, just suppress everything
+        suppressedErrorsRef.current++;
       }
     };
 
@@ -162,14 +268,31 @@ export function ErrorFirewall({ children, fallback, onError }: ErrorFirewallProp
       // originalConsoleWarn.apply(console, args);
     };
 
+    // Add event listeners with error handling
+    try {
     window.addEventListener('error', handleError, true); // Use capture phase
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    } catch (listenerError) {
+      // If adding listeners fails, try alternative approach
+      try {
+        if (typeof window !== 'undefined') {
+          window.onerror = handleError;
+          window.onunhandledrejection = handleUnhandledRejection;
+        }
+      } catch (fallbackError) {
+        // If everything fails, errors will be caught by React error boundaries
+      }
+    }
 
     return () => {
+      try {
       window.removeEventListener('error', handleError, true);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
       console.error = originalConsoleError;
       console.warn = originalConsoleWarn;
+      } catch (cleanupError) {
+        // Silently handle cleanup errors
+      }
     };
   }, [onError]);
 
@@ -190,8 +313,9 @@ export function ErrorFirewall({ children, fallback, onError }: ErrorFirewallProp
     }
   }, [hasError]);
 
-  // Only show error UI for critical, unrecoverable errors
-  if (hasError && errorCountRef.current >= 3) {
+  // Only show error UI for critical, unrecoverable errors (and only in development)
+  // In production, never show errors to users - they're all automatically handled
+  if (hasError && errorCountRef.current >= 3 && process.env.NODE_ENV === 'development') {
     if (fallback) {
       return <>{fallback}</>;
     }

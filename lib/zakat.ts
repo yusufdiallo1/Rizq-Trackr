@@ -2,6 +2,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 import { fetchMetalPrices, calculateNisab, getNisabThreshold as getNisabFromAPI, convertNisabToCurrency } from './nisab-api';
 import { hijriToGregorian, gregorianToHijri, getCurrentTimeWithTimezone } from './hijri-calendar';
+import { addNotification } from './in-app-notifications';
 
 function getSupabaseClient() {
   return createClientComponentClient<Database>();
@@ -295,6 +296,21 @@ export async function recordZakatPayment(
       });
 
     if (error) throw error;
+
+    // Add notification for zakat payment
+    try {
+      addNotification(userId, {
+        type: 'zakat',
+        title: `Zakat Paid: $${amount.toFixed(2)}`,
+        message: `You recorded a zakat payment of $${amount.toFixed(2)}`,
+        severity: 'success',
+        actionLabel: 'View Zakat',
+        actionUrl: '/zakat'
+      });
+    } catch (notifError) {
+      console.error('Error creating zakat payment notification:', notifError);
+      // Don't fail the zakat payment if notifications fail
+    }
 
     return { success: true, error: null };
   } catch (error) {

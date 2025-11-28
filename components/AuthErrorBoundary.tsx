@@ -46,22 +46,43 @@ export class AuthErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    try {
     // Silently catch errors - don't log to console
     // ErrorFirewall handles all error suppression
     this.setState({
       error,
       errorInfo,
     });
+    } catch (stateError) {
+      // If state update fails, error is still caught by boundary
+      // Just prevent it from propagating
+    }
   }
 
   handleReset = () => {
+    try {
     this.setState({
       hasError: false,
       error: null,
       errorInfo: null,
     });
     // Reload the page to reset state
+      try {
+        if (typeof window !== 'undefined' && window.location) {
     window.location.reload();
+        }
+      } catch (reloadError) {
+        // If reload fails, try href
+        if (typeof window !== 'undefined' && window.location) {
+          window.location.href = window.location.href;
+        }
+      }
+    } catch (resetError) {
+      // If reset fails, try hard reload
+      if (typeof window !== 'undefined' && window.location) {
+        window.location.href = '/';
+      }
+    }
   };
 
   render() {

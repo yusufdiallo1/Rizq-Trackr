@@ -1,6 +1,7 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 import { getTotalIncome, getTotalExpenses } from './database';
+import { addNotification } from './in-app-notifications';
 
 function getSupabaseClient() {
   return createClientComponentClient<Database>();
@@ -169,6 +170,21 @@ export async function createSavingsGoal(
       return { data: null, error: error.message };
     }
 
+    // Add notification for savings goal creation
+    try {
+      addNotification(userId, {
+        type: 'goal',
+        title: `Savings Goal Created: ${goalName}`,
+        message: `Target: $${targetAmount.toFixed(2)}${targetDate ? ` by ${targetDate}` : ''}`,
+        severity: 'success',
+        actionLabel: 'View Goal',
+        actionUrl: '/savings'
+      });
+    } catch (notifError) {
+      console.error('Error creating savings goal notification:', notifError);
+      // Don't fail the goal creation if notifications fail
+    }
+
     return { data, error: null };
   } catch (err) {
     console.error('Unexpected error creating savings goal:', err);
@@ -257,6 +273,23 @@ export async function updateSavingsGoal(
     if (error) {
       console.error('Error updating savings goal:', error);
       return { data: null, error: error.message };
+    }
+
+    // Add notification for savings goal update (if current_amount was updated)
+    if (data.current_amount !== undefined && goal) {
+      try {
+        addNotification(userId, {
+          type: 'goal',
+          title: `Savings Updated: ${goal.name}`,
+          message: `Updated to $${goal.current_amount.toFixed(2)} of $${goal.target_amount.toFixed(2)}`,
+          severity: 'success',
+          actionLabel: 'View Goal',
+          actionUrl: '/savings'
+        });
+      } catch (notifError) {
+        console.error('Error creating savings update notification:', notifError);
+        // Don't fail the update if notifications fail
+      }
     }
 
     return { data: goal, error: null };

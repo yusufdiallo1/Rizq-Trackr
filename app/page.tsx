@@ -22,124 +22,145 @@ export default function Home() {
   const { theme } = useTheme();
   const [user, setUser] = useState<{ id: string; email: string; firstName?: string; lastName?: string; fullName?: string } | null>(null);
   const [showDashboardButton, setShowDashboardButton] = useState(false);
-  const [supabaseInitialized, setSupabaseInitialized] = useState(false);
+  // Removed supabaseInitialized - not needed, page renders immediately
 
   useEffect(() => {
     let mounted = true;
     let subscription: { unsubscribe: () => void } | null = null;
 
-    // Initialize Supabase client with error handling
-    const initializeSupabase = () => {
-      try {
-        // Check if environment variables are available
-        if (typeof window === 'undefined') return null;
-        
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-        
-        if (!supabaseUrl || !supabaseKey) {
-          console.warn('Supabase environment variables not configured');
-          return null;
-        }
+    // Initialize Supabase client - NON-BLOCKING, happens in background
+    let supabase: ReturnType<typeof createClientComponentClient<Database>> | null = null;
+    try {
+      if (typeof window !== 'undefined') {
+        supabase = createClientComponentClient<Database>();
+      }
+    } catch (error) {
+      // Silently fail - page renders anyway
+    }
 
-        const supabase = createClientComponentClient<Database>();
-        setSupabaseInitialized(true);
-        return supabase;
-      } catch (error) {
-        console.error('Failed to initialize Supabase client:', error);
-        return null;
+    // Defer auth check to next tick - don't block initial render
+    const checkAuth = async () => {
+      // Use requestIdleCallback or setTimeout to defer
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          if (!mounted) return;
+          performAuthCheck();
+        }, { timeout: 1000 });
+      } else {
+        // Fallback for browsers without requestIdleCallback
+        setTimeout(() => {
+          if (!mounted) return;
+          performAuthCheck();
+        }, 0);
       }
     };
 
-    const supabase = initializeSupabase();
+    const performAuthCheck = async () => {
+      if (!supabase || !mounted) return;
 
-    // Initial auth check - show page immediately, check in background
-    const checkAuth = async () => {
-      if (!supabase) {
-        // Supabase not available - page can still render
+      try {
+        // Quick session check instead of full auth check
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
+
+        if (session?.user) {
+          // User is authenticated - get user data
+          try {
+          const currentUser = await getCurrentUser();
+            if (mounted && currentUser) {
+            setUser(currentUser);
+              // Check sessionStorage for dashboard button
+              if (typeof window !== 'undefined' && window.sessionStorage) {
+                try {
+              const shouldShow = sessionStorage.getItem('showDashboardButton') === 'true';
+              if (shouldShow) {
+                setShowDashboardButton(true);
+                sessionStorage.removeItem('showDashboardButton');
+              }
+                } catch (storageError) {
+                  // Silently handle storage errors
+                }
+              }
+            }
+          } catch (userError) {
+            // If getCurrentUser fails, use session data
+            if (mounted && session.user) {
+              setUser({
+                id: session.user.id,
+                email: session.user.email || '',
+                firstName: session.user.user_metadata?.first_name,
+                lastName: session.user.user_metadata?.last_name,
+                fullName: session.user.user_metadata?.full_name,
+              });
+            }
+          }
+        } else {
+          if (mounted) {
+            setUser(null);
+            setShowDashboardButton(false);
+          }
+        }
+      } catch (error) {
+        // Silently fail - page already rendered
         if (mounted) {
           setUser(null);
           setShowDashboardButton(false);
         }
-        return;
-      }
-
-      try {
-        const authenticated = await isAuthenticated();
-        if (!mounted) return;
-
-        if (authenticated) {
-          const currentUser = await getCurrentUser();
-          if (mounted) {
-          setUser(currentUser);
-          // Only check sessionStorage AFTER confirming user is authenticated
-          if (typeof window !== 'undefined') {
-            const shouldShow = sessionStorage.getItem('showDashboardButton') === 'true';
-            if (shouldShow) {
-              setShowDashboardButton(true);
-              // Clear the flag after using it
-              sessionStorage.removeItem('showDashboardButton');
-            }
-          }
-          }
-        } else {
-          if (mounted) {
-          setUser(null); // Clear user if not authenticated
-          setShowDashboardButton(false); // Hide button if not authenticated
-          }
-        }
-      } catch (error) {
-        // Silently fail - user can still view homepage
-        if (mounted) {
-        setUser(null);
-        setShowDashboardButton(false);
-        }
       }
     };
 
-    // Don't block rendering - check auth in background
+    // Start auth check in background - non-blocking
     checkAuth();
 
-    // Listen for auth state changes (login/logout) - only on actual auth events
+    // Set up auth state listener - only for SIGNED_IN/SIGNED_OUT events
     if (supabase) {
       try {
-        const {
+    const {
           data: { subscription: authSubscription },
-        } = supabase.auth.onAuthStateChange(async (event, session) => {
-          if (!mounted) return;
-          
-          // Only update state on actual auth events, not on every state change
-          if (event === 'SIGNED_IN' && session) {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
+          // Only handle actual auth events
+          if (event === 'SIGNED_IN' && session?.user) {
             try {
-              const currentUser = await getCurrentUser();
-              if (mounted) {
-              setUser(currentUser);
+        const currentUser = await getCurrentUser();
+        if (mounted) {
+        setUser(currentUser);
               }
             } catch (error) {
-              // Silently fail
-            }
-          } else if (event === 'SIGNED_OUT') {
-            if (mounted) {
-            setUser(null); // Clear user on logout
-            setShowDashboardButton(false); // Hide button on logout
-            }
-          } else if (event === 'TOKEN_REFRESHED' && session) {
-            // Don't update user on token refresh - it's the same user
-            // This prevents unnecessary re-renders
+              // Use session data as fallback
+              if (mounted && session.user) {
+                setUser({
+                  id: session.user.id,
+                  email: session.user.email || '',
+                  firstName: session.user.user_metadata?.first_name,
+                  lastName: session.user.user_metadata?.last_name,
+                  fullName: session.user.user_metadata?.full_name,
+                });
+              }
+        }
+      } else if (event === 'SIGNED_OUT') {
+        if (mounted) {
+              setUser(null);
+              setShowDashboardButton(false);
+        }
           }
-          // Don't clear user on other events - let the initial check handle it
+          // Ignore TOKEN_REFRESHED and other events
         });
         subscription = authSubscription;
       } catch (error) {
-        // Supabase auth listener failed - page can still render
-        console.error('Failed to set up auth state listener:', error);
+        // Silently fail - page already rendered
       }
     }
 
     return () => {
       mounted = false;
       if (subscription) {
-        subscription.unsubscribe();
+        try {
+      subscription.unsubscribe();
+        } catch (err) {
+          // Silently handle unsubscribe errors
+        }
       }
     };
   }, []); // Empty deps - only run once on mount

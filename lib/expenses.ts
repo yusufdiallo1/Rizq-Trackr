@@ -1,7 +1,7 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 import { checkSpendingLimits } from './spending-limits';
-import { createSpendingLimitNotification, hasNotifiedToday, markLimitNotified } from './in-app-notifications';
+import { createSpendingLimitNotification, hasNotifiedToday, markLimitNotified, addNotification } from './in-app-notifications';
 import { gregorianToHijri } from './hijri-calendar';
 import { getCurrentTimeWithTimezone } from './hijri-calendar';
 
@@ -59,6 +59,21 @@ export async function createExpense(
     if (error) {
       console.error('Error creating expense:', error);
       return { data: null, error: error.message };
+    }
+
+    // Add notification for expense creation
+    try {
+      addNotification(userId, {
+        type: 'transaction',
+        title: `Expense Added: $${data.amount.toFixed(2)}`,
+        message: `You added $${data.amount.toFixed(2)} in ${data.category} expense`,
+        severity: 'info',
+        actionLabel: 'View Expenses',
+        actionUrl: '/expenses'
+      });
+    } catch (notifError) {
+      console.error('Error creating expense notification:', notifError);
+      // Don't fail the expense creation if notifications fail
     }
 
     // Check spending limits after adding expense

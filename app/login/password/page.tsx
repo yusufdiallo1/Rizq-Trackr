@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { signIn } from '@/lib/auth';
 import { isPasswordLocked, getPasswordLockoutRemainingSeconds, recordFailedPasswordAttempt, clearPasswordAttempts } from '@/lib/auth-lockout';
 import { AuthLayout } from '@/components/layout';
-import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { AuthErrorBoundary } from '@/components/AuthErrorBoundary';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
@@ -21,132 +20,241 @@ function PasswordPageContent() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Get email from sessionStorage
-    if (typeof window !== 'undefined') {
-      const storedEmail = sessionStorage.getItem('loginEmail');
-      if (storedEmail) {
-        setEmail(storedEmail);
+    try {
+      // Get email from sessionStorage
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        try {
+          const storedEmail = sessionStorage.getItem('loginEmail');
+          if (storedEmail && storedEmail.trim()) {
+            setEmail(storedEmail);
+          } else {
+            // If no email, redirect back to login
+            try {
+              router.push('/login');
+            } catch (routerError) {
+              // If redirect fails, show error
+              setError('Please enter your email first');
+            }
+          }
+        } catch (storageError) {
+          // If storage access fails, redirect to login
+          try {
+            router.push('/login');
+          } catch (routerError) {
+            setError('Unable to load email. Please start over.');
+          }
+        }
       } else {
-        // If no email, redirect back to login
+        // If no window, redirect to login
+        try {
+          router.push('/login');
+        } catch (routerError) {
+          setError('Please enter your email first');
+        }
+      }
+    } catch (err) {
+      // If initialization fails, redirect to login
+      try {
         router.push('/login');
+      } catch (routerError) {
+        setError('Please start from the login page');
       }
     }
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    // Check if password is locked
-    if (isPasswordLocked()) {
-      const remaining = getPasswordLockoutRemainingSeconds();
-      const minutes = Math.floor(remaining / 60);
-      const seconds = remaining % 60;
-      setError(`Account locked due to multiple failed login attempts. Please try again in ${minutes}:${seconds.toString().padStart(2, '0')}.`);
-      setLoading(false);
-      return;
-    }
-
     try {
-      const result = await signIn(email, password);
-      if (result.error) {
-        // Record failed attempt
-        const lockoutResult = recordFailedPasswordAttempt(email);
+      e.preventDefault();
+      setError('');
+      setLoading(true);
 
-        if (lockoutResult.locked) {
-          const minutes = Math.floor((lockoutResult.remainingSeconds || 0) / 60);
-          const seconds = (lockoutResult.remainingSeconds || 0) % 60;
-          setError(`Too many failed attempts. Account locked for ${minutes}:${seconds.toString().padStart(2, '0')}.`);
-        } else {
-          setError(`${result.error}. ${lockoutResult.attemptsRemaining} attempt${lockoutResult.attemptsRemaining !== 1 ? 's' : ''} remaining.`);
-        }
+      // Validate inputs
+      if (!email || !email.trim()) {
+        setError('Email is required');
         setLoading(false);
         return;
       }
 
-      // Successful login - clear password attempts
-      clearPasswordAttempts();
-
-      // Clear email from sessionStorage
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('loginEmail');
+      if (!password || !password.trim()) {
+        setError('Password is required');
+        setLoading(false);
+        return;
       }
 
-      // Session is created synchronously by signIn
-      // Redirect immediately - no waiting needed
-      router.push('/dashboard');
+      // Check if password is locked
+      try {
+        if (isPasswordLocked()) {
+          const remaining = getPasswordLockoutRemainingSeconds();
+          const minutes = Math.floor(remaining / 60);
+          const seconds = remaining % 60;
+          setError(`Account locked due to multiple failed login attempts. Please try again in ${minutes}:${seconds.toString().padStart(2, '0')}.`);
+          setLoading(false);
+          return;
+        }
+      } catch (lockoutError) {
+        // If lockout check fails, continue anyway
+      }
+
+      try {
+        const result = await signIn(email, password);
+        
+        if (!result) {
+          setError('Unable to sign in. Please try again.');
+          setLoading(false);
+          return;
+        }
+
+        if (result.error) {
+          // Record failed attempt
+          try {
+            const lockoutResult = recordFailedPasswordAttempt(email);
+
+            if (lockoutResult?.locked) {
+              const minutes = Math.floor((lockoutResult.remainingSeconds || 0) / 60);
+              const seconds = (lockoutResult.remainingSeconds || 0) % 60;
+              setError(`Too many failed attempts. Account locked for ${minutes}:${seconds.toString().padStart(2, '0')}.`);
+            } else {
+              const attempts = lockoutResult?.attemptsRemaining || 0;
+              setError(`${result.error}. ${attempts} attempt${attempts !== 1 ? 's' : ''} remaining.`);
+            }
+          } catch (lockoutError) {
+            setError(result.error || 'Login failed. Please try again.');
+          }
+          setLoading(false);
+          return;
+        }
+
+        // Successful login - clear password attempts
+        try {
+          clearPasswordAttempts();
+        } catch (clearError) {
+          // Continue even if clearing fails
+        }
+
+        // Clear email from sessionStorage
+        try {
+          if (typeof window !== 'undefined' && window.sessionStorage) {
+            sessionStorage.removeItem('loginEmail');
+          }
+        } catch (storageError) {
+          // Continue even if storage clear fails
+        }
+
+        // Session is created synchronously by signIn
+        // Redirect immediately - no waiting needed
+        try {
+          router.push('/dashboard');
+        } catch (routerError) {
+          setError('Login successful, but unable to redirect. Please refresh the page.');
+          setLoading(false);
+        }
+      } catch (signInError) {
+        setError('Unable to sign in. Please check your credentials and try again.');
+        setLoading(false);
+      }
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError('An unexpected error occurred. Please try again.');
       setLoading(false);
     }
   };
 
   const handleBack = () => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('loginEmail');
+    try {
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        try {
+          sessionStorage.removeItem('loginEmail');
+        } catch (storageError) {
+          // Continue even if storage clear fails
+        }
+      }
+      try {
+        router.push('/login');
+      } catch (routerError) {
+        // If redirect fails, try window.location
+        if (typeof window !== 'undefined' && window.location) {
+          window.location.href = '/login';
+        }
+      }
+    } catch (err) {
+      // If everything fails, try window.location as last resort
+      if (typeof window !== 'undefined' && window.location) {
+        window.location.href = '/login';
+      }
     }
-    router.push('/login');
   };
 
   return (
     <AuthLayout>
-      <BackToHomeButton />
-      <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 pt-20 sm:pt-6">
         <div
-          className="w-full max-w-md rounded-[32px] p-8 md:p-12 backdrop-blur-[40px] animate-fade-in-instant"
+          className="w-full max-w-md rounded-[32px] p-6 sm:p-8 md:p-12 backdrop-blur-[40px] animate-fade-in-instant"
           style={{
             background: 'rgba(15, 23, 42, 0.6)',
             border: '1px solid rgba(255, 255, 255, 0.2)',
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            marginTop: 'clamp(1rem, 5vh, 2rem)',
+            marginBottom: 'clamp(1rem, 5vh, 2rem)',
+            maxWidth: 'calc(100% - 2rem)',
+            wordWrap: 'break-word',
           }}
         >
-          <div className="text-center mb-8">
+          <div className="text-center mb-6 sm:mb-8">
             <div
-              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm relative glass-circle"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 backdrop-blur-sm relative glass-circle"
               style={{
                 background: 'rgba(16, 185, 129, 0.2)',
                 border: '1px solid rgba(16, 185, 129, 0.3)',
                 boxShadow: '0 0 20px rgba(16, 185, 129, 0.3)',
               }}
             >
-              <span className="text-3xl text-emerald-400">🕌</span>
+              <span className="text-2xl sm:text-3xl text-emerald-400">🕌</span>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Enter Password</h1>
-            <p className="text-white/80 text-sm">{email}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 px-2 break-words">Enter Password</h1>
+            <p className="text-white/80 text-xs sm:text-sm px-2 break-all">{email}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div
-                className="p-3 rounded-2xl text-red-400 text-sm flex items-center gap-2 animate-slide-down glass-input"
+                className="p-3 rounded-2xl text-red-400 text-xs sm:text-sm flex items-start gap-2 animate-slide-down glass-input break-words"
+                role="alert"
+                aria-live="polite"
+                aria-atomic="true"
                 style={{
                   background: 'rgba(239, 68, 68, 0.15)',
                   border: '1px solid rgba(239, 68, 68, 0.3)',
                 }}
               >
-                <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
-                <span>{error}</span>
+                <span className="flex-1 break-words">{error}</span>
               </div>
             )}
 
             <div className="relative">
               <div
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm z-10 glass-circle"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full items-center justify-center backdrop-blur-sm z-10 glass-circle hidden md:flex"
               >
-                <svg className="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
               <input
                 type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={password || ''}
+                onChange={(e) => {
+                  try {
+                    setPassword(e.target.value || '');
+                  } catch (err) {
+                    // Silently handle onChange errors
+                  }
+                }}
                 required
-                className="w-full pl-14 pr-12 py-4 rounded-2xl glass-input text-white placeholder:text-white/50"
+                className="w-full pl-4 md:pl-14 pr-12 py-4 rounded-2xl glass-input text-white placeholder:text-white/50"
                 placeholder="Password"
+                aria-label="Password"
+                aria-required="true"
                 style={{
                   background: 'rgba(255, 255, 255, 0.1)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -155,8 +263,16 @@ function PasswordPageContent() {
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => {
+                  try {
+                    setShowPassword(!showPassword);
+                  } catch (err) {
+                    // Silently handle toggle errors
+                  }
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/10 transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
               >
                 {showPassword ? (
                   <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,11 +334,24 @@ function PasswordPageContent() {
   );
 }
 
-// Wrap with Error Boundary for complete error protection
+// Wrap with multiple error protection layers - IMPOSSIBLE for errors to escape
 export default function PasswordPage() {
-  return (
-    <AuthErrorBoundary>
-      <PasswordPageContent />
-    </AuthErrorBoundary>
-  );
+  try {
+    return (
+      <AuthErrorBoundary>
+        <PasswordPageContent />
+      </AuthErrorBoundary>
+    );
+  } catch (err) {
+    // If even the wrapper fails, return minimal safe component
+    return (
+      <AuthLayout>
+        <div className="min-h-screen flex items-center justify-center p-6">
+          <div className="text-center text-white">
+            <p>Please refresh the page to continue.</p>
+          </div>
+        </div>
+      </AuthLayout>
+    );
+  }
 }

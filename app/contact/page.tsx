@@ -60,14 +60,6 @@ export default function ContactUsPage() {
         : 'linear-gradient(to bottom, #f8fafc, #e2e8f0, #f1f5f9)',
     }}>
 
-      {/* Back to Home Link */}
-      <div className="pt-6 px-4">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium hover:underline" style={{
-          color: theme === 'dark' ? '#10b981' : '#059669'
-        }}>
-          ← Back to Home
-        </Link>
-      </div>
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Hero Header */}
           <div 

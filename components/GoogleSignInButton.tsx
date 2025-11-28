@@ -19,12 +19,15 @@ export function GoogleSignInButton({ mode = 'signin', theme = 'dark' }: GoogleSi
       setLoading(true);
       setError('');
 
-      const redirectUrl = typeof window !== 'undefined'
-        ? `${window.location.origin}/auth/callback`
-        : '/auth/callback';
+      if (typeof window === 'undefined') {
+        setError('This feature requires a browser environment.');
+        setLoading(false);
+        return;
+      }
 
-      console.log('Initiating Google OAuth with redirect URL:', redirectUrl);
+      const redirectUrl = `${window.location.origin}/auth/callback`;
 
+      try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -37,24 +40,33 @@ export function GoogleSignInButton({ mode = 'signin', theme = 'dark' }: GoogleSi
       });
 
       if (error) {
-        console.error('Google sign-in error:', error);
-
         // Check if it's a provider not enabled error
-        if (error.message?.includes('provider') || error.message?.includes('not enabled')) {
-          setError('Google Sign-In is not configured. Please check the setup guide in GOOGLE_AUTH_SETUP.md');
-        } else {
-          setError(error.message);
+          if (error.message?.includes('provider') || error.message?.includes('not enabled') || error.message?.includes('disabled')) {
+            setError('Google Sign-In is not enabled. Please contact support or use email/password sign-in.');
+          } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+            setError('Network error. Please check your connection and try again.');
+          } else {
+            setError(error.message || 'Failed to sign in with Google. Please try again.');
+          }
+          setLoading(false);
+          return;
         }
 
+        // If we get here, OAuth was initiated successfully
+        // The browser will redirect to Google, so we don't need to do anything else
+        // Don't set loading to false - let the redirect happen
+      } catch (oauthError: any) {
+        // Handle OAuth-specific errors
+        if (oauthError?.message?.includes('provider') || oauthError?.message?.includes('not enabled')) {
+          setError('Google Sign-In is not enabled. Please contact support or use email/password sign-in.');
+        } else if (oauthError?.message?.includes('network') || oauthError?.message?.includes('fetch')) {
+          setError('Network error. Please check your connection and try again.');
+        } else {
+          setError('An unexpected error occurred. Please try again.');
+        }
         setLoading(false);
-        return;
       }
-
-      console.log('Google OAuth initiated successfully, redirecting to Google...');
-      // The user will be redirected to Google for authentication
-      // After successful auth, they'll be redirected back to /auth/callback
-    } catch (err) {
-      console.error('Unexpected error during Google sign-in:', err);
+    } catch (err: any) {
       setError('An unexpected error occurred. Please try again.');
       setLoading(false);
     }

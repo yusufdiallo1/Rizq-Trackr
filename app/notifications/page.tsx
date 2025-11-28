@@ -5,6 +5,15 @@ import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { getCurrentUser, User } from '@/lib/auth';
 import LoadingScreen from '@/components/LoadingScreen';
+import { 
+  getNotifications, 
+  deleteNotification as deleteNotificationFromStorage, 
+  markAsRead as markAsReadInStorage, 
+  markAllAsRead as markAllAsReadInStorage, 
+  clearAllNotifications,
+  InAppNotification 
+} from '@/lib/in-app-notifications';
+import { scheduleWeeklyUpdates, checkScheduledWeeklyUpdates } from '@/lib/weekly-updates';
 
 interface Notification {
   id: string;
@@ -38,78 +47,84 @@ export default function NotificationsPage() {
       }
       setUser(currentUser);
       loadNotifications(currentUser);
+      
+      // Initialize weekly updates if not already done
+      scheduleWeeklyUpdates(currentUser.id);
+      
+      // Check for scheduled weekly updates
+      checkScheduledWeeklyUpdates(currentUser.id);
+      
       setLoading(false); // Set loading false immediately after getting user
     };
     init();
   }, [router]);
 
   const loadNotifications = async (currentUser: User) => {
-    // Mock notifications - in production, fetch from database
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'transaction',
-        title: 'Income Added: $500',
-        message: 'You added $500 in Salary income',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        read: false,
-        actionLabel: 'View',
-        actionUrl: '/transactions'
-      },
-      {
-        id: '2',
-        type: 'zakat',
-        title: 'Zakat Payment Due',
-        message: 'Your Zakat of $125 is due next week',
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-        read: false,
-        actionLabel: 'Pay Now',
-        actionUrl: '/zakat'
-      },
-      {
-        id: '3',
-        type: 'goal',
-        title: 'Goal Milestone Reached!',
-        message: "You've saved 50% toward Emergency Fund",
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        read: false,
-        actionLabel: 'View Goal',
-        actionUrl: '/savings'
-      },
-      {
-        id: '4',
-        type: 'budget',
-        title: 'Budget Limit Approaching',
-        message: "You've spent 90% of your Food budget this month",
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        read: true,
-        actionLabel: 'View Budget',
-        actionUrl: '/expenses'
-      },
-      {
-        id: '5',
-        type: 'system',
-        title: 'New Feature Available',
-        message: 'Check out our new analytics dashboard',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        read: true,
-        actionLabel: 'Explore',
-        actionUrl: '/analytics'
-      },
-      {
-        id: '6',
-        type: 'transaction',
-        title: 'Expense Added: $45',
-        message: 'You added $45 in Groceries expense',
-        timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        read: true,
-        actionLabel: 'View',
-        actionUrl: '/transactions'
-      }
-    ];
+    // Load notifications from persistent storage
+    const storedNotifications = getNotifications(currentUser.id);
+    
+    // Convert InAppNotification to Notification format
+    const convertedNotifications: Notification[] = storedNotifications.map(notif => ({
+      id: notif.id,
+      type: notif.type === 'transaction' ? 'transaction' : 
+            notif.type === 'zakat' ? 'zakat' :
+            notif.type === 'goal' ? 'goal' :
+            notif.type === 'budget' ? 'budget' : 'system',
+      title: notif.title,
+      message: notif.message,
+      timestamp: notif.timestamp,
+      read: notif.read,
+      actionLabel: notif.actionLabel,
+      actionUrl: notif.actionUrl
+    }));
 
-    setNotifications(mockNotifications);
+    setNotifications(convertedNotifications);
   };
+
+  // Listen for new notifications
+  useEffect(() => {
+    if (!user) return;
+
+    const handleNewNotification = (event: CustomEvent) => {
+      const newNotif = event.detail as InAppNotification;
+      if (newNotif.user_id === user.id) {
+        const converted: Notification = {
+          id: newNotif.id,
+          type: newNotif.type === 'transaction' ? 'transaction' : 
+                newNotif.type === 'zakat' ? 'zakat' :
+                newNotif.type === 'goal' ? 'goal' :
+                newNotif.type === 'budget' ? 'budget' : 'system',
+          title: newNotif.title,
+          message: newNotif.message,
+          timestamp: newNotif.timestamp,
+          read: newNotif.read,
+          actionLabel: newNotif.actionLabel,
+          actionUrl: newNotif.actionUrl
+        };
+        setNotifications(prev => [converted, ...prev]);
+      }
+    };
+
+    window.addEventListener('new-notification', handleNewNotification as EventListener);
+    return () => {
+      window.removeEventListener('new-notification', handleNewNotification as EventListener);
+    };
+  }, [user]);
+
+  // Periodically check for scheduled weekly updates (every 5 minutes)
+  useEffect(() => {
+    if (!user) return;
+
+    const checkInterval = setInterval(() => {
+      checkScheduledWeeklyUpdates(user.id);
+      // Reload notifications to show any new weekly updates
+      if (user) {
+        loadNotifications(user);
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+
+    return () => clearInterval(checkInterval);
+  }, [user]);
 
   const getFilteredNotifications = () => {
     if (activeCategory === 'all') return notifications;
@@ -134,18 +149,30 @@ export default function NotificationsPage() {
   };
 
   const markAsRead = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    if (!user) return;
+    const success = markAsReadInStorage(user.id, id);
+    if (success) {
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    }
   };
 
   const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    if (!user) return;
+    const success = deleteNotificationFromStorage(user.id, id);
+    if (success) {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }
   };
 
   const markAllAsRead = () => {
+    if (!user) return;
+    markAllAsReadInStorage(user.id);
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
   const clearAll = () => {
+    if (!user) return;
+    clearAllNotifications(user.id);
     setNotifications([]);
   };
 

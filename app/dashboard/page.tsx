@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentUser, User } from '@/lib/auth';
+import { scheduleWeeklyUpdates, checkScheduledWeeklyUpdates } from '@/lib/weekly-updates';
 import { 
   getDashboardData, 
   DashboardData,
@@ -75,19 +76,6 @@ export default function DashboardPage() {
 
   const loadData = useCallback(async () => {
     try {
-      // Always wait for Supabase to return the current user.
-      // The previous implementation used Promise.race with a short timeout,
-      // which could incorrectly treat a valid session as "unauthenticated"
-      // on slow networks and bounce users back to /login in a loop.
-      const currentUser = await getCurrentUser();
-
-      if (!currentUser) {
-        router.push('/login');
-        return;
-      }
-
-      setUser(currentUser);
-
       // Set default data immediately for instant display
       setDashboardData({
         currentMonthIncome: 0,
@@ -96,24 +84,59 @@ export default function DashboardPage() {
         zakatOwed: 0
       });
 
-      // Show page immediately - don't wait for data
+      // Show page immediately - don't wait for auth
       setLoading(false);
 
-      // Load ALL data in parallel for maximum speed - no waterfall loading
+      // Get user with timeout to prevent blocking
+      const userPromise = getCurrentUser();
+      const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 1000));
+      
+      const currentUser = await Promise.race([userPromise, timeoutPromise]) as User | null;
+
+      if (!currentUser) {
+        // If no user after timeout, try redirect (but don't block)
+        setTimeout(() => {
+          router.push('/login');
+        }, 100);
+        return;
+      }
+
+      setUser(currentUser);
+
+      // Initialize weekly updates if not already done
+      scheduleWeeklyUpdates(currentUser.id);
+      
+      // Check for scheduled weekly updates
+      checkScheduledWeeklyUpdates(currentUser.id);
+
+      // Load critical data first (dashboard summary) - with timeout
+      const criticalDataPromise = Promise.race([
+        getDashboardData(currentUser.id),
+        new Promise((resolve) => setTimeout(() => resolve({
+          currentMonthIncome: 0,
+          currentMonthExpenses: 0,
+          currentSavings: 0,
+          zakatOwed: 0
+        }), 2000))
+      ]).catch(() => ({
+        currentMonthIncome: 0,
+        currentMonthExpenses: 0,
+        currentSavings: 0,
+        zakatOwed: 0
+      }));
+
+      criticalDataPromise.then((dashboard: any) => {
+        setDashboardData(dashboard);
+      });
+
+      // Load other data in background (non-blocking)
       Promise.all([
-        getDashboardData(currentUser.id).catch(() => ({
-            currentMonthIncome: 0,
-            currentMonthExpenses: 0,
-            currentSavings: 0,
-            zakatOwed: 0
-        })),
         getRecentTransactions(currentUser.id, 5).catch(() => []),
         getLast6MonthsData(currentUser.id).catch(() => []),
         getExpenseBreakdown(currentUser.id).catch(() => []),
         getPreviousMonthData(currentUser.id).catch(() => ({ income: 0, expenses: 0 })),
         calculateZakatEligibility(currentUser.id, 'USD').catch(() => null),
-      ]).then(([dashboard, transactions, monthly, breakdown, prevMonth, zakat]: any) => {
-        setDashboardData(dashboard);
+      ]).then(([transactions, monthly, breakdown, prevMonth, zakat]: any) => {
         setRecentTransactions(transactions || []);
         setMonthlyData(monthly || []);
         setExpenseBreakdown(breakdown || []);

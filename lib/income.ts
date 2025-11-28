@@ -1,6 +1,7 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/database';
 import { gregorianToHijri, getCurrentTimeWithTimezone } from './hijri-calendar';
+import { addNotification } from './in-app-notifications';
 
 function getSupabaseClient() {
   return createClientComponentClient<Database>();
@@ -57,6 +58,21 @@ export async function createIncome(
     if (error) {
       console.error('Error creating income:', error);
       return { data: null, error: error.message };
+    }
+
+    // Add notification for income creation
+    try {
+      addNotification(userId, {
+        type: 'transaction',
+        title: `Income Added: $${data.amount.toFixed(2)}`,
+        message: `You added $${data.amount.toFixed(2)} in ${data.category} income`,
+        severity: 'success',
+        actionLabel: 'View Income',
+        actionUrl: '/income'
+      });
+    } catch (notifError) {
+      console.error('Error creating income notification:', notifError);
+      // Don't fail the income creation if notifications fail
     }
 
     return { data: income, error: null };
