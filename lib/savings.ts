@@ -275,13 +275,13 @@ export async function updateSavingsGoal(
       return { data: null, error: error.message };
     }
 
-    // Add notification for savings goal update (if current_amount was updated)
-    if (data.current_amount !== undefined && goal) {
+    // Add notification for savings goal update
+    if (goal) {
       try {
         addNotification(userId, {
           type: 'goal',
-          title: `Savings Updated: ${goal.name}`,
-          message: `Updated to $${goal.current_amount.toFixed(2)} of $${goal.target_amount.toFixed(2)}`,
+          title: `Savings Goal Updated`,
+          message: `Updated "${goal.goal_name}" goal`,
           severity: 'success',
           actionLabel: 'View Goal',
           actionUrl: '/savings'
