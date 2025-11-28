@@ -70,6 +70,14 @@ export function LiquidGlassUpdateNotification({ onUpdate, onDismiss }: LiquidGla
     }, 500);
   };
 
+  const handleDismiss = () => {
+    // Permanently dismiss the notification
+    localStorage.setItem(`${STORAGE_KEY}-${LIQUID_GLASS_VERSION}`, 'permanent');
+    setIsVisible(false);
+    setIsDismissed(true);
+    onDismiss();
+  };
+
   const handleMaybeLater = () => {
     // Schedule notification for 3 hours later
     const threeHoursLater = Date.now() + (3 * 60 * 60 * 1000);
