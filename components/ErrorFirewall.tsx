@@ -276,7 +276,11 @@ export function ErrorFirewall({ children, fallback, onError }: ErrorFirewallProp
       // If adding listeners fails, try alternative approach
       try {
         if (typeof window !== 'undefined') {
-          window.onerror = handleError;
+          // window.onerror has different signature than addEventListener
+          window.onerror = (message, source, lineno, colno, error) => {
+            handleError(new ErrorEvent('error', { error, message: String(message), filename: source, lineno, colno }));
+            return true; // Prevent default browser error handling
+          };
           window.onunhandledrejection = handleUnhandledRejection;
         }
       } catch (fallbackError) {
